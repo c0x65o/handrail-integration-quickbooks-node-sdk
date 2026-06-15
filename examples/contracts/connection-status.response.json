@@ -11,6 +11,12 @@
     "status": "connected",
     "tenantId": "tenant_contract_123"
   },
+  "providerEnvironment": "sandbox",
+  "providerProfile": {
+    "environment": "sandbox",
+    "name": "active",
+    "status": "configured"
+  },
   "status": "connected",
   "tenantId": "tenant_contract_123"
 }

@@ -203,6 +203,12 @@ export const contractResponses = {
       status: "connected",
       tenantId: contractTenantId
     },
+    providerEnvironment: "sandbox",
+    providerProfile: {
+      environment: "sandbox",
+      name: "active",
+      status: "configured"
+    },
     status: "connected",
     tenantId: contractTenantId
   } satisfies HandrailQuickBooksConnectionStatusResponse,

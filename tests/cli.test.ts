@@ -114,8 +114,16 @@ describe("handrail-qbo CLI", () => {
       limit: 25,
       type: "asset"
     });
-    expect(JSON.parse(statusStdout.value)).toEqual(contractResponses.connectionStatus);
+    const statusOutput = JSON.parse(statusStdout.value);
+    expect(statusOutput).toEqual(contractResponses.connectionStatus);
+    expect(statusOutput.providerEnvironment).toBe("sandbox");
+    expect(statusOutput.providerProfile).toEqual({
+      environment: "sandbox",
+      name: "active",
+      status: "configured"
+    });
     expect(JSON.parse(accountsStdout.value)).toEqual(contractResponses.accounts);
+    expect(statusStdout.value).not.toMatch(/access_token|refresh_token|client_secret|clientId|clientSecret/i);
     expect(accountsStdout.value).not.toMatch(/access_token|refresh_token|client_secret/i);
   });
 

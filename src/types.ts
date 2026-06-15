@@ -55,6 +55,19 @@ export type HandrailQuickBooksConnectionStatus =
   | "reauthorization_required"
   | "disabled";
 
+export type HandrailQuickBooksProviderEnvironment = "sandbox" | "production";
+
+export type HandrailQuickBooksProviderProfileStatus =
+  | "configured"
+  | "missing"
+  | "unknown";
+
+export interface HandrailQuickBooksProviderProfileMetadata {
+  readonly environment?: HandrailQuickBooksProviderEnvironment;
+  readonly name?: string;
+  readonly status?: HandrailQuickBooksProviderProfileStatus;
+}
+
 export type HandrailQuickBooksEntityName =
   | "accounts"
   | "parties"
@@ -86,6 +99,8 @@ export interface HandrailQuickBooksConnectionSummary {
 
 export interface HandrailQuickBooksConnectionStatusResponse {
   readonly connection?: HandrailQuickBooksConnectionSummary;
+  readonly providerEnvironment?: HandrailQuickBooksProviderEnvironment;
+  readonly providerProfile?: HandrailQuickBooksProviderProfileMetadata;
   readonly status: HandrailQuickBooksConnectionStatus;
   readonly tenantId: string;
 }

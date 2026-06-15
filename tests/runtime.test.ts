@@ -37,4 +37,30 @@ describe("createQuickBooksSdkConfig", () => {
   it("falls back to the Handrail integration service base URL", () => {
     expect(createQuickBooksSdkConfig({}, {}).baseUrl).toBe(DEFAULT_HANDRAIL_QUICKBOOKS_BASE_URL);
   });
+
+  it("ignores Intuit provider credentials because the SDK only configures service access", () => {
+    const config = createQuickBooksSdkConfig(
+      {},
+      {
+        INTUIT_CLIENT_ID: "intuit-client-id",
+        INTUIT_CLIENT_SECRET: "intuit-client-secret",
+        INTUIT_ENVIRONMENT: "production",
+        [HANDRAIL_QUICKBOOKS_ENV_KEYS.apiKey]: "service-api-key",
+        [HANDRAIL_QUICKBOOKS_ENV_KEYS.baseUrl]: "https://quickbooks.example.test",
+        [HANDRAIL_QUICKBOOKS_ENV_KEYS.tenantId]: "tenant_123"
+      }
+    );
+
+    expect(config).toEqual({
+      apiKey: "service-api-key",
+      auth: undefined,
+      baseUrl: "https://quickbooks.example.test",
+      fetch: undefined,
+      retries: DEFAULT_HANDRAIL_QUICKBOOKS_RETRIES,
+      tenantId: "tenant_123",
+      timeoutMs: DEFAULT_HANDRAIL_QUICKBOOKS_TIMEOUT_MS
+    });
+    expect(JSON.stringify(config)).not.toContain("intuit-client-secret");
+    expect(JSON.stringify(config)).not.toContain("production");
+  });
 });

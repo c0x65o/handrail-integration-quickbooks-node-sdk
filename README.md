@@ -47,6 +47,7 @@ Configure the SDK explicitly in application code or through runtime env injected
 | `HANDRAIL_QBO_TENANT_ID` | Required for CLI smoke tests and recommended as the default Handrail tenant identifier for SDK calls. |
 
 No Intuit credentials belong in this package or in ERP app repositories.
+Provider environment and profile values, such as sandbox or production, are service-owned status metadata returned by diagnostics endpoints. They are not SDK constructor options, CLI flags, or ERP app credentials.
 
 The CLI reads the same env vars, or the equivalent flags:
 
@@ -141,6 +142,7 @@ Supported commands:
 - `report trial-balance` requests a trial-balance report with `--as-of` or `--as-of-date`.
 - `reconcile` runs reconciliation for an account and period.
 - `status` reads tenant connection status.
+- `status` may include sanitized service-owned provider metadata such as `providerEnvironment` and `providerProfile` when the integration service reports it.
 - `token-status` reads bounded token custody diagnostics without exposing token values.
 - `raw-import-status` reads one import batch with `--import-batch-id` or lists recent batches.
 
