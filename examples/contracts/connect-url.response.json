@@ -1,0 +1,5 @@
+{
+  "connectUrl": "https://quickbooks.example.test/oauth/connect/session_contract_123",
+  "expiresAt": "2026-06-15T20:00:00.000Z",
+  "tenantId": "tenant_contract_123"
+}

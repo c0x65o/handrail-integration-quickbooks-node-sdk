@@ -1,0 +1,12 @@
+{
+  "accountId": "acct_cash_operating",
+  "audit": {
+    "importBatchId": "batch_contract_2026_05",
+    "qboObjectId": "qbo_account_100",
+    "realmId": "realm_demo_12345",
+    "sourcePayloadRef": "raw://batch_contract_2026_05/reconciliations/recon_contract_123"
+  },
+  "difference": "0.00",
+  "reconciliationId": "recon_contract_123",
+  "status": "balanced"
+}

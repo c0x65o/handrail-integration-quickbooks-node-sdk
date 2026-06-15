@@ -1,0 +1,57 @@
+{
+  "data": [
+    {
+      "accountNumber": "1000",
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "qboObjectId": "qbo_account_100",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05/accounts/qbo_account_100",
+        "syncToken": "7"
+      },
+      "currencyCode": "USD",
+      "id": "acct_cash_operating",
+      "isActive": true,
+      "name": "Operating Cash",
+      "subtype": "checking",
+      "type": "asset"
+    },
+    {
+      "accountNumber": "2000",
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "qboObjectId": "qbo_account_200",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05/accounts/qbo_account_200",
+        "syncToken": "3"
+      },
+      "currencyCode": "USD",
+      "id": "acct_accounts_payable",
+      "isActive": true,
+      "name": "Accounts Payable",
+      "subtype": "accounts_payable",
+      "type": "liability"
+    },
+    {
+      "accountNumber": "4000",
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "qboObjectId": "qbo_account_400",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05/accounts/qbo_account_400",
+        "syncToken": "5"
+      },
+      "currencyCode": "USD",
+      "id": "acct_service_revenue",
+      "isActive": true,
+      "name": "Service Revenue",
+      "subtype": "service_fee_income",
+      "type": "income"
+    }
+  ],
+  "page": {
+    "cursor": "cursor_accounts_next",
+    "hasMore": false,
+    "limit": 25
+  }
+}

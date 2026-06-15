@@ -1,0 +1,16 @@
+{
+  "connection": {
+    "audit": {
+      "importBatchId": "batch_contract_2026_05",
+      "realmId": "realm_demo_12345",
+      "sourcePayloadRef": "raw://batch_contract_2026_05/connection"
+    },
+    "connectedAt": "2026-05-01T12:00:00.000Z",
+    "connectionId": "qbo_connection_contract",
+    "lastSyncedAt": "2026-05-31T18:30:00.000Z",
+    "status": "connected",
+    "tenantId": "tenant_contract_123"
+  },
+  "status": "connected",
+  "tenantId": "tenant_contract_123"
+}

@@ -1,0 +1,42 @@
+{
+  "data": [
+    {
+      "accountId": "acct_cash_operating",
+      "amount": "1250.00",
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "qboObjectId": "qbo_journal_entry_900:line_1",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05/journal-entries/qbo_journal_entry_900",
+        "syncToken": "1"
+      },
+      "currencyCode": "USD",
+      "description": "Customer payment deposit",
+      "id": "ledger_entry_001",
+      "partyId": "party_customer_acme",
+      "postedAt": "2026-05-15",
+      "transactionId": "txn_payment_001"
+    },
+    {
+      "accountId": "acct_service_revenue",
+      "amount": "-1250.00",
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "qboObjectId": "qbo_journal_entry_900:line_2",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05/journal-entries/qbo_journal_entry_900",
+        "syncToken": "1"
+      },
+      "currencyCode": "USD",
+      "description": "Customer payment revenue recognition",
+      "id": "ledger_entry_002",
+      "partyId": "party_customer_acme",
+      "postedAt": "2026-05-15",
+      "transactionId": "txn_payment_001"
+    }
+  ],
+  "page": {
+    "hasMore": false,
+    "limit": 50
+  }
+}

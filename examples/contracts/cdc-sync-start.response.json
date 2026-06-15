@@ -1,0 +1,11 @@
+{
+  "audit": {
+    "importBatchId": "batch_contract_2026_05",
+    "realmId": "realm_demo_12345",
+    "sourcePayloadRef": "raw://batch_contract_2026_05/sync-jobs/sync_contract_123"
+  },
+  "entity": "ledger_entries",
+  "jobId": "sync_contract_123",
+  "startedAt": "2026-06-15T19:30:00.000Z",
+  "status": "queued"
+}
