@@ -4,21 +4,106 @@
     "realmId": "realm_demo_12345",
     "sourcePayloadRef": "raw://batch_contract_2026_05/sync-jobs/sync_contract_123"
   },
+  "batch": {
+    "audit": {
+      "importBatchId": "batch_contract_2026_05",
+      "realmId": "realm_demo_12345",
+      "sourcePayloadRefs": [
+        "raw://batch_contract_2026_05/objects/Account/sync-jobs/sync_contract_123"
+      ]
+    },
+    "checkpointRefs": [
+      "checkpoint://quickbooks/tenant_contract_123/quickbooks_incremental_accounts_Account"
+    ],
+    "companyId": "realm_demo_12345",
+    "completedAt": "2026-06-15T19:45:00.000Z",
+    "deltaCounts": {
+      "changedCount": 1,
+      "failedCount": 0,
+      "insertedCount": 3,
+      "skippedCount": 2
+    },
+    "entityCounts": {
+      "accounts": 3
+    },
+    "errorCount": 0,
+    "importBatchId": "batch_contract_2026_05",
+    "jobIds": [
+      "sync_contract_123"
+    ],
+    "objectCounts": {
+      "Account": 3
+    },
+    "realmId": "realm_demo_12345",
+    "startedAt": "2026-06-15T19:30:00.000Z",
+    "status": "succeeded",
+    "syncJobRefs": [
+      "raw://batch_contract_2026_05/sync-jobs/sync_contract_123"
+    ],
+    "tenantId": "tenant_contract_123",
+    "totalObjectCount": 3,
+    "warningCount": 0
+  },
+  "checkpoint": {
+    "audit": {
+      "checkpointId": "quickbooks_incremental_accounts_Account",
+      "importBatchId": "batch_contract_2026_05",
+      "realmId": "realm_demo_12345",
+      "sourcePayloadRefs": [
+        "raw://batch_contract_2026_05",
+        "raw://batch_contract_2026_05/sync-jobs/sync_contract_123"
+      ]
+    },
+    "checkpointId": "quickbooks_incremental_accounts_Account",
+    "checkpointKind": "provider_updated_at_watermark",
+    "checkpointRef": "checkpoint://quickbooks/tenant_contract_123/quickbooks_incremental_accounts_Account",
+    "completedAt": "2026-06-15T19:45:00.000Z",
+    "cursorRefs": [
+      "raw://batch_contract_2026_05",
+      "raw://batch_contract_2026_05/objects/Account/sync-jobs/sync_contract_123"
+    ],
+    "entity": "accounts",
+    "importBatchId": "batch_contract_2026_05",
+    "jobIds": [
+      "sync_contract_123"
+    ],
+    "objectType": "Account",
+    "providerUpdatedAtWatermark": "2026-06-15T19:25:00.000Z",
+    "startedAt": "2026-06-15T19:30:00.000Z",
+    "status": "succeeded",
+    "syncJobRefs": [
+      "raw://batch_contract_2026_05/sync-jobs/sync_contract_123"
+    ],
+    "syncMode": "incremental"
+  },
   "companyId": "realm_demo_12345",
   "completedAt": "2026-06-15T19:45:00.000Z",
+  "deltaCounts": {
+    "changedCount": 1,
+    "failedCount": 0,
+    "insertedCount": 3,
+    "skippedCount": 2
+  },
   "entity": "accounts",
   "importBatchId": "batch_contract_2026_05",
-  "jobId": "sync_contract_123",
-  "objectCount": 0,
-  "objectType": "Account",
-  "retry": {
-    "source": "raw_import",
-    "retryable": false,
-    "attemptCount": 3,
-    "maxAttempts": 3,
-    "lastErrorCode": "quickbooks_fetch_failed",
-    "retryReason": "retry_exhausted"
+  "importVolume": {
+    "entityCounts": {
+      "accounts": 3
+    },
+    "errorCount": 0,
+    "objectCount": 3,
+    "objectCounts": {
+      "Account": 3
+    },
+    "totalObjectCount": 3,
+    "warningCount": 0
   },
+  "jobId": "sync_contract_123",
+  "objectCount": 3,
+  "objectType": "Account",
   "startedAt": "2026-06-15T19:30:00.000Z",
-  "status": "failed"
+  "status": "succeeded",
+  "syncMode": "incremental",
+  "syncPhase": "delta_sync",
+  "tenantId": "tenant_contract_123"
 }

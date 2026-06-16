@@ -1,0 +1,40 @@
+{
+  "audit": {
+    "importBatchId": "batch_contract_2026_05",
+    "realmId": "realm_demo_12345",
+    "sourcePayloadRefs": [
+      "raw://batch_contract_2026_05/objects/Account/sync-jobs/sync_contract_123"
+    ]
+  },
+  "checkpointRefs": [
+    "checkpoint://quickbooks/tenant_contract_123/quickbooks_incremental_accounts_Account"
+  ],
+  "companyId": "realm_demo_12345",
+  "completedAt": "2026-06-15T19:45:00.000Z",
+  "deltaCounts": {
+    "changedCount": 1,
+    "failedCount": 0,
+    "insertedCount": 3,
+    "skippedCount": 2
+  },
+  "entityCounts": {
+    "accounts": 3
+  },
+  "errorCount": 0,
+  "importBatchId": "batch_contract_2026_05",
+  "jobIds": [
+    "sync_contract_123"
+  ],
+  "objectCounts": {
+    "Account": 3
+  },
+  "realmId": "realm_demo_12345",
+  "startedAt": "2026-06-15T19:30:00.000Z",
+  "status": "succeeded",
+  "syncJobRefs": [
+    "raw://batch_contract_2026_05/sync-jobs/sync_contract_123"
+  ],
+  "tenantId": "tenant_contract_123",
+  "totalObjectCount": 3,
+  "warningCount": 0
+}

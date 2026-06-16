@@ -2,14 +2,16 @@ import { HandrailQuickBooksResource } from "./base.js";
 import type {
   HandrailQuickBooksListRequest,
   HandrailQuickBooksListResponse,
-  HandrailQuickBooksTransaction
+  HandrailQuickBooksTransaction,
+  HandrailQuickBooksTransactionType
 } from "../types.js";
 
 export interface ListTransactionsRequest extends HandrailQuickBooksListRequest {
   readonly from?: string;
   readonly partyId?: string;
   readonly to?: string;
-  readonly type?: string;
+  readonly transactionType?: HandrailQuickBooksTransactionType;
+  readonly type?: HandrailQuickBooksTransactionType;
 }
 
 export class TransactionsResource extends HandrailQuickBooksResource {

@@ -1,0 +1,182 @@
+{
+  "audit": {
+    "checkpointId": "quickbooks_incremental_accounts_Account",
+    "importBatchId": "batch_contract_2026_05",
+    "jobId": "sync_contract_123",
+    "realmId": "realm_demo_12345",
+    "sourcePayloadRefs": [
+      "raw://batch_contract_2026_05/reports/profit-and-loss/2026-05",
+      "raw://batch_contract_2026_05/sync-jobs/sync_contract_123"
+    ]
+  },
+  "generatedAt": "2026-06-15T19:36:00.000Z",
+  "id": "report-line-profit-and-loss-income",
+  "relatedAccounts": [
+    {
+      "accountSubType": "ServiceFeeIncome",
+      "accountType": "Income",
+      "active": true,
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "jobId": "sync_contract_123",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05"
+      },
+      "classification": "Revenue",
+      "companyId": "realm_demo_12345",
+      "currency": {
+        "value": "USD"
+      },
+      "id": "accounting_account_400",
+      "importBatchId": "batch_contract_2026_05",
+      "importedAt": "2026-06-15T19:45:00.000Z",
+      "jobId": "sync_contract_123",
+      "name": "Service Revenue",
+      "provider": "intuit",
+      "providerEnvironment": "sandbox",
+      "realmId": "realm_demo_12345",
+      "source": "quickbooks_accounting_api",
+      "sourceObject": "Account",
+      "sourceObjectId": "400",
+      "sourceUpdatedAt": "2026-06-15T19:22:00.000Z",
+      "syncedAt": "2026-06-15T19:45:00.000Z",
+      "tenantId": "tenant_contract_123"
+    }
+  ],
+  "relatedAuditReferences": [
+    {
+      "checkpointId": "quickbooks_incremental_accounts_Account",
+      "importBatchId": "batch_contract_2026_05",
+      "jobId": "sync_contract_123",
+      "realmId": "realm_demo_12345",
+      "sourcePayloadRef": "raw://batch_contract_2026_05/reports/profit-and-loss/2026-05"
+    }
+  ],
+  "relatedLedgerEntries": [
+    {
+      "account": {
+        "name": "Service Revenue",
+        "value": "400"
+      },
+      "amount": -1250,
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "jobId": "sync_contract_123",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05"
+      },
+      "companyId": "realm_demo_12345",
+      "currency": {
+        "value": "USD"
+      },
+      "description": "Customer payment revenue recognition",
+      "documentNumber": "PMT-700",
+      "id": "accounting_ledger_entry_payment_700_2",
+      "importBatchId": "batch_contract_2026_05",
+      "importedAt": "2026-06-15T19:45:00.000Z",
+      "jobId": "sync_contract_123",
+      "lineId": "2",
+      "party": {
+        "name": "Acme Customer",
+        "value": "300"
+      },
+      "postedAt": "2026-05-15",
+      "postingType": "Credit",
+      "provider": "intuit",
+      "providerEnvironment": "sandbox",
+      "realmId": "realm_demo_12345",
+      "source": "quickbooks_accounting_api",
+      "sourceObject": "Payment",
+      "sourceObjectId": "700:2",
+      "sourceUpdatedAt": "2026-06-15T19:25:00.000Z",
+      "syncedAt": "2026-06-15T19:45:00.000Z",
+      "tenantId": "tenant_contract_123",
+      "transactionDate": "2026-05-15",
+      "transactionId": "700",
+      "transactionType": "payment"
+    }
+  ],
+  "relatedParties": [
+    {
+      "active": true,
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "jobId": "sync_contract_123",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05"
+      },
+      "companyId": "realm_demo_12345",
+      "companyName": "Acme Customer LLC",
+      "displayName": "Acme Customer",
+      "email": "accounting@example.test",
+      "id": "accounting_party_customer_300",
+      "importBatchId": "batch_contract_2026_05",
+      "importedAt": "2026-06-15T19:45:00.000Z",
+      "jobId": "sync_contract_123",
+      "partyType": "customer",
+      "provider": "intuit",
+      "providerEnvironment": "sandbox",
+      "realmId": "realm_demo_12345",
+      "source": "quickbooks_accounting_api",
+      "sourceObject": "Customer",
+      "sourceObjectId": "300",
+      "sourceUpdatedAt": "2026-06-15T19:23:00.000Z",
+      "syncedAt": "2026-06-15T19:45:00.000Z",
+      "tenantId": "tenant_contract_123"
+    }
+  ],
+  "relatedReportLines": [
+    {
+      "accountId": "accounting_account_400",
+      "accountName": "Service Revenue",
+      "amount": "1250.00",
+      "drilldown": {
+        "drilldownId": "report-line-profit-and-loss-income",
+        "type": "report_line"
+      },
+      "id": "report-line-profit-and-loss-income",
+      "label": "Service Revenue",
+      "lineType": "detail",
+      "section": "income"
+    }
+  ],
+  "relatedTransactions": [
+    {
+      "amount": 1250,
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "jobId": "sync_contract_123",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05"
+      },
+      "companyId": "realm_demo_12345",
+      "currency": {
+        "value": "USD"
+      },
+      "documentNumber": "PMT-700",
+      "id": "accounting_transaction_payment_700",
+      "importBatchId": "batch_contract_2026_05",
+      "importedAt": "2026-06-15T19:45:00.000Z",
+      "jobId": "sync_contract_123",
+      "party": {
+        "name": "Acme Customer",
+        "value": "300"
+      },
+      "privateNote": "May service payment",
+      "provider": "intuit",
+      "providerEnvironment": "sandbox",
+      "realmId": "realm_demo_12345",
+      "source": "quickbooks_accounting_api",
+      "sourceObject": "Payment",
+      "sourceObjectId": "700",
+      "sourceUpdatedAt": "2026-06-15T19:25:00.000Z",
+      "syncedAt": "2026-06-15T19:45:00.000Z",
+      "tenantId": "tenant_contract_123",
+      "transactionDate": "2026-05-15",
+      "transactionType": "payment"
+    }
+  ],
+  "reportName": "profit_and_loss",
+  "tenantId": "tenant_contract_123",
+  "type": "report_line"
+}

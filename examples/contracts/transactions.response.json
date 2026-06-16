@@ -1,47 +1,41 @@
 {
   "data": [
     {
-      "accountSubType": "Checking",
-      "accountType": "Bank",
-      "active": true,
+      "amount": 1250,
       "audit": {
         "importBatchId": "batch_contract_2026_05",
         "jobId": "sync_contract_123",
         "realmId": "realm_demo_12345",
         "sourcePayloadRef": "raw://batch_contract_2026_05"
       },
-      "classification": "Asset",
       "companyId": "realm_demo_12345",
       "currency": {
-        "name": "United States Dollar",
         "value": "USD"
       },
-      "currentBalance": 1250,
-      "currentBalanceWithSubAccounts": 1250,
-      "fullyQualifiedName": "Operating Cash",
-      "hierarchyLevel": 0,
-      "hierarchyPath": [
-        "Operating Cash"
-      ],
-      "id": "accounting_account_100",
+      "documentNumber": "PMT-700",
+      "id": "accounting_transaction_payment_700",
       "importBatchId": "batch_contract_2026_05",
       "importedAt": "2026-06-15T19:45:00.000Z",
       "jobId": "sync_contract_123",
-      "name": "Operating Cash",
+      "party": {
+        "name": "Acme Customer",
+        "value": "300"
+      },
+      "privateNote": "May service payment",
       "provider": "intuit",
       "providerEnvironment": "sandbox",
       "realmId": "realm_demo_12345",
       "source": "quickbooks_accounting_api",
-      "sourceObject": "Account",
-      "sourceObjectId": "100",
-      "sourceUpdatedAt": "2026-06-15T19:20:00.000Z",
-      "subAccount": false,
+      "sourceObject": "Payment",
+      "sourceObjectId": "700",
+      "sourceUpdatedAt": "2026-06-15T19:25:00.000Z",
       "syncedAt": "2026-06-15T19:45:00.000Z",
-      "tenantId": "tenant_contract_123"
+      "tenantId": "tenant_contract_123",
+      "transactionDate": "2026-05-15",
+      "transactionType": "payment"
     }
   ],
   "page": {
-    "cursor": "cursor_accounts_next",
     "hasMore": false,
     "limit": 25
   }

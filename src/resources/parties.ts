@@ -7,7 +7,9 @@ import type {
 } from "../types.js";
 
 export interface ListPartiesRequest extends HandrailQuickBooksListRequest {
+  readonly active?: boolean;
   readonly isActive?: boolean;
+  readonly partyType?: HandrailQuickBooksPartyType;
   readonly type?: HandrailQuickBooksPartyType;
 }
 

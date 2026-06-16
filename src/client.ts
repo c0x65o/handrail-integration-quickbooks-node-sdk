@@ -1,8 +1,10 @@
 import { HandrailQuickBooksHttpClient } from "./http.js";
 import { createQuickBooksSdkConfig } from "./runtime.js";
 import { AccountsResource } from "./resources/accounts.js";
+import { CheckpointsResource } from "./resources/checkpoints.js";
 import { ConnectionsResource } from "./resources/connections.js";
 import { DrilldownsResource } from "./resources/drilldowns.js";
+import { ImportBatchesResource } from "./resources/import-batches.js";
 import { LedgerEntriesResource } from "./resources/ledger-entries.js";
 import { PartiesResource } from "./resources/parties.js";
 import { RawImportsResource } from "./resources/raw-imports.js";
@@ -14,9 +16,11 @@ import type { HandrailQuickBooksClientConfig, HandrailQuickBooksSdkConfigInput }
 
 export class HandrailQuickBooksClient {
   readonly accounts: AccountsResource;
+  readonly checkpoints: CheckpointsResource;
   readonly config: HandrailQuickBooksClientConfig;
   readonly connections: ConnectionsResource;
   readonly drilldowns: DrilldownsResource;
+  readonly importBatches: ImportBatchesResource;
   readonly ledgerEntries: LedgerEntriesResource;
   readonly parties: PartiesResource;
   readonly rawImports: RawImportsResource;
@@ -33,6 +37,8 @@ export class HandrailQuickBooksClient {
     this.connections = new ConnectionsResource(this.config, this.http);
     this.syncJobs = new SyncJobsResource(this.config, this.http);
     this.rawImports = new RawImportsResource(this.config, this.http);
+    this.importBatches = new ImportBatchesResource(this.config, this.http);
+    this.checkpoints = new CheckpointsResource(this.config, this.http);
     this.accounts = new AccountsResource(this.config, this.http);
     this.parties = new PartiesResource(this.config, this.http);
     this.transactions = new TransactionsResource(this.config, this.http);

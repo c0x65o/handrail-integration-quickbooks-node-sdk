@@ -1,0 +1,71 @@
+{
+  "accountingBasis": "accrual",
+  "asOfDate": "2026-05-31",
+  "audit": {
+    "checkpointId": "quickbooks_incremental_accounts_Account",
+    "importBatchId": "batch_contract_2026_05",
+    "jobId": "sync_contract_123",
+    "realmId": "realm_demo_12345",
+    "sourcePayloadRefs": [
+      "raw://batch_contract_2026_05/reports/balance-sheet/2026-05-31",
+      "checkpoint://quickbooks/tenant_contract_123/quickbooks_incremental_accounts_Account"
+    ]
+  },
+  "currencyCode": "USD",
+  "generatedAt": "2026-06-15T19:32:00.000Z",
+  "lines": [
+    {
+      "amount": "1250.00",
+      "drilldown": {
+        "drilldownId": "drilldown-balance-sheet-assets",
+        "type": "report_line"
+      },
+      "id": "report-line-balance-sheet-assets",
+      "label": "Total Assets",
+      "lineType": "total",
+      "section": "assets"
+    },
+    {
+      "amount": "0.00",
+      "drilldown": {
+        "drilldownId": "drilldown-balance-sheet-liabilities",
+        "type": "report_line"
+      },
+      "id": "report-line-balance-sheet-liabilities",
+      "label": "Total Liabilities",
+      "lineType": "total",
+      "section": "liabilities"
+    },
+    {
+      "amount": "1250.00",
+      "drilldown": {
+        "drilldownId": "drilldown-balance-sheet-equity",
+        "type": "report_line"
+      },
+      "id": "report-line-balance-sheet-equity",
+      "label": "Total Equity",
+      "lineType": "total",
+      "section": "equity"
+    }
+  ],
+  "name": "balance_sheet",
+  "tenantId": "tenant_contract_123",
+  "totals": {
+    "totalAssets": {
+      "amount": "1250.00",
+      "label": "Total Assets"
+    },
+    "totalEquity": {
+      "amount": "1250.00",
+      "label": "Total Equity"
+    },
+    "totalLiabilities": {
+      "amount": "0.00",
+      "label": "Total Liabilities"
+    },
+    "totalLiabilitiesAndEquity": {
+      "amount": "1250.00",
+      "label": "Total Liabilities and Equity"
+    }
+  }
+}

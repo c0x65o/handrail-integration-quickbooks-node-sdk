@@ -1,17 +1,14 @@
 import { HandrailQuickBooksConfigError } from "../../errors.js";
 import type {
-  HandrailQuickBooksEntityName,
   HandrailQuickBooksListRequest
 } from "../../types.js";
+import type { HandrailQuickBooksRawImportEntity } from "../../types.js";
 
-const ENTITY_NAMES = new Set<HandrailQuickBooksEntityName>([
+const RAW_IMPORT_ENTITY_NAMES = new Set<HandrailQuickBooksRawImportEntity>([
   "accounts",
   "parties",
   "transactions",
-  "ledger_entries",
-  "reports",
-  "reconciliation",
-  "drilldowns"
+  "ledger_entries"
 ]);
 
 export function optionalFlag(flags: ReadonlyMap<string, string | true>, key: string) {
@@ -75,12 +72,14 @@ export function parseEntities(value: string | undefined) {
   }
 
   const entities = value.split(",").map((entity) => entity.trim()).filter(Boolean);
-  const invalid = entities.find((entity) => !ENTITY_NAMES.has(entity as HandrailQuickBooksEntityName));
+  const invalid = entities.find(
+    (entity) => !RAW_IMPORT_ENTITY_NAMES.has(entity as HandrailQuickBooksRawImportEntity)
+  );
   if (invalid) {
     throw new HandrailQuickBooksConfigError(`Unsupported entity in --entities: ${invalid}.`);
   }
 
-  return entities as HandrailQuickBooksEntityName[];
+  return entities as HandrailQuickBooksRawImportEntity[];
 }
 
 export function withoutUndefined<T extends Record<string, unknown>>(input: T) {

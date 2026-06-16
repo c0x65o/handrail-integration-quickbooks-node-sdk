@@ -7,6 +7,10 @@ import type { HandrailQuickBooksAuthConfig, HandrailQuickBooksClientConfig } fro
 
 const RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
 const IDEMPOTENT_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+const UNSAFE_DETAIL_KEY_PATTERN =
+  /(?:access[_-]?token|refresh[_-]?token|api[_-]?key|authorization|client[_-]?secret|clientSecret|password|credential|raw(?:Provider)?Payload|rawPayload|rawProviderPayload|providerError|rawProviderError|QueryResponse)/i;
+const UNSAFE_DETAIL_VALUE_PATTERN =
+  /(?:access_token|refresh_token|client_secret|authorization:\s*bearer|bearer\s+[a-z0-9._-]+|raw provider payload|rawProviderPayload|rawPayload|QueryResponse|stored-access-token|stored-refresh-token)/i;
 
 export interface HandrailQuickBooksRequestOptions {
   readonly body?: unknown;
@@ -100,7 +104,7 @@ export class HandrailQuickBooksHttpClient {
           code: isTimeout ? "REQUEST_TIMEOUT" : "REQUEST_FAILED",
           method,
           retryable: true,
-          url: url.toString()
+          url: redactUrl(url)
         }
       );
     } finally {
@@ -167,12 +171,12 @@ export class HandrailQuickBooksHttpClient {
       body?.message ?? `Handrail QuickBooks request failed with status ${response.status}.`,
       {
         code,
-        details: body?.details,
+        details: sanitizeErrorDetails(body?.details),
         method,
         requestId,
         retryable: RETRYABLE_STATUS_CODES.has(response.status),
         status: response.status,
-        url: url.toString()
+        url: redactUrl(url)
       }
     );
   }
@@ -213,4 +217,47 @@ function delay(ms: number) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+function sanitizeErrorDetails(details: unknown): unknown {
+  if (details === undefined || details === null) {
+    return undefined;
+  }
+
+  if (typeof details === "string") {
+    return UNSAFE_DETAIL_VALUE_PATTERN.test(details) ? "[redacted]" : details;
+  }
+
+  if (typeof details === "number" || typeof details === "boolean") {
+    return details;
+  }
+
+  if (Array.isArray(details)) {
+    const sanitized = details
+      .map((item) => sanitizeErrorDetails(item))
+      .filter((item) => item !== undefined);
+    return sanitized.length > 0 ? sanitized : undefined;
+  }
+
+  if (typeof details === "object") {
+    const sanitized = Object.fromEntries(
+      Object.entries(details as Record<string, unknown>)
+        .filter(([key]) => !UNSAFE_DETAIL_KEY_PATTERN.test(key))
+        .map(([key, value]) => [key, sanitizeErrorDetails(value)])
+        .filter(([, value]) => value !== undefined)
+    );
+    return Object.keys(sanitized).length > 0 ? sanitized : undefined;
+  }
+
+  return undefined;
+}
+
+function redactUrl(url: URL) {
+  const redacted = new URL(url);
+  for (const key of Array.from(redacted.searchParams.keys())) {
+    if (UNSAFE_DETAIL_KEY_PATTERN.test(key)) {
+      redacted.searchParams.set(key, "[redacted]");
+    }
+  }
+  return redacted.toString();
 }

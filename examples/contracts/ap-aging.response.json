@@ -1,0 +1,45 @@
+{
+  "asOfDate": "2026-05-31",
+  "audit": {
+    "checkpointId": "quickbooks_incremental_accounts_Account",
+    "importBatchId": "batch_contract_2026_05",
+    "jobId": "sync_contract_123",
+    "realmId": "realm_demo_12345",
+    "sourcePayloadRefs": [
+      "raw://batch_contract_2026_05/reports/accounts-payable-aging/2026-05-31",
+      "checkpoint://quickbooks/tenant_contract_123/quickbooks_incremental_accounts_Account"
+    ]
+  },
+  "currencyCode": "USD",
+  "generatedAt": "2026-06-15T19:35:00.000Z",
+  "name": "accounts_payable_aging",
+  "rows": [
+    {
+      "current": "150.00",
+      "days1To30": "0.00",
+      "days31To60": "0.00",
+      "days61To90": "0.00",
+      "drilldown": {
+        "drilldownId": "drilldown-ap-aging-demo-vendor",
+        "type": "report_line"
+      },
+      "over90": "0.00",
+      "partyId": "accounting_party_vendor_500",
+      "partyName": "Demo Vendor",
+      "total": "150.00"
+    }
+  ],
+  "tenantId": "tenant_contract_123",
+  "totals": {
+    "current": "150.00",
+    "days1To30": "0.00",
+    "days31To60": "0.00",
+    "days61To90": "0.00",
+    "drilldown": {
+      "drilldownId": "drilldown-ap-aging-total",
+      "type": "report_total"
+    },
+    "over90": "0.00",
+    "total": "150.00"
+  }
+}
