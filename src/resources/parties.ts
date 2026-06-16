@@ -14,7 +14,7 @@ export interface ListPartiesRequest extends HandrailQuickBooksListRequest {
 export class PartiesResource extends HandrailQuickBooksResource {
   list(request: ListPartiesRequest = {}) {
     return this.http.request<HandrailQuickBooksListResponse<HandrailQuickBooksParty>>(
-      this.tenantPath("parties"),
+      this.accountingTenantPath("parties"),
       {
         query: request
       }
@@ -23,7 +23,7 @@ export class PartiesResource extends HandrailQuickBooksResource {
 
   get(partyId: string) {
     return this.http.request<HandrailQuickBooksParty>(
-      this.tenantPath(`parties/${encodeURIComponent(partyId)}`)
+      this.accountingTenantPath(`parties/${encodeURIComponent(partyId)}`)
     );
   }
 }

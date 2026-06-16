@@ -4,6 +4,7 @@ import { runCli } from "../src/cli.js";
 import { HandrailQuickBooksError } from "../src/index.js";
 import type { CliGlobalConfig, CliQuickBooksClient } from "../src/cli/types.js";
 import {
+  contractImportBatchId,
   contractResponses,
   contractTenantId
 } from "./fixtures/accounting.js";
@@ -123,8 +124,75 @@ describe("handrail-qbo CLI", () => {
       status: "configured"
     });
     expect(JSON.parse(accountsStdout.value)).toEqual(contractResponses.accounts);
+    expect(statusStdout.value).not.toContain("test-secret");
     expect(statusStdout.value).not.toMatch(/access_token|refresh_token|client_secret|clientId|clientSecret/i);
-    expect(accountsStdout.value).not.toMatch(/access_token|refresh_token|client_secret/i);
+    expect(accountsStdout.value).not.toMatch(
+      /"access_token"|"refresh_token"|"client_secret"|"clientId"|"clientSecret"|"Authorization"|"rawPayload"/
+    );
+  });
+
+  it("prints bounded token-status diagnostics without echoing API keys or token-shaped fields", async () => {
+    const client = createMockClient();
+    const stdout = new StringWriter();
+    const stderr = new StringWriter();
+
+    const exitCode = await runCli(["token-status"], {
+      createClient: () => client,
+      env: {
+        HANDRAIL_QBO_API_KEY: "test-cli-api-key",
+        HANDRAIL_QBO_TENANT_ID: contractTenantId
+      },
+      stderr,
+      stdout
+    });
+
+    expect(exitCode).toBe(0);
+    expect(client.connections.tokenStatus).toHaveBeenCalledWith();
+    expect(JSON.parse(stdout.value)).toEqual(contractResponses.tokenStatus);
+    expect(stdout.value).not.toContain("test-cli-api-key");
+    expect(stdout.value).not.toMatch(
+      /"access_token"|"refresh_token"|"client_secret"|"clientId"|"clientSecret"|"Authorization"/
+    );
+    expect(stdout.value).not.toMatch(/stored-access-token|stored-refresh-token|do-not-print/i);
+    expect(stderr.value).toBe("");
+  });
+
+  it("prints bounded raw-import-status diagnostics without exposing credentials or raw provider payloads", async () => {
+    const client = createMockClient();
+    const stdout = new StringWriter();
+    const stderr = new StringWriter();
+
+    const exitCode = await runCli([
+      "raw-import-status",
+      "--import-batch-id",
+      contractImportBatchId
+    ], {
+      createClient: () => client,
+      env: {
+        HANDRAIL_QBO_API_KEY: "test-cli-api-key",
+        HANDRAIL_QBO_TENANT_ID: contractTenantId
+      },
+      stderr,
+      stdout
+    });
+
+    expect(exitCode).toBe(0);
+    expect(client.rawImports.status).toHaveBeenCalledWith(contractImportBatchId);
+    expect(JSON.parse(stdout.value)).toEqual(contractResponses.rawImportStatus);
+    expect(JSON.parse(stdout.value).retry).toMatchObject({
+      retryable: true,
+      attemptCount: 1,
+      maxAttempts: 3,
+      nextRetryAt: "2026-06-15T19:50:00.000Z",
+      lastErrorCode: "quickbooks_fetch_failed",
+      retryReason: "transient_provider_failure"
+    });
+    expect(stdout.value).not.toContain("test-cli-api-key");
+    expect(stdout.value).not.toMatch(
+      /"access_token"|"refresh_token"|"client_secret"|"clientId"|"clientSecret"|"Authorization"|"rawPayload"/
+    );
+    expect(stdout.value).not.toMatch(/stored-access-token|stored-refresh-token|do-not-print/i);
+    expect(stderr.value).toBe("");
   });
 
   it("parses sync command flags into the SDK start request", async () => {
@@ -154,6 +222,13 @@ describe("handrail-qbo CLI", () => {
     );
 
     expect(exitCode).toBe(0);
+    expect(JSON.parse(stdout.value).retry).toMatchObject({
+      retryable: false,
+      attemptCount: 3,
+      maxAttempts: 3,
+      lastErrorCode: "quickbooks_fetch_failed",
+      retryReason: "retry_exhausted"
+    });
     expect(client.syncJobs.start).toHaveBeenCalledWith(
       {
         entities: ["accounts", "ledger_entries"],
@@ -286,10 +361,7 @@ function createMockClient(): CliQuickBooksClient {
     connections: {
       connectUrl: vi.fn().mockResolvedValue(contractResponses.connectUrl),
       status: vi.fn().mockResolvedValue(contractResponses.connectionStatus),
-      tokenStatus: vi.fn().mockResolvedValue({
-        status: "healthy",
-        tenantId: contractTenantId
-      })
+      tokenStatus: vi.fn().mockResolvedValue(contractResponses.tokenStatus)
     },
     rawImports: {
       list: vi.fn().mockResolvedValue({
@@ -298,10 +370,7 @@ function createMockClient(): CliQuickBooksClient {
           hasMore: false
         }
       }),
-      status: vi.fn().mockResolvedValue({
-        importBatchId: "batch_123",
-        status: "completed"
-      })
+      status: vi.fn().mockResolvedValue(contractResponses.rawImportStatus)
     },
     reconciliation: {
       run: vi.fn().mockResolvedValue(contractResponses.reconciliation)

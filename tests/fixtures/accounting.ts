@@ -7,10 +7,12 @@ import type {
   HandrailQuickBooksLedgerSearchRequest,
   HandrailQuickBooksListResponse,
   HandrailQuickBooksParty,
+  HandrailQuickBooksRawImportStatus,
   HandrailQuickBooksReconciliationRequest,
   HandrailQuickBooksReconciliationResult,
   HandrailQuickBooksStartSyncRequest,
   HandrailQuickBooksSyncJobSummary,
+  HandrailQuickBooksTokenStatusResponse,
   HandrailQuickBooksTransaction,
   HandrailQuickBooksTrialBalanceReport,
   HandrailQuickBooksTrialBalanceRequest
@@ -19,16 +21,17 @@ import type {
 export const contractTenantId = "tenant_contract_123";
 export const contractBaseUrl = "https://quickbooks.example.test";
 export const contractApiKey = "test-api-key";
+export const contractImportBatchId = "batch_contract_2026_05";
 
 export const accountingFixtures = {
   accounts: [
     {
       accountNumber: "1000",
       audit: {
-        importBatchId: "batch_contract_2026_05",
+        importBatchId: contractImportBatchId,
         qboObjectId: "qbo_account_100",
         realmId: "realm_demo_12345",
-        sourcePayloadRef: "raw://batch_contract_2026_05/accounts/qbo_account_100",
+        sourcePayloadRef: `raw://${contractImportBatchId}/accounts/qbo_account_100`,
         syncToken: "7"
       },
       currencyCode: "USD",
@@ -41,10 +44,10 @@ export const accountingFixtures = {
     {
       accountNumber: "2000",
       audit: {
-        importBatchId: "batch_contract_2026_05",
+        importBatchId: contractImportBatchId,
         qboObjectId: "qbo_account_200",
         realmId: "realm_demo_12345",
-        sourcePayloadRef: "raw://batch_contract_2026_05/accounts/qbo_account_200",
+        sourcePayloadRef: `raw://${contractImportBatchId}/accounts/qbo_account_200`,
         syncToken: "3"
       },
       currencyCode: "USD",
@@ -57,10 +60,10 @@ export const accountingFixtures = {
     {
       accountNumber: "4000",
       audit: {
-        importBatchId: "batch_contract_2026_05",
+        importBatchId: contractImportBatchId,
         qboObjectId: "qbo_account_400",
         realmId: "realm_demo_12345",
-        sourcePayloadRef: "raw://batch_contract_2026_05/accounts/qbo_account_400",
+        sourcePayloadRef: `raw://${contractImportBatchId}/accounts/qbo_account_400`,
         syncToken: "5"
       },
       currencyCode: "USD",
@@ -76,10 +79,10 @@ export const accountingFixtures = {
       accountId: "acct_cash_operating",
       amount: "1250.00",
       audit: {
-        importBatchId: "batch_contract_2026_05",
+        importBatchId: contractImportBatchId,
         qboObjectId: "qbo_journal_entry_900:line_1",
         realmId: "realm_demo_12345",
-        sourcePayloadRef: "raw://batch_contract_2026_05/journal-entries/qbo_journal_entry_900",
+        sourcePayloadRef: `raw://${contractImportBatchId}/journal-entries/qbo_journal_entry_900`,
         syncToken: "1"
       },
       currencyCode: "USD",
@@ -93,10 +96,10 @@ export const accountingFixtures = {
       accountId: "acct_service_revenue",
       amount: "-1250.00",
       audit: {
-        importBatchId: "batch_contract_2026_05",
+        importBatchId: contractImportBatchId,
         qboObjectId: "qbo_journal_entry_900:line_2",
         realmId: "realm_demo_12345",
-        sourcePayloadRef: "raw://batch_contract_2026_05/journal-entries/qbo_journal_entry_900",
+        sourcePayloadRef: `raw://${contractImportBatchId}/journal-entries/qbo_journal_entry_900`,
         syncToken: "1"
       },
       currencyCode: "USD",
@@ -110,10 +113,10 @@ export const accountingFixtures = {
   parties: [
     {
       audit: {
-        importBatchId: "batch_contract_2026_05",
+        importBatchId: contractImportBatchId,
         qboObjectId: "qbo_customer_300",
         realmId: "realm_demo_12345",
-        sourcePayloadRef: "raw://batch_contract_2026_05/customers/qbo_customer_300",
+        sourcePayloadRef: `raw://${contractImportBatchId}/customers/qbo_customer_300`,
         syncToken: "4"
       },
       displayName: "Acme Customer",
@@ -127,10 +130,10 @@ export const accountingFixtures = {
     {
       amount: "1250.00",
       audit: {
-        importBatchId: "batch_contract_2026_05",
+        importBatchId: contractImportBatchId,
         qboObjectId: "qbo_payment_700",
         realmId: "realm_demo_12345",
-        sourcePayloadRef: "raw://batch_contract_2026_05/payments/qbo_payment_700",
+        sourcePayloadRef: `raw://${contractImportBatchId}/payments/qbo_payment_700`,
         syncToken: "2"
       },
       currencyCode: "USD",
@@ -165,7 +168,7 @@ export const contractRequests = {
   } satisfies HandrailQuickBooksReconciliationRequest,
   startSync: {
     entities: ["accounts", "ledger_entries"],
-    importBatchId: "batch_contract_2026_05",
+    importBatchId: contractImportBatchId,
     mode: "incremental",
     since: "2026-05-01T00:00:00.000Z"
   } satisfies HandrailQuickBooksStartSyncRequest,
@@ -193,9 +196,9 @@ export const contractResponses = {
   connectionStatus: {
     connection: {
       audit: {
-        importBatchId: "batch_contract_2026_05",
+        importBatchId: contractImportBatchId,
         realmId: "realm_demo_12345",
-        sourcePayloadRef: "raw://batch_contract_2026_05/connection"
+        sourcePayloadRef: `raw://${contractImportBatchId}/connection`
       },
       connectedAt: "2026-05-01T12:00:00.000Z",
       connectionId: "qbo_connection_contract",
@@ -212,6 +215,17 @@ export const contractResponses = {
     status: "connected",
     tenantId: contractTenantId
   } satisfies HandrailQuickBooksConnectionStatusResponse,
+  tokenStatus: {
+    audit: {
+      realmId: "realm_demo_12345",
+      sourcePayloadRef: "quickbooks-custody://connections/tenant_contract_123"
+    },
+    connectionId: "qbo_connection_realm_demo_12345",
+    expiresAt: "2026-06-15T23:00:00.000Z",
+    reauthorizationRequired: false,
+    status: "healthy",
+    tenantId: contractTenantId
+  } satisfies HandrailQuickBooksTokenStatusResponse,
   ledgerSearch: {
     data: accountingFixtures.ledgerEntries,
     page: {
@@ -222,31 +236,70 @@ export const contractResponses = {
   reconciliation: {
     accountId: "acct_cash_operating",
     audit: {
-      importBatchId: "batch_contract_2026_05",
+      importBatchId: contractImportBatchId,
       qboObjectId: "qbo_account_100",
       realmId: "realm_demo_12345",
-      sourcePayloadRef: "raw://batch_contract_2026_05/reconciliations/recon_contract_123"
+      sourcePayloadRef: `raw://${contractImportBatchId}/reconciliations/recon_contract_123`
     },
     difference: "0.00",
     reconciliationId: "recon_contract_123",
     status: "balanced"
   } satisfies HandrailQuickBooksReconciliationResult,
+  rawImportStatus: {
+    audit: {
+      importBatchId: contractImportBatchId,
+      realmId: "realm_demo_12345",
+      sourcePayloadRef: `raw://${contractImportBatchId}`
+    },
+    companyId: "realm_demo_12345",
+    completedAt: "2026-06-15T19:45:00.000Z",
+    entity: "accounts",
+    errorCount: 1,
+    importBatchId: contractImportBatchId,
+    objectCount: 0,
+    objectType: "Account",
+    retry: {
+      source: "raw_import",
+      retryable: true,
+      attemptCount: 1,
+      maxAttempts: 3,
+      nextRetryAt: "2026-06-15T19:50:00.000Z",
+      lastErrorCode: "quickbooks_fetch_failed",
+      retryReason: "transient_provider_failure"
+    },
+    startedAt: "2026-06-15T19:30:00.000Z",
+    status: "failed",
+    warningCount: 0
+  } satisfies HandrailQuickBooksRawImportStatus,
   syncJob: {
     audit: {
-      importBatchId: "batch_contract_2026_05",
+      importBatchId: contractImportBatchId,
       realmId: "realm_demo_12345",
-      sourcePayloadRef: "raw://batch_contract_2026_05/sync-jobs/sync_contract_123"
+      sourcePayloadRef: `raw://${contractImportBatchId}/sync-jobs/sync_contract_123`
     },
-    entity: "ledger_entries",
+    companyId: "realm_demo_12345",
+    completedAt: "2026-06-15T19:45:00.000Z",
+    entity: "accounts",
+    importBatchId: contractImportBatchId,
     jobId: "sync_contract_123",
+    objectCount: 0,
+    objectType: "Account",
+    retry: {
+      source: "raw_import",
+      retryable: false,
+      attemptCount: 3,
+      maxAttempts: 3,
+      lastErrorCode: "quickbooks_fetch_failed",
+      retryReason: "retry_exhausted"
+    },
     startedAt: "2026-06-15T19:30:00.000Z",
-    status: "queued"
+    status: "failed"
   } satisfies HandrailQuickBooksSyncJobSummary,
   trialBalance: {
     audit: {
-      importBatchId: "batch_contract_2026_05",
+      importBatchId: contractImportBatchId,
       realmId: "realm_demo_12345",
-      sourcePayloadRef: "raw://batch_contract_2026_05/reports/trial-balance/2026-05-31"
+      sourcePayloadRef: `raw://${contractImportBatchId}/reports/trial-balance/2026-05-31`
     },
     generatedAt: "2026-06-15T19:31:00.000Z",
     lines: [

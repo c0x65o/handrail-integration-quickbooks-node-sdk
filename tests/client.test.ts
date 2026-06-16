@@ -8,6 +8,7 @@ import {
 import {
   contractApiKey,
   contractBaseUrl,
+  contractImportBatchId,
   contractRequests,
   contractResponses,
   contractTenantId
@@ -51,9 +52,11 @@ describe("HandrailQuickBooksClient", () => {
   it("uses fixture contracts for representative service requests and responses", async () => {
     const { fetch, requests } = mockFetch([
       contractResponses.connectionStatus,
+      contractResponses.tokenStatus,
       contractResponses.connectUrl,
       contractResponses.accounts,
       contractResponses.syncJob,
+      contractResponses.rawImportStatus,
       contractResponses.trialBalance,
       contractResponses.ledgerSearch,
       contractResponses.reconciliation
@@ -66,8 +69,10 @@ describe("HandrailQuickBooksClient", () => {
     });
 
     const connectionStatus = await client.connections.status();
+    const tokenStatus = await client.connections.tokenStatus();
     const connectUrl = await client.connections.connectUrl(contractRequests.connectUrl);
     const accounts = await client.accounts.list({
+      cursor: "cursor_accounts_after",
       isActive: true,
       limit: 25,
       type: "asset"
@@ -75,6 +80,7 @@ describe("HandrailQuickBooksClient", () => {
     const syncJob = await client.syncJobs.start(contractRequests.startSync, {
       idempotencyKey: "sync-contract-idempotency-key"
     });
+    const rawImportStatus = await client.rawImports.status(contractImportBatchId);
     const trialBalance = await client.reports.trialBalance(contractRequests.trialBalance);
     const ledgerEntries = await client.ledgerEntries.search(contractRequests.ledgerSearch);
     const reconciliation = await client.reconciliation.run(contractRequests.reconciliation, {
@@ -82,72 +88,102 @@ describe("HandrailQuickBooksClient", () => {
     });
 
     expect(connectionStatus).toEqual(contractResponses.connectionStatus);
+    expect(tokenStatus).toEqual(contractResponses.tokenStatus);
     expect(connectUrl).toEqual(contractResponses.connectUrl);
     expect(accounts).toEqual(contractResponses.accounts);
     expect(syncJob).toEqual(contractResponses.syncJob);
+    expect(syncJob.retry).toMatchObject({
+      retryable: false,
+      attemptCount: 3,
+      maxAttempts: 3,
+      lastErrorCode: "quickbooks_fetch_failed",
+      retryReason: "retry_exhausted"
+    });
+    expect(rawImportStatus).toEqual(contractResponses.rawImportStatus);
+    expect(rawImportStatus.retry).toMatchObject({
+      retryable: true,
+      attemptCount: 1,
+      maxAttempts: 3,
+      nextRetryAt: "2026-06-15T19:50:00.000Z",
+      lastErrorCode: "quickbooks_fetch_failed",
+      retryReason: "transient_provider_failure"
+    });
     expect(trialBalance).toEqual(contractResponses.trialBalance);
     expect(ledgerEntries).toEqual(contractResponses.ledgerSearch);
     expect(reconciliation).toEqual(contractResponses.reconciliation);
 
-    expect(requests).toHaveLength(7);
+    expect(requests).toHaveLength(9);
     expect(requestUrl(requests[0])).toBe(
       `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/connections/status`
     );
     expect(requests[0].init?.method).toBe("GET");
 
     expect(requestUrl(requests[1])).toBe(
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/connections/token-status`
+    );
+    expect(requests[1].init?.method).toBe("GET");
+
+    expect(requestUrl(requests[2])).toBe(
       `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/connections/connect-url`
     );
-    expect(requests[1].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[1].init?.body))).toEqual(contractRequests.connectUrl);
+    expect(requests[2].init?.method).toBe("POST");
+    expect(JSON.parse(String(requests[2].init?.body))).toEqual(contractRequests.connectUrl);
 
-    const accountsUrl = new URL(requestUrl(requests[2]));
+    const accountsUrl = new URL(requestUrl(requests[3]));
     expect(accountsUrl.origin + accountsUrl.pathname).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/accounts`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/accounts`
     );
+    expect(accountsUrl.searchParams.get("cursor")).toBe("cursor_accounts_after");
     expect(accountsUrl.searchParams.get("isActive")).toBe("true");
     expect(accountsUrl.searchParams.get("limit")).toBe("25");
     expect(accountsUrl.searchParams.get("type")).toBe("asset");
-    expect(requests[2].init?.method).toBe("GET");
-
-    expect(requestUrl(requests[3])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/sync-jobs`
-    );
-    expect(requests[3].init?.method).toBe("POST");
-    expect(new Headers(requests[3].init?.headers).get("idempotency-key")).toBe(
-      "sync-contract-idempotency-key"
-    );
-    expect(JSON.parse(String(requests[3].init?.body))).toEqual(contractRequests.startSync);
+    expect(requests[3].init?.method).toBe("GET");
 
     expect(requestUrl(requests[4])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/reports/trial-balance`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/sync-jobs`
     );
     expect(requests[4].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[4].init?.body))).toEqual(contractRequests.trialBalance);
+    expect(new Headers(requests[4].init?.headers).get("idempotency-key")).toBe(
+      "sync-contract-idempotency-key"
+    );
+    expect(JSON.parse(String(requests[4].init?.body))).toEqual(contractRequests.startSync);
 
     expect(requestUrl(requests[5])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/ledger-entries/search`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/raw-imports/${contractImportBatchId}/status`
     );
-    expect(requests[5].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[5].init?.body))).toEqual(contractRequests.ledgerSearch);
+    expect(requests[5].init?.method).toBe("GET");
 
     expect(requestUrl(requests[6])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/reconciliation/runs`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/reports/trial-balance`
     );
     expect(requests[6].init?.method).toBe("POST");
-    expect(new Headers(requests[6].init?.headers).get("idempotency-key")).toBe(
+    expect(JSON.parse(String(requests[6].init?.body))).toEqual(contractRequests.trialBalance);
+
+    expect(requestUrl(requests[7])).toBe(
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/ledger-entries/search`
+    );
+    expect(requests[7].init?.method).toBe("POST");
+    expect(JSON.parse(String(requests[7].init?.body))).toEqual(contractRequests.ledgerSearch);
+
+    expect(requestUrl(requests[8])).toBe(
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/reconciliation/runs`
+    );
+    expect(requests[8].init?.method).toBe("POST");
+    expect(new Headers(requests[8].init?.headers).get("idempotency-key")).toBe(
       "reconcile-contract-idempotency-key"
     );
-    expect(JSON.parse(String(requests[6].init?.body))).toEqual(contractRequests.reconciliation);
+    expect(JSON.parse(String(requests[8].init?.body))).toEqual(contractRequests.reconciliation);
 
     const headers = new Headers(requests[0].init?.headers);
     expect(headers.get("authorization")).toBe(`Bearer ${contractApiKey}`);
     expect(headers.get("x-handrail-tenant-id")).toBe(contractTenantId);
     expect(JSON.stringify([
       connectionStatus,
+      tokenStatus,
       connectUrl,
       accounts,
       syncJob,
+      rawImportStatus,
       trialBalance,
       ledgerEntries,
       reconciliation
@@ -268,7 +304,7 @@ describe("HandrailQuickBooksClient", () => {
     });
 
     expect(requestUrl(requests[2])).toBe(
-      "https://quickbooks.example.test/v1/tenants/tenant_123/quickbooks/ledger-entries/search"
+      "https://quickbooks.example.test/v1/tenants/tenant_123/accounting/ledger-entries/search"
     );
     expect(JSON.parse(String(requests[2].init?.body))).toEqual({
       accountId: "acct_100",
@@ -279,6 +315,18 @@ describe("HandrailQuickBooksClient", () => {
 
   it("supports API-key auth header configuration", async () => {
     const { fetch, requests } = mockFetch([
+      {
+        data: [],
+        page: {
+          hasMore: false
+        }
+      },
+      {
+        data: [],
+        page: {
+          hasMore: false
+        }
+      },
       {
         data: [],
         page: {
@@ -299,11 +347,26 @@ describe("HandrailQuickBooksClient", () => {
 
     await client.accounts.list({
       isActive: true,
+      limit: 50,
       type: "asset"
+    });
+    await client.parties.list({
+      limit: 25,
+      type: "customer"
+    });
+    await client.transactions.list({
+      limit: 10,
+      type: "invoice"
     });
 
     expect(requestUrl(requests[0])).toBe(
-      "https://quickbooks.example.test/v1/tenants/tenant_123/quickbooks/accounts?isActive=true&type=asset"
+      "https://quickbooks.example.test/v1/tenants/tenant_123/accounting/accounts?isActive=true&limit=50&type=asset"
+    );
+    expect(requestUrl(requests[1])).toBe(
+      "https://quickbooks.example.test/v1/tenants/tenant_123/accounting/parties?limit=25&type=customer"
+    );
+    expect(requestUrl(requests[2])).toBe(
+      "https://quickbooks.example.test/v1/tenants/tenant_123/accounting/transactions?limit=10&type=invoice"
     );
     expect(new Headers(requests[0].init?.headers).get("x-handrail-api-key")).toBe("test-api-key");
   });

@@ -1,0 +1,11 @@
+{
+  "audit": {
+    "realmId": "realm_demo_12345",
+    "sourcePayloadRef": "quickbooks-custody://connections/tenant_contract_123"
+  },
+  "connectionId": "qbo_connection_realm_demo_12345",
+  "expiresAt": "2026-06-15T23:00:00.000Z",
+  "reauthorizationRequired": false,
+  "status": "healthy",
+  "tenantId": "tenant_contract_123"
+}

@@ -12,13 +12,21 @@ export abstract class HandrailQuickBooksResource {
   }
 
   protected tenantPath(path: string) {
+    return this.scopedTenantPath("quickbooks", path);
+  }
+
+  protected accountingTenantPath(path: string) {
+    return this.scopedTenantPath("accounting", path);
+  }
+
+  private scopedTenantPath(scope: "accounting" | "quickbooks", path: string) {
     if (!this.config.tenantId) {
       throw new HandrailQuickBooksConfigError(
         "tenantId is required for tenant-scoped QuickBooks SDK calls."
       );
     }
 
-    return `/v1/tenants/${encodeURIComponent(this.config.tenantId)}/quickbooks/${path.replace(
+    return `/v1/tenants/${encodeURIComponent(this.config.tenantId)}/${scope}/${path.replace(
       /^\/+/,
       ""
     )}`;

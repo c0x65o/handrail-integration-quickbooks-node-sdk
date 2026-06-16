@@ -133,12 +133,41 @@ export type HandrailQuickBooksSyncJobStatus =
   | "failed"
   | "cancelled";
 
+export type HandrailQuickBooksRetrySource = "raw_import" | "token_custody";
+
+export type HandrailQuickBooksRetryLastErrorCode =
+  | "quickbooks_connection_unavailable"
+  | "quickbooks_fetch_failed"
+  | "quickbooks_reauthorization_required";
+
+export type HandrailQuickBooksRetryReason =
+  | "connection_unavailable"
+  | "provider_request_rejected"
+  | "reauthorization_required"
+  | "retry_exhausted"
+  | "transient_provider_failure";
+
+export interface HandrailQuickBooksRetryState {
+  readonly source: HandrailQuickBooksRetrySource;
+  readonly retryable: boolean;
+  readonly attemptCount: number;
+  readonly maxAttempts: number;
+  readonly nextRetryAt?: string;
+  readonly lastErrorCode: HandrailQuickBooksRetryLastErrorCode;
+  readonly retryReason: HandrailQuickBooksRetryReason;
+}
+
 export interface HandrailQuickBooksSyncJobSummary {
   readonly jobId: string;
   readonly status: HandrailQuickBooksSyncJobStatus;
+  readonly companyId?: string;
   readonly entity?: HandrailQuickBooksEntityName;
+  readonly importBatchId?: string;
+  readonly objectCount?: number;
+  readonly objectType?: string;
   readonly startedAt?: string;
   readonly completedAt?: string;
+  readonly retry?: HandrailQuickBooksRetryState;
   readonly audit?: HandrailQuickBooksAuditReference;
 }
 
@@ -150,11 +179,16 @@ export interface HandrailQuickBooksStartSyncRequest {
 }
 
 export interface HandrailQuickBooksRawImportStatus {
+  readonly companyId?: string;
   readonly completedAt?: string;
+  readonly entity?: HandrailQuickBooksEntityName;
   readonly errorCount?: number;
   readonly importBatchId: string;
+  readonly objectCount?: number;
+  readonly objectType?: string;
   readonly startedAt?: string;
   readonly status: "queued" | "importing" | "normalizing" | "completed" | "failed";
+  readonly retry?: HandrailQuickBooksRetryState;
   readonly warningCount?: number;
   readonly audit?: HandrailQuickBooksAuditReference;
 }

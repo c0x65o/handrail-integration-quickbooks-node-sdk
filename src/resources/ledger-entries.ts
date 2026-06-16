@@ -8,7 +8,7 @@ import type {
 export class LedgerEntriesResource extends HandrailQuickBooksResource {
   search(request: HandrailQuickBooksLedgerSearchRequest = {}) {
     return this.http.request<HandrailQuickBooksListResponse<HandrailQuickBooksLedgerEntry>>(
-      this.tenantPath("ledger-entries/search"),
+      this.accountingTenantPath("ledger-entries/search"),
       {
         body: request,
         method: "POST"
@@ -18,7 +18,7 @@ export class LedgerEntriesResource extends HandrailQuickBooksResource {
 
   get(ledgerEntryId: string) {
     return this.http.request<HandrailQuickBooksLedgerEntry>(
-      this.tenantPath(`ledger-entries/${encodeURIComponent(ledgerEntryId)}`)
+      this.accountingTenantPath(`ledger-entries/${encodeURIComponent(ledgerEntryId)}`)
     );
   }
 }

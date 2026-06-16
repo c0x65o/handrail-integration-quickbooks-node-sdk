@@ -15,7 +15,7 @@ export interface ListTransactionsRequest extends HandrailQuickBooksListRequest {
 export class TransactionsResource extends HandrailQuickBooksResource {
   list(request: ListTransactionsRequest = {}) {
     return this.http.request<HandrailQuickBooksListResponse<HandrailQuickBooksTransaction>>(
-      this.tenantPath("transactions"),
+      this.accountingTenantPath("transactions"),
       {
         query: request
       }
@@ -24,7 +24,7 @@ export class TransactionsResource extends HandrailQuickBooksResource {
 
   get(transactionId: string) {
     return this.http.request<HandrailQuickBooksTransaction>(
-      this.tenantPath(`transactions/${encodeURIComponent(transactionId)}`)
+      this.accountingTenantPath(`transactions/${encodeURIComponent(transactionId)}`)
     );
   }
 }

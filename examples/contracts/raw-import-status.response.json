@@ -2,23 +2,25 @@
   "audit": {
     "importBatchId": "batch_contract_2026_05",
     "realmId": "realm_demo_12345",
-    "sourcePayloadRef": "raw://batch_contract_2026_05/sync-jobs/sync_contract_123"
+    "sourcePayloadRef": "raw://batch_contract_2026_05"
   },
   "companyId": "realm_demo_12345",
   "completedAt": "2026-06-15T19:45:00.000Z",
   "entity": "accounts",
+  "errorCount": 1,
   "importBatchId": "batch_contract_2026_05",
-  "jobId": "sync_contract_123",
   "objectCount": 0,
   "objectType": "Account",
   "retry": {
     "source": "raw_import",
-    "retryable": false,
-    "attemptCount": 3,
+    "retryable": true,
+    "attemptCount": 1,
     "maxAttempts": 3,
+    "nextRetryAt": "2026-06-15T19:50:00.000Z",
     "lastErrorCode": "quickbooks_fetch_failed",
-    "retryReason": "retry_exhausted"
+    "retryReason": "transient_provider_failure"
   },
   "startedAt": "2026-06-15T19:30:00.000Z",
-  "status": "failed"
+  "status": "failed",
+  "warningCount": 0
 }

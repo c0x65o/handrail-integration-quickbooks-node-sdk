@@ -103,7 +103,7 @@ const ledgerEntries = await quickBooks.ledgerEntries.search({
 
 The public surface exposes stable Handrail business concepts through resource modules:
 
-- `connections.status()` and `connections.connectUrl()`
+- `connections.status()`, `connections.tokenStatus()`, and `connections.connectUrl()`
 - `syncJobs.start()`, `syncJobs.get()`, and `syncJobs.list()`
 - `rawImports.status()` and `rawImports.list()`
 - `accounts.list()` and `accounts.get()`
@@ -115,6 +115,15 @@ The public surface exposes stable Handrail business concepts through resource mo
 - `drilldowns.get()`
 
 The SDK keeps Intuit-specific details bounded to `audit` references such as `realmId`, QBO object IDs, source payload references, sync tokens, and import batches. Consumers should treat those fields as diagnostics, not as a direct QuickBooks API contract.
+
+Object pulls use the integration service's normalized accounting API:
+`/v1/tenants/:tenantId/accounting/accounts`, `/accounting/parties`,
+`/accounting/transactions`, and `/accounting/ledger-entries/search`. The SDK and CLI return
+paginated `{ data, page }` responses unchanged, including optional filters such as `limit` and
+`cursor` where supported. Reports, reconciliation, and drilldowns are operation/report surfaces,
+not raw-import object types.
+
+Raw import and sync job responses may include a `retry` object with `retryable`, `attemptCount`, `maxAttempts`, optional `nextRetryAt`, `lastErrorCode`, and `retryReason`. These fields describe central-service retry readiness only; they use service-owned codes and must not contain Intuit tokens, Authorization headers, raw provider errors, or raw QuickBooks payloads.
 
 Stable namespaces are the SDK compatibility surface. Method names, request/response shapes, and normalized business identifiers should change only through versioned updates. Bounded audit fields may help support teams correlate central-service state with QuickBooks objects, but product workflows should not depend on raw Intuit payload structure.
 
@@ -137,7 +146,7 @@ handrail-qbo raw-import-status --tenant-id tenant_123 --api-key <redacted> --imp
 Supported commands:
 
 - `connect-url` creates a service-owned QuickBooks connect URL.
-- `pull-accounts` reads normalized accounts, with optional `--active`, `--inactive`, `--type`, `--limit`, and `--cursor` filters.
+- `pull-accounts` reads normalized accounts from `/v1/tenants/:tenantId/accounting/accounts`, with optional `--active`, `--inactive`, `--type`, `--limit`, and `--cursor` filters.
 - `sync` starts a sync job with optional `--mode`, `--entities`, `--since`, `--import-batch-id`, and `--idempotency-key`.
 - `report trial-balance` requests a trial-balance report with `--as-of` or `--as-of-date`.
 - `reconcile` runs reconciliation for an account and period.
@@ -145,6 +154,8 @@ Supported commands:
 - `status` may include sanitized service-owned provider metadata such as `providerEnvironment` and `providerProfile` when the integration service reports it.
 - `token-status` reads bounded token custody diagnostics without exposing token values.
 - `raw-import-status` reads one import batch with `--import-batch-id` or lists recent batches.
+
+Successful CLI commands print the JSON value returned by the SDK method. For `status`, `token-status`, and `raw-import-status`, that JSON is the service-owned diagnostics contract and may include bounded audit references such as `realmId`, `sourcePayloadRef`, `connectionId`, and `importBatchId`, plus safe retry metadata for failed raw imports or sync jobs. It must not include Intuit access tokens, refresh tokens, OAuth client secrets, raw Authorization headers, API keys, raw provider error payloads, or full raw QuickBooks payloads.
 
 CLI errors print safe diagnostics only: message, code, HTTP status, request id, and retryability. They do not print API keys, Intuit tokens, or raw service error details.
 
@@ -197,7 +208,7 @@ Unit tests are fully offline and use mocked fetch/SDK clients plus fixtures from
 npm run test
 ```
 
-Example service response contracts live in `examples/contracts/` for connection status, connect URL, account pulls, CDC sync start, trial balance, ledger search, and reconciliation. These examples include normalized Handrail accounting concepts and bounded audit/debug references only; they do not include token material or real credentials.
+Example service response contracts live in `examples/contracts/` for connection status, token status, raw import status, connect URL, normalized accounting account pulls, CDC sync start, trial balance, ledger search, and reconciliation. The `*.response.json` files describe the successful SDK return value and successful CLI stdout shape for those commands; the CLI does not wrap or reshape successful responses. These examples include normalized Handrail accounting concepts and bounded audit/debug references only; they do not include token material, real credentials, raw provider payloads, or direct Intuit API contracts.
 
 Later smoke tests against the integration service should use the CLI with Handrail-provided runtime config:
 

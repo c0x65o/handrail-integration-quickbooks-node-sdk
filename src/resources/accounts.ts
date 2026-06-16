@@ -13,7 +13,7 @@ export interface ListAccountsRequest extends HandrailQuickBooksListRequest {
 export class AccountsResource extends HandrailQuickBooksResource {
   list(request: ListAccountsRequest = {}) {
     return this.http.request<HandrailQuickBooksListResponse<HandrailQuickBooksAccount>>(
-      this.tenantPath("accounts"),
+      this.accountingTenantPath("accounts"),
       {
         query: request
       }
@@ -22,7 +22,7 @@ export class AccountsResource extends HandrailQuickBooksResource {
 
   get(accountId: string) {
     return this.http.request<HandrailQuickBooksAccount>(
-      this.tenantPath(`accounts/${encodeURIComponent(accountId)}`)
+      this.accountingTenantPath(`accounts/${encodeURIComponent(accountId)}`)
     );
   }
 }
