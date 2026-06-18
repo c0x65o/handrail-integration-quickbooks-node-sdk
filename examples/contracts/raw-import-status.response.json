@@ -26,6 +26,9 @@
       "raw://batch_contract_2026_05",
       "raw://batch_contract_2026_05/objects/Account",
       "raw://batch_contract_2026_05/objects/Customer",
+      "raw://batch_contract_2026_05/objects/Vendor",
+      "raw://batch_contract_2026_05/objects/Bill",
+      "raw://batch_contract_2026_05/objects/Deposit",
       "raw://batch_contract_2026_05/objects/Payment"
     ],
     "entity": "accounts",
@@ -47,7 +50,7 @@
   "deltaCounts": {
     "changedCount": 0,
     "failedCount": 0,
-    "insertedCount": 5,
+    "insertedCount": 8,
     "skippedCount": 0
   },
   "entity": "accounts",
@@ -56,20 +59,30 @@
   "importVolume": {
     "entityCounts": {
       "accounts": 3,
-      "parties": 1,
-      "transactions": 1
+      "parties": 2,
+      "transactions": 3
     },
     "errorCount": 0,
-    "objectCount": 5,
+    "objectCount": 8,
     "objectCounts": {
       "Account": 3,
+      "Bill": 1,
+      "BillPayment": 0,
+      "CreditMemo": 0,
       "Customer": 1,
-      "Payment": 1
+      "Deposit": 1,
+      "Payment": 1,
+      "Purchase": 0,
+      "RefundReceipt": 0,
+      "SalesReceipt": 0,
+      "Transfer": 0,
+      "Vendor": 1,
+      "VendorCredit": 0
     },
-    "totalObjectCount": 5,
+    "totalObjectCount": 8,
     "warningCount": 0
   },
-  "objectCount": 5,
+  "objectCount": 8,
   "objectType": "Account",
   "startedAt": "2026-06-15T19:30:00.000Z",
   "status": "completed",

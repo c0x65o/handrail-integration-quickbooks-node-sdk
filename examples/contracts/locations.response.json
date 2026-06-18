@@ -1,0 +1,42 @@
+{
+  "data": [
+    {
+      "tenantId": "tenant_contract_123",
+      "realmId": "realm_demo_12345",
+      "companyId": "realm_demo_12345",
+      "provider": "intuit",
+      "providerEnvironment": "sandbox",
+      "source": "quickbooks_accounting_api",
+      "sourceObjectId": "910",
+      "importBatchId": "batch_contract_2026_05",
+      "jobId": "sync_contract_123",
+      "importedAt": "2026-06-15T19:45:00.000Z",
+      "syncedAt": "2026-06-15T19:45:00.000Z",
+      "sourceUpdatedAt": "2026-06-15T19:24:50.000Z",
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "jobId": "sync_contract_123",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05"
+      },
+      "id": "accounting_location_department_910",
+      "sourceObject": "Department",
+      "name": "Main Office",
+      "fullyQualifiedName": "Main Office",
+      "displayName": "Main Office",
+      "locationSource": "department",
+      "locationObjectStatus": "mapped_to_department",
+      "unsupportedProviderObject": "Location",
+      "status": "active",
+      "active": true,
+      "subLocation": false,
+      "hierarchyPath": ["Main Office"],
+      "hierarchyLevel": 0
+    }
+  ],
+  "page": {
+    "cursor": "cursor_locations_next",
+    "hasMore": false,
+    "limit": 25
+  }
+}

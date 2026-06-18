@@ -6,8 +6,11 @@ import type { HandrailQuickBooksRawImportEntity } from "../../types.js";
 
 const RAW_IMPORT_ENTITY_NAMES = new Set<HandrailQuickBooksRawImportEntity>([
   "accounts",
+  "classes",
+  "items",
   "parties",
   "transactions",
+  "locations",
   "ledger_entries"
 ]);
 

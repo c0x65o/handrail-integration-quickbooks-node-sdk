@@ -76,18 +76,24 @@ export type HandrailQuickBooksEntityName =
 
 export type HandrailQuickBooksRawImportEntity =
   | "accounts"
+  | "classes"
+  | "items"
   | "parties"
   | "transactions"
+  | "locations"
   | "ledger_entries";
 
 export type HandrailQuickBooksRawImportObjectType =
   | "Account"
   | "Bill"
   | "BillPayment"
+  | "Class"
   | "CreditMemo"
   | "Customer"
+  | "Department"
   | "Deposit"
   | "Invoice"
+  | "Item"
   | "JournalEntry"
   | "Payment"
   | "Purchase"
@@ -117,6 +123,16 @@ export interface HandrailQuickBooksAuditReference {
   readonly sourcePayloadRef?: string;
   readonly sourcePayloadRefs?: readonly string[];
   readonly syncToken?: string;
+}
+
+export interface HandrailQuickBooksReportSnapshotMetadata {
+  readonly checkpointRefs: readonly string[];
+  readonly importBatchId?: string;
+  readonly jobId?: string;
+  readonly realmId?: string;
+  readonly reportSnapshotId: string;
+  readonly reportSnapshotRef: string;
+  readonly sourceRefs: readonly string[];
 }
 
 export interface HandrailQuickBooksConnectionSummary {
@@ -222,6 +238,9 @@ export type HandrailQuickBooksDeltaSyncCounts = {
   readonly changedCount: number;
   readonly insertedCount: number;
   readonly failedCount: number;
+  readonly retryPendingCount?: number;
+  readonly unchangedCount?: number;
+  readonly updatedCount?: number;
 };
 
 export type HandrailQuickBooksSyncPhase = "initial_load" | "delta_sync";
@@ -392,9 +411,69 @@ export interface HandrailQuickBooksParty extends HandrailQuickBooksProviderMetad
   readonly companyName?: string;
 }
 
+export interface HandrailQuickBooksItem extends HandrailQuickBooksProviderMetadata {
+  readonly id: string;
+  readonly sourceObject: "Item";
+  readonly name: string;
+  readonly fullyQualifiedName?: string;
+  readonly displayName: string;
+  readonly itemType?: string;
+  readonly status?: "active" | "inactive";
+  readonly active?: boolean;
+  readonly sku?: string;
+  readonly description?: string;
+  readonly taxable?: boolean;
+  readonly unitPrice?: number;
+  readonly purchaseCost?: number;
+  readonly quantityOnHand?: number;
+  readonly parentRef?: HandrailQuickBooksAccountingReference;
+  readonly parentItemId?: string;
+  readonly parentItemName?: string;
+  readonly hierarchyPath?: readonly string[];
+  readonly hierarchyLevel?: number;
+  readonly incomeAccountRef?: HandrailQuickBooksAccountingReference;
+  readonly expenseAccountRef?: HandrailQuickBooksAccountingReference;
+  readonly assetAccountRef?: HandrailQuickBooksAccountingReference;
+}
+
+export interface HandrailQuickBooksClass extends HandrailQuickBooksProviderMetadata {
+  readonly id: string;
+  readonly sourceObject: "Class";
+  readonly name: string;
+  readonly fullyQualifiedName?: string;
+  readonly displayName: string;
+  readonly status?: "active" | "inactive";
+  readonly active?: boolean;
+  readonly subClass?: boolean;
+  readonly parentRef?: HandrailQuickBooksAccountingReference;
+  readonly parentClassId?: string;
+  readonly parentClassName?: string;
+  readonly hierarchyPath?: readonly string[];
+  readonly hierarchyLevel?: number;
+}
+
+export interface HandrailQuickBooksLocation extends HandrailQuickBooksProviderMetadata {
+  readonly id: string;
+  readonly sourceObject: "Department";
+  readonly name: string;
+  readonly fullyQualifiedName?: string;
+  readonly displayName: string;
+  readonly locationSource: "department";
+  readonly locationObjectStatus: "mapped_to_department";
+  readonly unsupportedProviderObject?: "Location";
+  readonly status?: "active" | "inactive";
+  readonly active?: boolean;
+  readonly subLocation?: boolean;
+  readonly parentRef?: HandrailQuickBooksAccountingReference;
+  readonly parentLocationId?: string;
+  readonly parentLocationName?: string;
+  readonly hierarchyPath?: readonly string[];
+  readonly hierarchyLevel?: number;
+}
+
 export type HandrailQuickBooksTransactionSourceObject = Exclude<
   HandrailQuickBooksRawImportObjectType,
-  "Account" | "Customer" | "JournalEntry" | "Vendor"
+  "Account" | "Class" | "Customer" | "Department" | "Item" | "JournalEntry" | "Vendor"
 >;
 
 export type HandrailQuickBooksTransactionType =
@@ -438,6 +517,9 @@ export interface HandrailQuickBooksLedgerEntry extends HandrailQuickBooksProvide
   readonly currency?: HandrailQuickBooksAccountingCurrencyReference;
   readonly description?: string;
   readonly party?: HandrailQuickBooksAccountingReference;
+  readonly item?: HandrailQuickBooksAccountingReference;
+  readonly classRef?: HandrailQuickBooksAccountingReference;
+  readonly department?: HandrailQuickBooksAccountingReference;
 }
 
 export interface HandrailQuickBooksLedgerSearchRequest extends HandrailQuickBooksListRequest {
@@ -448,6 +530,48 @@ export interface HandrailQuickBooksLedgerSearchRequest extends HandrailQuickBook
   readonly to?: string;
   readonly transactionId?: string;
 }
+
+export type HandrailQuickBooksAccountListResponse =
+  HandrailQuickBooksListResponse<HandrailQuickBooksAccount>;
+
+export type HandrailQuickBooksItemListResponse =
+  HandrailQuickBooksListResponse<HandrailQuickBooksItem>;
+
+export type HandrailQuickBooksClassListResponse =
+  HandrailQuickBooksListResponse<HandrailQuickBooksClass>;
+
+export type HandrailQuickBooksLocationListResponse =
+  HandrailQuickBooksListResponse<HandrailQuickBooksLocation>;
+
+export type HandrailQuickBooksPartyListResponse =
+  HandrailQuickBooksListResponse<HandrailQuickBooksParty>;
+
+export type HandrailQuickBooksTransactionListResponse =
+  HandrailQuickBooksListResponse<HandrailQuickBooksTransaction>;
+
+export type HandrailQuickBooksLedgerEntryListResponse =
+  HandrailQuickBooksListResponse<HandrailQuickBooksLedgerEntry>;
+
+export type HandrailQuickBooksSyncJobListResponse =
+  HandrailQuickBooksListResponse<HandrailQuickBooksSyncJobSummary>;
+
+export type HandrailQuickBooksImportBatchListResponse =
+  HandrailQuickBooksListResponse<HandrailQuickBooksImportBatchSummary>;
+
+export type HandrailQuickBooksSyncCheckpointListResponse =
+  HandrailQuickBooksListResponse<HandrailQuickBooksSyncCheckpoint>;
+
+export type HandrailQuickBooksRawImportStatusListResponse =
+  HandrailQuickBooksListResponse<HandrailQuickBooksRawImportStatus>;
+
+export type HandrailQuickBooksNormalizedResource =
+  | HandrailQuickBooksAccount
+  | HandrailQuickBooksClass
+  | HandrailQuickBooksItem
+  | HandrailQuickBooksLedgerEntry
+  | HandrailQuickBooksLocation
+  | HandrailQuickBooksParty
+  | HandrailQuickBooksTransaction;
 
 export interface HandrailQuickBooksReportPeriod {
   readonly endDate: string;
@@ -502,7 +626,7 @@ export interface HandrailQuickBooksTrialBalanceLine {
   readonly debit: string;
 }
 
-export interface HandrailQuickBooksTrialBalanceReport {
+export interface HandrailQuickBooksTrialBalanceReport extends HandrailQuickBooksReportSnapshotMetadata {
   readonly accountingBasis?: HandrailQuickBooksAccountingBasis;
   readonly currencyCode?: string;
   readonly generatedAt: string;
@@ -515,7 +639,7 @@ export interface HandrailQuickBooksTrialBalanceReport {
 
 export type HandrailQuickBooksProfitAndLossRequest = HandrailQuickBooksFinancialStatementRequest;
 
-export interface HandrailQuickBooksProfitAndLossReport {
+export interface HandrailQuickBooksProfitAndLossReport extends HandrailQuickBooksReportSnapshotMetadata {
   readonly accountingBasis?: HandrailQuickBooksAccountingBasis;
   readonly audit?: HandrailQuickBooksAuditReference;
   readonly currencyCode?: string;
@@ -534,7 +658,7 @@ export interface HandrailQuickBooksProfitAndLossReport {
 
 export type HandrailQuickBooksBalanceSheetRequest = HandrailQuickBooksAsOfReportRequest;
 
-export interface HandrailQuickBooksBalanceSheetReport {
+export interface HandrailQuickBooksBalanceSheetReport extends HandrailQuickBooksReportSnapshotMetadata {
   readonly accountingBasis?: HandrailQuickBooksAccountingBasis;
   readonly asOfDate: string;
   readonly audit?: HandrailQuickBooksAuditReference;
@@ -553,7 +677,7 @@ export interface HandrailQuickBooksBalanceSheetReport {
 
 export type HandrailQuickBooksCashFlowRequest = HandrailQuickBooksFinancialStatementRequest;
 
-export interface HandrailQuickBooksCashFlowReport {
+export interface HandrailQuickBooksCashFlowReport extends HandrailQuickBooksReportSnapshotMetadata {
   readonly accountingBasis?: HandrailQuickBooksAccountingBasis;
   readonly audit?: HandrailQuickBooksAuditReference;
   readonly currencyCode?: string;
@@ -595,7 +719,7 @@ export interface HandrailQuickBooksGeneralLedgerRow {
   readonly transactionType: HandrailQuickBooksLedgerEntry["transactionType"];
 }
 
-export interface HandrailQuickBooksGeneralLedgerReport {
+export interface HandrailQuickBooksGeneralLedgerReport extends HandrailQuickBooksReportSnapshotMetadata {
   readonly accountingBasis?: HandrailQuickBooksAccountingBasis;
   readonly audit?: HandrailQuickBooksAuditReference;
   readonly closingBalance?: string;
@@ -639,7 +763,7 @@ export interface HandrailQuickBooksAgingTotals {
   readonly drilldown?: HandrailQuickBooksReportDrilldownReference;
 }
 
-export interface HandrailQuickBooksAccountsReceivableAgingReport {
+export interface HandrailQuickBooksAccountsReceivableAgingReport extends HandrailQuickBooksReportSnapshotMetadata {
   readonly asOfDate: string;
   readonly audit?: HandrailQuickBooksAuditReference;
   readonly currencyCode?: string;
@@ -650,7 +774,7 @@ export interface HandrailQuickBooksAccountsReceivableAgingReport {
   readonly totals: HandrailQuickBooksAgingTotals;
 }
 
-export interface HandrailQuickBooksAccountsPayableAgingReport {
+export interface HandrailQuickBooksAccountsPayableAgingReport extends HandrailQuickBooksReportSnapshotMetadata {
   readonly asOfDate: string;
   readonly audit?: HandrailQuickBooksAuditReference;
   readonly currencyCode?: string;
@@ -661,13 +785,30 @@ export interface HandrailQuickBooksAccountsPayableAgingReport {
   readonly totals: HandrailQuickBooksAgingTotals;
 }
 
+export type HandrailQuickBooksReportRequest =
+  | HandrailQuickBooksAgingReportRequest
+  | HandrailQuickBooksBalanceSheetRequest
+  | HandrailQuickBooksCashFlowRequest
+  | HandrailQuickBooksGeneralLedgerRequest
+  | HandrailQuickBooksProfitAndLossRequest
+  | HandrailQuickBooksTrialBalanceRequest;
+
+export type HandrailQuickBooksReportResponse =
+  | HandrailQuickBooksAccountsPayableAgingReport
+  | HandrailQuickBooksAccountsReceivableAgingReport
+  | HandrailQuickBooksBalanceSheetReport
+  | HandrailQuickBooksCashFlowReport
+  | HandrailQuickBooksGeneralLedgerReport
+  | HandrailQuickBooksProfitAndLossReport
+  | HandrailQuickBooksTrialBalanceReport;
+
 export interface HandrailQuickBooksReconciliationRequest {
   readonly accountId: string;
   readonly endingBalance: string;
   readonly period: HandrailQuickBooksReportPeriod;
 }
 
-export interface HandrailQuickBooksReconciliationResult {
+export interface HandrailQuickBooksReconciliationResult extends HandrailQuickBooksReportSnapshotMetadata {
   readonly accountId: string;
   readonly difference: string;
   readonly reconciliationId: string;
@@ -680,7 +821,7 @@ export interface HandrailQuickBooksDrilldownRequest {
   readonly type: "account" | "party" | "transaction" | "ledger_entry" | "report_line" | "report_total";
 }
 
-export interface HandrailQuickBooksDrilldownResult {
+export interface HandrailQuickBooksDrilldownResult extends HandrailQuickBooksReportSnapshotMetadata {
   readonly id: string;
   readonly generatedAt?: string;
   readonly relatedAuditReferences?: readonly HandrailQuickBooksAuditReference[];

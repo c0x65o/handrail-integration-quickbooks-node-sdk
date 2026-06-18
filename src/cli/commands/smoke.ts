@@ -65,6 +65,9 @@ async function runSmokeCommand(context: CliCommandContext) {
     syncJob,
     checkpoint,
     accounts,
+    items,
+    classes,
+    locations,
     parties,
     transactions,
     ledgerEntries
@@ -84,6 +87,9 @@ async function runSmokeCommand(context: CliCommandContext) {
       ? probe(() => context.client.checkpoints.get(checkpointId))
       : probeListFirst(() => context.client.checkpoints.list(commonListRequest)),
     probe(() => context.client.accounts.list(commonListRequest)),
+    probe(() => context.client.items.list(commonListRequest)),
+    probe(() => context.client.classes.list(commonListRequest)),
+    probe(() => context.client.locations.list(commonListRequest)),
     probe(() => context.client.parties.list(commonListRequest)),
     probe(() => context.client.transactions.list(commonListRequest)),
     probe(() => context.client.ledgerEntries.list(commonListRequest))
@@ -112,6 +118,9 @@ async function runSmokeCommand(context: CliCommandContext) {
     ),
     normalizedCounts: {
       accounts: summarizeProbe(accounts, summarizeListCount),
+      items: summarizeProbe(items, summarizeListCount),
+      classes: summarizeProbe(classes, summarizeListCount),
+      locations: summarizeProbe(locations, summarizeListCount),
       parties: summarizeProbe(parties, summarizeListCount),
       transactions: summarizeProbe(transactions, summarizeListCount),
       ledgerEntries: summarizeProbe(ledgerEntries, summarizeListCount)

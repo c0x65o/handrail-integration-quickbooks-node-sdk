@@ -12,10 +12,13 @@ export {
 } from "./runtime.js";
 export { AccountsResource } from "./resources/accounts.js";
 export { CheckpointsResource } from "./resources/checkpoints.js";
+export { ClassesResource } from "./resources/classes.js";
 export { ConnectionsResource } from "./resources/connections.js";
 export { DrilldownsResource } from "./resources/drilldowns.js";
 export { ImportBatchesResource } from "./resources/import-batches.js";
+export { ItemsResource } from "./resources/items.js";
 export { LedgerEntriesResource } from "./resources/ledger-entries.js";
+export { LocationsResource } from "./resources/locations.js";
 export { PartiesResource } from "./resources/parties.js";
 export { RawImportsResource } from "./resources/raw-imports.js";
 export { ReconciliationResource } from "./resources/reconciliation.js";
@@ -24,10 +27,17 @@ export { SyncJobsResource } from "./resources/sync-jobs.js";
 export { TransactionsResource } from "./resources/transactions.js";
 export type { ListAccountsRequest } from "./resources/accounts.js";
 export type { HandrailQuickBooksCheckpointListRequest } from "./types.js";
+export type { ListClassesRequest } from "./resources/classes.js";
+export type { ListItemsRequest } from "./resources/items.js";
+export type { ListLocationsRequest } from "./resources/locations.js";
 export type { ListPartiesRequest } from "./resources/parties.js";
 export type { ListTransactionsRequest } from "./resources/transactions.js";
 export type {
+  HandrailQuickBooksRequestOptions
+} from "./http.js";
+export type {
   HandrailQuickBooksAccount,
+  HandrailQuickBooksAccountListResponse,
   HandrailQuickBooksAccountType,
   HandrailQuickBooksAccountingBasis,
   HandrailQuickBooksAccountingCurrencyReference,
@@ -44,6 +54,8 @@ export type {
   HandrailQuickBooksBalanceSheetRequest,
   HandrailQuickBooksCashFlowReport,
   HandrailQuickBooksCashFlowRequest,
+  HandrailQuickBooksClass,
+  HandrailQuickBooksClassListResponse,
   HandrailQuickBooksClientConfig,
   HandrailQuickBooksConnectUrlRequest,
   HandrailQuickBooksConnectUrlResponse,
@@ -60,15 +72,23 @@ export type {
   HandrailQuickBooksGeneralLedgerRequest,
   HandrailQuickBooksGeneralLedgerRow,
   HandrailQuickBooksImportBatchListRequest,
+  HandrailQuickBooksImportBatchListResponse,
   HandrailQuickBooksImportBatchStatus,
   HandrailQuickBooksImportBatchSummary,
   HandrailQuickBooksImportVolumeSummary,
+  HandrailQuickBooksItem,
+  HandrailQuickBooksItemListResponse,
   HandrailQuickBooksLedgerEntry,
+  HandrailQuickBooksLedgerEntryListResponse,
   HandrailQuickBooksLedgerSearchRequest,
   HandrailQuickBooksListRequest,
   HandrailQuickBooksListResponse,
+  HandrailQuickBooksLocation,
+  HandrailQuickBooksLocationListResponse,
+  HandrailQuickBooksNormalizedResource,
   HandrailQuickBooksPageInfo,
   HandrailQuickBooksParty,
+  HandrailQuickBooksPartyListResponse,
   HandrailQuickBooksPartyType,
   HandrailQuickBooksProviderMetadata,
   HandrailQuickBooksProviderEnvironment,
@@ -78,6 +98,7 @@ export type {
   HandrailQuickBooksRawImportEntity,
   HandrailQuickBooksRawImportObjectType,
   HandrailQuickBooksRawImportStatus,
+  HandrailQuickBooksRawImportStatusListResponse,
   HandrailQuickBooksReconciliationRequest,
   HandrailQuickBooksReconciliationResult,
   HandrailQuickBooksProfitAndLossReport,
@@ -86,18 +107,28 @@ export type {
   HandrailQuickBooksReportLine,
   HandrailQuickBooksReportName,
   HandrailQuickBooksReportPeriod,
+  HandrailQuickBooksReportRequest,
+  HandrailQuickBooksReportResponse,
+  HandrailQuickBooksReportSnapshotMetadata,
   HandrailQuickBooksReportTotal,
+  HandrailQuickBooksRetryLastErrorCode,
+  HandrailQuickBooksRetryReason,
+  HandrailQuickBooksRetrySource,
+  HandrailQuickBooksRetryState,
   HandrailQuickBooksSdkConfigInput,
   HandrailQuickBooksStartSyncRequest,
   HandrailQuickBooksSyncCheckpoint,
   HandrailQuickBooksSyncCheckpointKind,
+  HandrailQuickBooksSyncCheckpointListResponse,
   HandrailQuickBooksSyncCheckpointMetadata,
   HandrailQuickBooksSyncCheckpointMode,
   HandrailQuickBooksSyncCheckpointStatus,
   HandrailQuickBooksSyncPhase,
+  HandrailQuickBooksSyncJobListResponse,
   HandrailQuickBooksSyncJobStatus,
   HandrailQuickBooksSyncJobSummary,
   HandrailQuickBooksTransaction,
+  HandrailQuickBooksTransactionListResponse,
   HandrailQuickBooksTransactionSourceObject,
   HandrailQuickBooksTransactionType,
   HandrailQuickBooksTokenStatusResponse,

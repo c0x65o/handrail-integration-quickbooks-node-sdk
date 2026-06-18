@@ -1,4 +1,15 @@
 {
+  "checkpointRefs": [
+    "checkpoint://quickbooks/tenant_contract_123/quickbooks_incremental_accounts_Account"
+  ],
+  "importBatchId": "batch_contract_2026_05",
+  "jobId": "sync_contract_123",
+  "realmId": "realm_demo_12345",
+  "reportSnapshotId": "quickbooks_general_ledger_tenant_contract_123_2026-05-01_2026-05-31_batch_contract_2026_05",
+  "reportSnapshotRef": "report-snapshot://quickbooks/tenant_contract_123/quickbooks_general_ledger_tenant_contract_123_2026-05-01_2026-05-31_batch_contract_2026_05",
+  "sourceRefs": [
+    "raw://batch_contract_2026_05/reports/general-ledger/2026-05-01_2026-05-31"
+  ],
   "accountingBasis": "accrual",
   "audit": {
     "checkpointId": "quickbooks_incremental_accounts_Account",

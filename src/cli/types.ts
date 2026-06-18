@@ -8,6 +8,7 @@ import type {
   HandrailQuickBooksCashFlowReport,
   HandrailQuickBooksCashFlowRequest,
   HandrailQuickBooksCheckpointListRequest,
+  HandrailQuickBooksClass,
   HandrailQuickBooksConnectUrlRequest,
   HandrailQuickBooksConnectUrlResponse,
   HandrailQuickBooksConnectionStatusResponse,
@@ -15,9 +16,11 @@ import type {
   HandrailQuickBooksGeneralLedgerRequest,
   HandrailQuickBooksImportBatchListRequest,
   HandrailQuickBooksImportBatchSummary,
+  HandrailQuickBooksItem,
   HandrailQuickBooksLedgerEntry,
   HandrailQuickBooksListRequest,
   HandrailQuickBooksListResponse,
+  HandrailQuickBooksLocation,
   HandrailQuickBooksParty,
   HandrailQuickBooksProfitAndLossReport,
   HandrailQuickBooksProfitAndLossRequest,
@@ -53,6 +56,9 @@ export interface CliQuickBooksClient {
     get(checkpointId: string): Promise<HandrailQuickBooksSyncCheckpoint>;
     list(request?: HandrailQuickBooksCheckpointListRequest): Promise<HandrailQuickBooksListResponse<HandrailQuickBooksSyncCheckpoint>>;
   };
+  readonly classes: {
+    list(request?: HandrailQuickBooksListRequest): Promise<HandrailQuickBooksListResponse<HandrailQuickBooksClass>>;
+  };
   readonly connections: {
     connectUrl(request?: HandrailQuickBooksConnectUrlRequest): Promise<HandrailQuickBooksConnectUrlResponse>;
     status(): Promise<HandrailQuickBooksConnectionStatusResponse>;
@@ -62,8 +68,14 @@ export interface CliQuickBooksClient {
     get(importBatchId: string): Promise<HandrailQuickBooksImportBatchSummary>;
     list(request?: HandrailQuickBooksImportBatchListRequest): Promise<HandrailQuickBooksListResponse<HandrailQuickBooksImportBatchSummary>>;
   };
+  readonly items: {
+    list(request?: HandrailQuickBooksListRequest): Promise<HandrailQuickBooksListResponse<HandrailQuickBooksItem>>;
+  };
   readonly ledgerEntries: {
     list(request?: HandrailQuickBooksListRequest): Promise<HandrailQuickBooksListResponse<HandrailQuickBooksLedgerEntry>>;
+  };
+  readonly locations: {
+    list(request?: HandrailQuickBooksListRequest): Promise<HandrailQuickBooksListResponse<HandrailQuickBooksLocation>>;
   };
   readonly parties: {
     list(request?: HandrailQuickBooksListRequest): Promise<HandrailQuickBooksListResponse<HandrailQuickBooksParty>>;

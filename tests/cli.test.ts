@@ -188,8 +188,8 @@ describe("handrail-qbo CLI", () => {
         syncMode: "full"
       },
       importVolume: {
-        objectCount: 5,
-        totalObjectCount: 5
+        objectCount: 8,
+        totalObjectCount: 8
       },
       syncMode: "full",
       syncPhase: "initial_load"
@@ -289,21 +289,21 @@ describe("handrail-qbo CLI", () => {
         available: true,
         importBatchId: contractImportBatchId,
         status: "succeeded",
-        totalObjectCount: 5
+        totalObjectCount: 8
       },
       importVolume: {
         entityCounts: {
           accounts: 3,
-          parties: 1,
-          transactions: 1
+          parties: 2,
+          transactions: 3
         },
-        objectCount: 5,
+        objectCount: 8,
         objectCounts: {
           Account: 3,
           Customer: 1,
           Payment: 1
         },
-        totalObjectCount: 5
+        totalObjectCount: 8
       },
       normalizedCounts: {
         accounts: {
@@ -314,7 +314,7 @@ describe("handrail-qbo CLI", () => {
         },
         ledgerEntries: {
           available: true,
-          count: 2
+          count: 4
         },
         parties: {
           available: true,
@@ -322,7 +322,7 @@ describe("handrail-qbo CLI", () => {
         },
         transactions: {
           available: true,
-          count: 1
+          count: 3
         }
       },
       rawImport: {

@@ -1,0 +1,39 @@
+{
+  "data": [
+    {
+      "tenantId": "tenant_contract_123",
+      "realmId": "realm_demo_12345",
+      "companyId": "realm_demo_12345",
+      "provider": "intuit",
+      "providerEnvironment": "sandbox",
+      "source": "quickbooks_accounting_api",
+      "sourceObjectId": "810",
+      "importBatchId": "batch_contract_2026_05",
+      "jobId": "sync_contract_123",
+      "importedAt": "2026-06-15T19:45:00.000Z",
+      "syncedAt": "2026-06-15T19:45:00.000Z",
+      "sourceUpdatedAt": "2026-06-15T19:24:40.000Z",
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "jobId": "sync_contract_123",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05"
+      },
+      "id": "accounting_class_810",
+      "sourceObject": "Class",
+      "name": "Operations",
+      "fullyQualifiedName": "Operations",
+      "displayName": "Operations",
+      "status": "active",
+      "active": true,
+      "subClass": false,
+      "hierarchyPath": ["Operations"],
+      "hierarchyLevel": 0
+    }
+  ],
+  "page": {
+    "cursor": "cursor_classes_next",
+    "hasMore": false,
+    "limit": 25
+  }
+}

@@ -88,7 +88,7 @@ const connect = await quickBooks.connections.connectUrl({
   returnUrl: "https://erp.example.test/settings/accounting"
 });
 const sync = await quickBooks.syncJobs.start({
-  entities: ["accounts", "ledger_entries"],
+  entities: ["accounts", "items", "classes", "locations", "ledger_entries"],
   mode: "incremental"
 });
 const trialBalance = await quickBooks.reports.trialBalance({
@@ -112,6 +112,9 @@ const ledgerEntries = await quickBooks.ledgerEntries.search({
   from: "2026-05-01",
   to: "2026-05-31"
 });
+const items = await quickBooks.items.list({ active: true });
+const classes = await quickBooks.classes.list({ active: true });
+const locations = await quickBooks.locations.list({ active: true });
 const drilldown = await quickBooks.drilldowns.get({
   type: "report_line",
   id: "report-line-profit-and-loss-income"
@@ -127,6 +130,9 @@ The public surface exposes stable Handrail business concepts through resource mo
 - `importBatches.get()` and `importBatches.list()`
 - `checkpoints.get()` and `checkpoints.list()`
 - `accounts.list()` and `accounts.get()`
+- `items.list()` and `items.get()`
+- `classes.list()` and `classes.get()`
+- `locations.list()` and `locations.get()`
 - `parties.list()` and `parties.get()`
 - `transactions.list()` and `transactions.get()`
 - `ledgerEntries.search()` and `ledgerEntries.get()`
@@ -140,22 +146,28 @@ The public surface exposes stable Handrail business concepts through resource mo
 - `reconciliation.run()`
 - `drilldowns.get()`
 
-The SDK keeps Intuit-specific details bounded to `audit` references such as `realmId`, QBO object IDs, source payload references, sync tokens, and import batches. Consumers should treat those fields as diagnostics, not as a direct QuickBooks API contract.
+The SDK keeps Intuit-specific details bounded to safe metadata such as `realmId`, QBO object IDs, source refs, checkpoint refs, sync tokens, and import batches. Report, reconciliation, and drilldown responses expose first-class `reportSnapshotId`, `reportSnapshotRef`, `sourceRefs`, and `checkpointRefs` fields so ERP reconciliation views do not need to parse `audit.sourcePayloadRefs`. Consumers should treat `audit` fields as diagnostics, not as a direct QuickBooks API contract.
 
 Object pulls and normalized report contracts use the integration service's normalized accounting API:
-`/v1/tenants/:tenantId/accounting/accounts`, `/accounting/parties`,
+`/v1/tenants/:tenantId/accounting/accounts`, `/accounting/items`,
+`/accounting/classes`, `/accounting/locations`, `/accounting/parties`,
 `/accounting/transactions`, `/accounting/ledger-entries/search`, and
 `/accounting/reports/{report-name}`. The SDK and CLI return
 paginated `{ data, page }` responses unchanged, including optional filters such as `limit` and
 `cursor` where supported. Reports expose normalized statement rows, totals, aging buckets, ledger
-rows, and drilldown references; reconciliation and drilldowns remain operation/report surfaces, not
-raw-import object types.
+rows, first-class report snapshot refs, source refs, checkpoint refs, and drilldown references;
+reconciliation and drilldowns remain operation/report surfaces, not raw-import object types.
+
+Products are normalized from the QuickBooks Accounting API `Item` object. Locations are normalized
+from the QuickBooks `Department` object with `locationSource: "department"` and
+`locationObjectStatus: "mapped_to_department"`; the SDK does not invent a distinct QuickBooks
+`Location` object contract.
 
 Raw import and sync job responses expose first-class status metadata for initial loads and delta syncs. `syncMode` is `full` for initial load work and `incremental` for checkpoint-resumed CDC/query work; `syncPhase` is `initial_load` or `delta_sync`. `importVolume` repeats the service-normalized object/entity totals, errors, and warnings directly on `rawImports` and `syncJobs`, while `checkpoint` includes the checkpoint id/ref/kind, sync mode, provider-updated-at watermark, cursor refs, job refs, timestamps, status, and bounded audit refs. These fields are safe SDK contract fields and must not contain raw QuickBooks payloads.
 
 Raw import and sync job responses may include a `retry` object with `retryable`, `attemptCount`, `maxAttempts`, optional `nextRetryAt`, `lastErrorCode`, and `retryReason`. These fields describe central-service retry readiness only; they use service-owned codes and must not contain Intuit tokens, Authorization headers, raw provider errors, or raw QuickBooks payloads.
 
-Stable namespaces are the SDK compatibility surface. Method names, request/response shapes, and normalized business identifiers should change only through versioned updates. Bounded audit fields may help support teams correlate central-service state with QuickBooks objects, but product workflows should not depend on raw Intuit payload structure.
+Stable namespaces are the SDK compatibility surface. Method names, request/response shapes, normalized business identifiers, report snapshot refs, source refs, checkpoint refs, and bounded drilldown metadata should change only through versioned updates. Bounded audit fields may help support teams correlate central-service state with QuickBooks objects, but product workflows should not depend on raw Intuit payload structure.
 
 ## CLI
 
@@ -180,7 +192,7 @@ Supported commands:
 - `pull-accounts` reads normalized accounts from `/v1/tenants/:tenantId/accounting/accounts`, with optional `--active`, `--inactive`, `--type`, `--limit`, and `--cursor` filters.
 - `sync` starts a sync job with optional `--mode`, `--entities`, `--since`, `--import-batch-id`, and `--idempotency-key`.
 - `report trial-balance` requests a trial-balance report with `--as-of` or `--as-of-date`.
-- `smoke` prints a redacted operator JSON summary for connection/provider status, token custody state, raw import and sync job metadata, import volume, normalized account/party/transaction/ledger-entry counts, checkpoint position, and report availability.
+- `smoke` prints a redacted operator JSON summary for connection/provider status, token custody state, raw import and sync job metadata, import volume, normalized account/item/class/location/party/transaction/ledger-entry counts, checkpoint position, and report availability.
 - `reconcile` runs reconciliation for an account and period.
 - `status` reads tenant connection status.
 - `status` may include sanitized service-owned provider metadata such as `providerEnvironment` and `providerProfile` when the integration service reports it.
@@ -244,7 +256,7 @@ Unit tests are fully offline and use mocked fetch/SDK clients plus fixtures from
 npm run test
 ```
 
-Example service response contracts live in `examples/contracts/` for connection status, token status, raw import status, connect URL, normalized accounting resources, CDC sync start, import batches, checkpoints, trial balance, profit and loss, balance sheet, cash flow, general ledger, A/R aging, A/P aging, ledger search, reconciliation, and drilldowns. The raw import example demonstrates `syncMode: "full"` / `syncPhase: "initial_load"` metadata, and the CDC sync start example demonstrates `syncMode: "incremental"` / `syncPhase: "delta_sync"` metadata. The `*.response.json` files describe the successful SDK return value and successful CLI stdout shape for those commands; the CLI does not wrap or reshape successful responses. These examples include normalized Handrail accounting concepts and bounded audit/debug references only; they do not include token material, real credentials, raw provider payloads, or direct Intuit API contracts.
+Example service response contracts live in `examples/contracts/` for connection status, token status, raw import status, connect URL, normalized accounting resources, CDC sync start, import batches, checkpoints, trial balance, profit and loss, balance sheet, cash flow, general ledger, A/R aging, A/P aging, ledger search, reconciliation, and drilldowns. The report, reconciliation, and drilldown examples pin `reportSnapshotId`, `reportSnapshotRef`, `sourceRefs`, and `checkpointRefs` as the Future ERP compatibility surface. The transaction and ledger examples include sandbox-backed Bill, Payment, and Deposit contracts; no-data transaction objects remain visible through zero object counts in import metadata. The raw import example demonstrates `syncMode: "full"` / `syncPhase: "initial_load"` metadata, and the CDC sync start example demonstrates `syncMode: "incremental"` / `syncPhase: "delta_sync"` metadata. The `*.response.json` files describe the successful SDK return value and successful CLI stdout shape for those commands; the CLI does not wrap or reshape successful responses. These examples include normalized Handrail accounting concepts and bounded audit/debug references only; they do not include token material, real credentials, raw provider payloads, or direct Intuit API contracts.
 
 Later smoke tests against the integration service should use the CLI with Handrail-provided runtime config:
 
@@ -264,6 +276,37 @@ npm run build
 ```
 
 `npm run build` emits ESM JavaScript, source maps, and `.d.ts` files into `dist/`.
+
+## Future ERP Type Handoff
+
+Future ERP should import SDK runtime and contract types from the package root:
+
+```ts
+import { HandrailQuickBooksClient } from "@handrail/quickbooks-node-sdk";
+import type {
+  HandrailQuickBooksSdkConfigInput,
+  HandrailQuickBooksConnectionStatusResponse,
+  HandrailQuickBooksSyncJobSummary,
+  HandrailQuickBooksSyncCheckpoint,
+  HandrailQuickBooksImportBatchSummary,
+  HandrailQuickBooksAccount,
+  HandrailQuickBooksParty,
+  HandrailQuickBooksTransaction,
+  HandrailQuickBooksLedgerEntry,
+  HandrailQuickBooksReportRequest,
+  HandrailQuickBooksReportResponse,
+  HandrailQuickBooksReportName,
+  HandrailQuickBooksAuditReference,
+  HandrailQuickBooksReportDrilldownReference
+} from "@handrail/quickbooks-node-sdk";
+```
+
+The package root is `dist/index.js`, and TypeScript resolves declarations through
+`package.json` `types` and `exports["."].types` at `dist/index.d.ts`. The declaration bundle
+re-exports public contract names from `dist/types.d.ts` plus resource request types from
+`dist/resources/*.d.ts`. `npm run check:consumer-types` builds the package and verifies a
+Future ERP-style consumer can import the public contract through `@handrail/quickbooks-node-sdk`
+without depending on the old ambient `src/server/quickbooks/quickbooks-node-sdk.d.ts` fallback.
 
 ## Versioning Expectations
 

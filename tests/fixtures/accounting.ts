@@ -7,6 +7,7 @@ import type {
   HandrailQuickBooksBalanceSheetRequest,
   HandrailQuickBooksCashFlowReport,
   HandrailQuickBooksCashFlowRequest,
+  HandrailQuickBooksClass,
   HandrailQuickBooksConnectUrlRequest,
   HandrailQuickBooksConnectUrlResponse,
   HandrailQuickBooksConnectionStatusResponse,
@@ -16,9 +17,11 @@ import type {
   HandrailQuickBooksGeneralLedgerRequest,
   HandrailQuickBooksImportBatchSummary,
   HandrailQuickBooksImportVolumeSummary,
+  HandrailQuickBooksItem,
   HandrailQuickBooksLedgerEntry,
   HandrailQuickBooksLedgerSearchRequest,
   HandrailQuickBooksListResponse,
+  HandrailQuickBooksLocation,
   HandrailQuickBooksParty,
   HandrailQuickBooksProfitAndLossReport,
   HandrailQuickBooksProfitAndLossRequest,
@@ -45,6 +48,23 @@ const contractCheckpointRef = `checkpoint://quickbooks/${contractTenantId}/${con
 const contractInitialLoadCheckpointId = "quickbooks_full_initial_load_accounts_Account";
 const contractInitialLoadCheckpointRef =
   `checkpoint://quickbooks/${contractTenantId}/${contractInitialLoadCheckpointId}`;
+
+function reportSnapshotMetadata(reportName: string, dateKey: string) {
+  const reportSnapshotId =
+    `quickbooks_${reportName}_${contractTenantId}_${dateKey}_${contractImportBatchId}`;
+
+  return {
+    checkpointRefs: [contractCheckpointRef],
+    importBatchId: contractImportBatchId,
+    jobId: contractJobId,
+    realmId: "realm_demo_12345",
+    reportSnapshotId,
+    reportSnapshotRef: `report-snapshot://quickbooks/${contractTenantId}/${reportSnapshotId}`,
+    sourceRefs: [
+      `raw://${contractImportBatchId}/reports/${reportName.replaceAll("_", "-")}/${dateKey}`
+    ]
+  } as const;
+}
 
 const providerMetadata = {
   tenantId: contractTenantId,
@@ -163,6 +183,18 @@ export const accountingFixtures = {
         name: "Acme Customer",
         value: "300"
       },
+      item: {
+        name: "Consulting Services",
+        value: "700"
+      },
+      classRef: {
+        name: "Operations",
+        value: "810"
+      },
+      department: {
+        name: "Main Office",
+        value: "910"
+      },
       postedAt: "2026-05-15",
       postingType: "Debit",
       sourceObject: "Payment",
@@ -204,6 +236,78 @@ export const accountingFixtures = {
       transactionDate: "2026-05-15",
       transactionId: "700",
       transactionType: "payment"
+    },
+    {
+      ...providerMetadata,
+      account: {
+        name: "Software Expense",
+        value: "610"
+      },
+      amount: 150,
+      audit: {
+        importBatchId: contractImportBatchId,
+        jobId: contractJobId,
+        realmId: "realm_demo_12345",
+        sourcePayloadRef: `raw://${contractImportBatchId}`
+      },
+      currency: {
+        value: "USD"
+      },
+      description: "Sandbox vendor services",
+      documentNumber: "BILL-920",
+      id: "accounting_ledger_entry_bill_920_1",
+      lineId: "1",
+      party: {
+        name: "Acme Customer",
+        value: "300"
+      },
+      postedAt: "2026-05-17",
+      sourceObject: "Bill",
+      sourceObjectId: "920:1",
+      sourceUpdatedAt: "2026-06-15T19:25:15.000Z",
+      transactionDate: "2026-05-17",
+      transactionId: "920",
+      transactionType: "bill"
+    },
+    {
+      ...providerMetadata,
+      account: {
+        name: "Software Expense",
+        value: "610"
+      },
+      amount: 500,
+      audit: {
+        importBatchId: contractImportBatchId,
+        jobId: contractJobId,
+        realmId: "realm_demo_12345",
+        sourcePayloadRef: `raw://${contractImportBatchId}`
+      },
+      classRef: {
+        name: "Operations",
+        value: "810"
+      },
+      currency: {
+        value: "USD"
+      },
+      department: {
+        name: "Main Office",
+        value: "910"
+      },
+      description: "Sandbox bank deposit",
+      documentNumber: "DEP-940",
+      id: "accounting_ledger_entry_deposit_940_1",
+      lineId: "1",
+      party: {
+        name: "Acme Customer",
+        value: "300"
+      },
+      postedAt: "2026-05-19",
+      sourceObject: "Deposit",
+      sourceObjectId: "940:1",
+      sourceUpdatedAt: "2026-06-15T19:25:45.000Z",
+      transactionDate: "2026-05-19",
+      transactionId: "940",
+      transactionType: "deposit"
     }
   ] satisfies readonly HandrailQuickBooksLedgerEntry[],
   parties: [
@@ -244,6 +348,91 @@ export const accountingFixtures = {
       sourceUpdatedAt: "2026-06-15T19:24:00.000Z"
     }
   ] satisfies readonly HandrailQuickBooksParty[],
+  items: [
+    {
+      ...providerMetadata,
+      active: true,
+      audit: {
+        importBatchId: contractImportBatchId,
+        jobId: contractJobId,
+        realmId: "realm_demo_12345",
+        sourcePayloadRef: `raw://${contractImportBatchId}`
+      },
+      displayName: "Services:Consulting Services",
+      fullyQualifiedName: "Services:Consulting Services",
+      hierarchyLevel: 1,
+      hierarchyPath: ["Services", "Consulting Services"],
+      id: "accounting_item_700",
+      incomeAccountRef: {
+        name: "Service Revenue",
+        value: "400"
+      },
+      itemType: "Service",
+      name: "Consulting Services",
+      parentItemId: "701",
+      parentItemName: "Services",
+      parentRef: {
+        name: "Services",
+        value: "701"
+      },
+      sku: "CONSULT",
+      sourceObject: "Item",
+      sourceObjectId: "700",
+      sourceUpdatedAt: "2026-06-15T19:24:30.000Z",
+      status: "active",
+      taxable: false,
+      unitPrice: 125
+    }
+  ] satisfies readonly HandrailQuickBooksItem[],
+  classes: [
+    {
+      ...providerMetadata,
+      active: true,
+      audit: {
+        importBatchId: contractImportBatchId,
+        jobId: contractJobId,
+        realmId: "realm_demo_12345",
+        sourcePayloadRef: `raw://${contractImportBatchId}`
+      },
+      displayName: "Operations",
+      fullyQualifiedName: "Operations",
+      hierarchyLevel: 0,
+      hierarchyPath: ["Operations"],
+      id: "accounting_class_810",
+      name: "Operations",
+      sourceObject: "Class",
+      sourceObjectId: "810",
+      sourceUpdatedAt: "2026-06-15T19:24:40.000Z",
+      status: "active",
+      subClass: false
+    }
+  ] satisfies readonly HandrailQuickBooksClass[],
+  locations: [
+    {
+      ...providerMetadata,
+      active: true,
+      audit: {
+        importBatchId: contractImportBatchId,
+        jobId: contractJobId,
+        realmId: "realm_demo_12345",
+        sourcePayloadRef: `raw://${contractImportBatchId}`
+      },
+      displayName: "Main Office",
+      fullyQualifiedName: "Main Office",
+      hierarchyLevel: 0,
+      hierarchyPath: ["Main Office"],
+      id: "accounting_location_department_910",
+      locationObjectStatus: "mapped_to_department",
+      locationSource: "department",
+      name: "Main Office",
+      sourceObject: "Department",
+      sourceObjectId: "910",
+      sourceUpdatedAt: "2026-06-15T19:24:50.000Z",
+      status: "active",
+      subLocation: false,
+      unsupportedProviderObject: "Location"
+    }
+  ] satisfies readonly HandrailQuickBooksLocation[],
   transactions: [
     {
       ...providerMetadata,
@@ -269,6 +458,55 @@ export const accountingFixtures = {
       sourceUpdatedAt: "2026-06-15T19:25:00.000Z",
       transactionDate: "2026-05-15",
       transactionType: "payment"
+    },
+    {
+      ...providerMetadata,
+      amount: 150,
+      audit: {
+        importBatchId: contractImportBatchId,
+        jobId: contractJobId,
+        realmId: "realm_demo_12345",
+        sourcePayloadRef: `raw://${contractImportBatchId}`
+      },
+      balance: 150,
+      currency: {
+        value: "USD"
+      },
+      documentNumber: "BILL-920",
+      id: "accounting_transaction_bill_920",
+      party: {
+        name: "Demo Vendor",
+        value: "500"
+      },
+      sourceObject: "Bill",
+      sourceObjectId: "920",
+      sourceUpdatedAt: "2026-06-15T19:25:15.000Z",
+      transactionDate: "2026-05-17",
+      transactionType: "bill"
+    },
+    {
+      ...providerMetadata,
+      amount: 500,
+      audit: {
+        importBatchId: contractImportBatchId,
+        jobId: contractJobId,
+        realmId: "realm_demo_12345",
+        sourcePayloadRef: `raw://${contractImportBatchId}`
+      },
+      currency: {
+        value: "USD"
+      },
+      documentNumber: "DEP-940",
+      id: "accounting_transaction_deposit_940",
+      party: {
+        name: "Operating Cash",
+        value: "100"
+      },
+      sourceObject: "Deposit",
+      sourceObjectId: "940",
+      sourceUpdatedAt: "2026-06-15T19:25:45.000Z",
+      transactionDate: "2026-05-19",
+      transactionType: "deposit"
     }
   ] satisfies readonly HandrailQuickBooksTransaction[]
 };
@@ -355,7 +593,7 @@ const deltaCounts = {
 const initialLoadDeltaCounts = {
   skippedCount: 0,
   changedCount: 0,
-  insertedCount: 5,
+  insertedCount: 8,
   failedCount: 0
 } as const;
 
@@ -375,17 +613,27 @@ const incrementalImportVolume = {
 const initialLoadImportVolume = {
   entityCounts: {
     accounts: 3,
-    parties: 1,
-    transactions: 1
+    parties: 2,
+    transactions: 3
   },
   errorCount: 0,
-  objectCount: 5,
+  objectCount: 8,
   objectCounts: {
     Account: 3,
     Customer: 1,
-    Payment: 1
+    Vendor: 1,
+    Bill: 1,
+    Payment: 1,
+    Purchase: 0,
+    Deposit: 1,
+    Transfer: 0,
+    SalesReceipt: 0,
+    CreditMemo: 0,
+    RefundReceipt: 0,
+    BillPayment: 0,
+    VendorCredit: 0
   },
-  totalObjectCount: 5,
+  totalObjectCount: 8,
   warningCount: 0
 } satisfies HandrailQuickBooksImportVolumeSummary;
 
@@ -436,6 +684,9 @@ const initialLoadCheckpointMetadata = {
     `raw://${contractImportBatchId}`,
     `raw://${contractImportBatchId}/objects/Account`,
     `raw://${contractImportBatchId}/objects/Customer`,
+    `raw://${contractImportBatchId}/objects/Vendor`,
+    `raw://${contractImportBatchId}/objects/Bill`,
+    `raw://${contractImportBatchId}/objects/Deposit`,
     `raw://${contractImportBatchId}/objects/Payment`
   ],
   entity: "accounts",
@@ -458,6 +709,14 @@ export const contractResponses = {
       limit: 25
     }
   } satisfies HandrailQuickBooksListResponse<HandrailQuickBooksAccount>,
+  classes: {
+    data: accountingFixtures.classes,
+    page: {
+      cursor: "cursor_classes_next",
+      hasMore: false,
+      limit: 25
+    }
+  } satisfies HandrailQuickBooksListResponse<HandrailQuickBooksClass>,
   checkpoint: {
     audit: {
       checkpointId: contractCheckpointId,
@@ -524,6 +783,7 @@ export const contractResponses = {
     tenantId: contractTenantId
   } satisfies HandrailQuickBooksConnectionStatusResponse,
   accountsPayableAging: {
+    ...reportSnapshotMetadata("accounts_payable_aging", "2026-05-31"),
     asOfDate: "2026-05-31",
     audit: {
       checkpointId: contractCheckpointId,
@@ -569,6 +829,7 @@ export const contractResponses = {
     }
   } satisfies HandrailQuickBooksAccountsPayableAgingReport,
   accountsReceivableAging: {
+    ...reportSnapshotMetadata("accounts_receivable_aging", "2026-05-31"),
     asOfDate: "2026-05-31",
     audit: {
       checkpointId: contractCheckpointId,
@@ -614,6 +875,7 @@ export const contractResponses = {
     }
   } satisfies HandrailQuickBooksAccountsReceivableAgingReport,
   balanceSheet: {
+    ...reportSnapshotMetadata("balance_sheet", "2026-05-31"),
     accountingBasis: "accrual",
     asOfDate: "2026-05-31",
     audit: {
@@ -685,6 +947,7 @@ export const contractResponses = {
     }
   } satisfies HandrailQuickBooksBalanceSheetReport,
   cashFlow: {
+    ...reportSnapshotMetadata("cash_flow", "2026-05-01_2026-05-31"),
     accountingBasis: "accrual",
     audit: {
       checkpointId: contractCheckpointId,
@@ -737,6 +1000,7 @@ export const contractResponses = {
     }
   } satisfies HandrailQuickBooksCashFlowReport,
   drilldown: {
+    ...reportSnapshotMetadata("profit_and_loss", "latest_latest"),
     audit: {
       checkpointId: contractCheckpointId,
       importBatchId: contractImportBatchId,
@@ -782,6 +1046,7 @@ export const contractResponses = {
     type: "report_line"
   } satisfies HandrailQuickBooksDrilldownResult,
   generalLedger: {
+    ...reportSnapshotMetadata("general_ledger", "2026-05-01_2026-05-31"),
     accountingBasis: "accrual",
     audit: {
       checkpointId: contractCheckpointId,
@@ -856,6 +1121,8 @@ export const contractResponses = {
       realmId: "realm_demo_12345",
       sourcePayloadRefs: [
         `raw://${contractImportBatchId}/objects/Account/sync-jobs/${contractJobId}`,
+        `raw://${contractImportBatchId}/objects/Bill/sync-jobs/${contractJobId}`,
+        `raw://${contractImportBatchId}/objects/Deposit/sync-jobs/${contractJobId}`,
         `raw://${contractImportBatchId}/objects/Payment/sync-jobs/${contractJobId}`
       ]
     },
@@ -865,9 +1132,9 @@ export const contractResponses = {
     deltaCounts,
     entityCounts: {
       accounts: 3,
-      ledger_entries: 2,
-      parties: 1,
-      transactions: 1
+      ledger_entries: 4,
+      parties: 2,
+      transactions: 3
     },
     errorCount: 0,
     importBatchId: contractImportBatchId,
@@ -875,14 +1142,24 @@ export const contractResponses = {
     objectCounts: {
       Account: 3,
       Customer: 1,
-      Payment: 1
+      Vendor: 1,
+      Bill: 1,
+      Deposit: 1,
+      Purchase: 0,
+      Payment: 1,
+      Transfer: 0,
+      SalesReceipt: 0,
+      CreditMemo: 0,
+      RefundReceipt: 0,
+      BillPayment: 0,
+      VendorCredit: 0
     },
     realmId: "realm_demo_12345",
     startedAt: "2026-06-15T19:30:00.000Z",
     status: "succeeded",
     syncJobRefs: [`raw://${contractImportBatchId}/sync-jobs/${contractJobId}`],
     tenantId: contractTenantId,
-    totalObjectCount: 5,
+    totalObjectCount: 8,
     warningCount: 0
   } satisfies HandrailQuickBooksImportBatchSummary,
   importBatches: {
@@ -892,6 +1169,14 @@ export const contractResponses = {
       limit: 10
     }
   } satisfies HandrailQuickBooksListResponse<HandrailQuickBooksImportBatchSummary>,
+  items: {
+    data: accountingFixtures.items,
+    page: {
+      cursor: "cursor_items_next",
+      hasMore: false,
+      limit: 25
+    }
+  } satisfies HandrailQuickBooksListResponse<HandrailQuickBooksItem>,
   ledgerEntries: {
     data: accountingFixtures.ledgerEntries,
     page: {
@@ -899,6 +1184,14 @@ export const contractResponses = {
       limit: 50
     }
   } satisfies HandrailQuickBooksListResponse<HandrailQuickBooksLedgerEntry>,
+  locations: {
+    data: accountingFixtures.locations,
+    page: {
+      cursor: "cursor_locations_next",
+      hasMore: false,
+      limit: 25
+    }
+  } satisfies HandrailQuickBooksListResponse<HandrailQuickBooksLocation>,
   parties: {
     data: accountingFixtures.parties,
     page: {
@@ -907,6 +1200,7 @@ export const contractResponses = {
     }
   } satisfies HandrailQuickBooksListResponse<HandrailQuickBooksParty>,
   profitAndLoss: {
+    ...reportSnapshotMetadata("profit_and_loss", "2026-05-01_2026-05-31"),
     accountingBasis: "accrual",
     audit: {
       checkpointId: contractCheckpointId,
@@ -1003,7 +1297,7 @@ export const contractResponses = {
     errorCount: 0,
     importBatchId: contractImportBatchId,
     importVolume: initialLoadImportVolume,
-    objectCount: 5,
+    objectCount: 8,
     objectType: "Account",
     startedAt: "2026-06-15T19:30:00.000Z",
     status: "completed",
@@ -1020,6 +1314,7 @@ export const contractResponses = {
     }
   } satisfies HandrailQuickBooksListResponse<HandrailQuickBooksRawImportStatus>,
   reconciliation: {
+    ...reportSnapshotMetadata("general_ledger", "2026-05-01_2026-05-31"),
     accountId: "accounting_account_100",
     audit: {
       importBatchId: contractImportBatchId,
@@ -1080,6 +1375,7 @@ export const contractResponses = {
     }
   } satisfies HandrailQuickBooksListResponse<HandrailQuickBooksTransaction>,
   trialBalance: {
+    ...reportSnapshotMetadata("trial_balance", "2026-05-01_2026-05-31"),
     audit: {
       importBatchId: contractImportBatchId,
       realmId: "realm_demo_12345",

@@ -174,6 +174,18 @@ describe("HandrailQuickBooksClient", () => {
       sourceObject: "Payment",
       transactionType: "payment"
     });
+    expect(transactions.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceObject: "Bill",
+          transactionType: "bill"
+        }),
+        expect.objectContaining({
+          sourceObject: "Deposit",
+          transactionType: "deposit"
+        })
+      ])
+    );
     expect(syncJob).toEqual(contractResponses.syncJob);
     expect(syncJob).toMatchObject({
       tenantId: contractTenantId,
@@ -209,12 +221,12 @@ describe("HandrailQuickBooksClient", () => {
       deltaCounts: {
         changedCount: 0,
         failedCount: 0,
-        insertedCount: 5,
+        insertedCount: 8,
         skippedCount: 0
       },
       importVolume: {
-        objectCount: 5,
-        totalObjectCount: 5
+        objectCount: 8,
+        totalObjectCount: 8
       },
       syncMode: "full",
       syncPhase: "initial_load"
@@ -234,6 +246,17 @@ describe("HandrailQuickBooksClient", () => {
     expect(checkpoints).toEqual(contractResponses.checkpoints);
     expect(trialBalance).toEqual(contractResponses.trialBalance);
     expect(profitAndLoss).toEqual(contractResponses.profitAndLoss);
+    expect(profitAndLoss).toMatchObject({
+      checkpointRefs: [`checkpoint://quickbooks/${contractTenantId}/quickbooks_incremental_accounts_Account`],
+      importBatchId: "batch_contract_2026_05",
+      reportSnapshotId:
+        "quickbooks_profit_and_loss_tenant_contract_123_2026-05-01_2026-05-31_batch_contract_2026_05",
+      reportSnapshotRef:
+        "report-snapshot://quickbooks/tenant_contract_123/quickbooks_profit_and_loss_tenant_contract_123_2026-05-01_2026-05-31_batch_contract_2026_05",
+      sourceRefs: [
+        "raw://batch_contract_2026_05/reports/profit-and-loss/2026-05-01_2026-05-31"
+      ]
+    });
     expect(balanceSheet).toEqual(contractResponses.balanceSheet);
     expect(cashFlow).toEqual(contractResponses.cashFlow);
     expect(generalLedger).toEqual(contractResponses.generalLedger);
@@ -252,7 +275,18 @@ describe("HandrailQuickBooksClient", () => {
       }
     });
     expect(reconciliation).toEqual(contractResponses.reconciliation);
+    expect(reconciliation.reportSnapshotId).toBe(
+      "quickbooks_general_ledger_tenant_contract_123_2026-05-01_2026-05-31_batch_contract_2026_05"
+    );
     expect(drilldown).toEqual(contractResponses.drilldown);
+    expect(drilldown).toMatchObject({
+      checkpointRefs: [`checkpoint://quickbooks/${contractTenantId}/quickbooks_incremental_accounts_Account`],
+      reportSnapshotId:
+        "quickbooks_profit_and_loss_tenant_contract_123_latest_latest_batch_contract_2026_05",
+      sourceRefs: [
+        "raw://batch_contract_2026_05/reports/profit-and-loss/latest_latest"
+      ]
+    });
     expect(drilldown).toMatchObject({
       reportName: "profit_and_loss",
       relatedLedgerEntries: [
@@ -521,6 +555,68 @@ describe("HandrailQuickBooksClient", () => {
     ]);
   });
 
+  it("exposes optional item, class, and Department-backed location resources", async () => {
+    const { fetch, requests } = mockFetch([
+      contractResponses.items,
+      contractResponses.classes,
+      contractResponses.locations
+    ]);
+    const client = new HandrailQuickBooksClient({
+      apiKey: contractApiKey,
+      baseUrl: contractBaseUrl,
+      fetch,
+      tenantId: contractTenantId
+    });
+
+    const items = await client.items.list({
+      active: true,
+      itemType: "Service",
+      limit: 25
+    });
+    const classes = await client.classes.list({
+      active: true,
+      limit: 25
+    });
+    const locations = await client.locations.list({
+      active: true,
+      limit: 25
+    });
+
+    expect(items).toEqual(contractResponses.items);
+    expect(items.data[0]).toMatchObject({
+      sourceObject: "Item",
+      sourceObjectId: "700",
+      itemType: "Service",
+      incomeAccountRef: {
+        value: "400"
+      }
+    });
+    expect(classes).toEqual(contractResponses.classes);
+    expect(classes.data[0]).toMatchObject({
+      sourceObject: "Class",
+      sourceObjectId: "810",
+      status: "active"
+    });
+    expect(locations).toEqual(contractResponses.locations);
+    expect(locations.data[0]).toMatchObject({
+      sourceObject: "Department",
+      locationSource: "department",
+      locationObjectStatus: "mapped_to_department",
+      unsupportedProviderObject: "Location"
+    });
+
+    expect(requestUrl(requests[0])).toBe(
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/items?active=true&itemType=Service&limit=25`
+    );
+    expect(requestUrl(requests[1])).toBe(
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/classes?active=true&limit=25`
+    );
+    expect(requestUrl(requests[2])).toBe(
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/locations?active=true&limit=25`
+    );
+    expect(JSON.stringify([items, classes, locations])).not.toMatch(unsafeProviderPayloadPattern);
+  });
+
   it("pins example response contracts and excludes provider payload leakage", () => {
     const contractsDir = new URL("../examples/contracts/", import.meta.url);
     const contractFiles = readdirSync(contractsDir)
@@ -535,12 +631,15 @@ describe("HandrailQuickBooksClient", () => {
       "cash-flow.response.json",
       "cdc-sync-start.response.json",
       "checkpoints.response.json",
+      "classes.response.json",
       "connect-url.response.json",
       "connection-status.response.json",
       "drilldown.response.json",
       "general-ledger.response.json",
       "import-batch.response.json",
+      "items.response.json",
       "ledger-search.response.json",
+      "locations.response.json",
       "parties.response.json",
       "profit-and-loss.response.json",
       "raw-import-status.response.json",
@@ -574,14 +673,47 @@ describe("HandrailQuickBooksClient", () => {
         limit: 25
       }
     });
+    expect(examples["items.response.json"]).toMatchObject({
+      data: [
+        {
+          id: "accounting_item_700",
+          provider: "intuit",
+          source: "quickbooks_accounting_api",
+          sourceObject: "Item",
+          tenantId: contractTenantId
+        }
+      ]
+    });
+    expect(examples["classes.response.json"]).toMatchObject({
+      data: [
+        {
+          id: "accounting_class_810",
+          provider: "intuit",
+          source: "quickbooks_accounting_api",
+          sourceObject: "Class",
+          tenantId: contractTenantId
+        }
+      ]
+    });
+    expect(examples["locations.response.json"]).toMatchObject({
+      data: [
+        {
+          id: "accounting_location_department_910",
+          locationObjectStatus: "mapped_to_department",
+          sourceObject: "Department",
+          tenantId: contractTenantId,
+          unsupportedProviderObject: "Location"
+        }
+      ]
+    });
     expect(examples["raw-import-status.response.json"]).toMatchObject({
       checkpoint: {
         checkpointKind: "provider_updated_at_watermark",
         syncMode: "full"
       },
       importVolume: {
-        objectCount: 5,
-        totalObjectCount: 5
+        objectCount: 8,
+        totalObjectCount: 8
       },
       syncMode: "full",
       syncPhase: "initial_load"
@@ -599,14 +731,35 @@ describe("HandrailQuickBooksClient", () => {
       syncPhase: "delta_sync"
     });
     const profitAndLoss = examples["profit-and-loss.response.json"] as {
+      checkpointRefs: string[];
       lines: Array<{ drilldown?: { type?: string } }>;
       name: string;
+      reportSnapshotId: string;
+      reportSnapshotRef: string;
+      sourceRefs: string[];
       totals: { netIncome: { amount: string } };
     };
     expect(profitAndLoss.name).toBe("profit_and_loss");
+    expect(profitAndLoss.reportSnapshotId).toBe(
+      "quickbooks_profit_and_loss_tenant_contract_123_2026-05-01_2026-05-31_batch_contract_2026_05"
+    );
+    expect(profitAndLoss.reportSnapshotRef).toBe(
+      "report-snapshot://quickbooks/tenant_contract_123/quickbooks_profit_and_loss_tenant_contract_123_2026-05-01_2026-05-31_batch_contract_2026_05"
+    );
+    expect(profitAndLoss.sourceRefs).toEqual([
+      "raw://batch_contract_2026_05/reports/profit-and-loss/2026-05-01_2026-05-31"
+    ]);
+    expect(profitAndLoss.checkpointRefs).toEqual([
+      "checkpoint://quickbooks/tenant_contract_123/quickbooks_incremental_accounts_Account"
+    ]);
     expect(profitAndLoss.lines.some((line) => line.drilldown?.type === "report_line")).toBe(true);
     expect(profitAndLoss.totals.netIncome.amount).toBe("1250.00");
     expect(examples["drilldown.response.json"]).toMatchObject({
+      reportSnapshotId:
+        "quickbooks_profit_and_loss_tenant_contract_123_latest_latest_batch_contract_2026_05",
+      sourceRefs: [
+        "raw://batch_contract_2026_05/reports/profit-and-loss/latest_latest"
+      ],
       relatedAuditReferences: [
         {
           sourcePayloadRef: "raw://batch_contract_2026_05/reports/profit-and-loss/2026-05"

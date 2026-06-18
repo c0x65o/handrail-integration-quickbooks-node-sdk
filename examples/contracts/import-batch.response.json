@@ -3,7 +3,10 @@
     "importBatchId": "batch_contract_2026_05",
     "realmId": "realm_demo_12345",
     "sourcePayloadRefs": [
-      "raw://batch_contract_2026_05/objects/Account/sync-jobs/sync_contract_123"
+      "raw://batch_contract_2026_05/objects/Account/sync-jobs/sync_contract_123",
+      "raw://batch_contract_2026_05/objects/Bill/sync-jobs/sync_contract_123",
+      "raw://batch_contract_2026_05/objects/Deposit/sync-jobs/sync_contract_123",
+      "raw://batch_contract_2026_05/objects/Payment/sync-jobs/sync_contract_123"
     ]
   },
   "checkpointRefs": [
@@ -18,7 +21,10 @@
     "skippedCount": 2
   },
   "entityCounts": {
-    "accounts": 3
+    "accounts": 3,
+    "ledger_entries": 4,
+    "parties": 2,
+    "transactions": 3
   },
   "errorCount": 0,
   "importBatchId": "batch_contract_2026_05",
@@ -26,7 +32,19 @@
     "sync_contract_123"
   ],
   "objectCounts": {
-    "Account": 3
+    "Account": 3,
+    "Bill": 1,
+    "BillPayment": 0,
+    "CreditMemo": 0,
+    "Customer": 1,
+    "Deposit": 1,
+    "Payment": 1,
+    "Purchase": 0,
+    "RefundReceipt": 0,
+    "SalesReceipt": 0,
+    "Transfer": 0,
+    "Vendor": 1,
+    "VendorCredit": 0
   },
   "realmId": "realm_demo_12345",
   "startedAt": "2026-06-15T19:30:00.000Z",
@@ -35,6 +53,6 @@
     "raw://batch_contract_2026_05/sync-jobs/sync_contract_123"
   ],
   "tenantId": "tenant_contract_123",
-  "totalObjectCount": 3,
+  "totalObjectCount": 8,
   "warningCount": 0
 }

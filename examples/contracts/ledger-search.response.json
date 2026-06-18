@@ -41,6 +41,96 @@
       "transactionDate": "2026-05-15",
       "transactionId": "700",
       "transactionType": "payment"
+    },
+    {
+      "account": {
+        "name": "Software Expense",
+        "value": "610"
+      },
+      "amount": 150,
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "jobId": "sync_contract_123",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05"
+      },
+      "companyId": "realm_demo_12345",
+      "currency": {
+        "value": "USD"
+      },
+      "description": "Sandbox vendor services",
+      "documentNumber": "BILL-920",
+      "id": "accounting_ledger_entry_bill_920_1",
+      "importBatchId": "batch_contract_2026_05",
+      "importedAt": "2026-06-15T19:45:00.000Z",
+      "jobId": "sync_contract_123",
+      "lineId": "1",
+      "party": {
+        "name": "Acme Customer",
+        "value": "300"
+      },
+      "postedAt": "2026-05-17",
+      "provider": "intuit",
+      "providerEnvironment": "sandbox",
+      "realmId": "realm_demo_12345",
+      "source": "quickbooks_accounting_api",
+      "sourceObject": "Bill",
+      "sourceObjectId": "920:1",
+      "sourceUpdatedAt": "2026-06-15T19:25:15.000Z",
+      "syncedAt": "2026-06-15T19:45:00.000Z",
+      "tenantId": "tenant_contract_123",
+      "transactionDate": "2026-05-17",
+      "transactionId": "920",
+      "transactionType": "bill"
+    },
+    {
+      "account": {
+        "name": "Software Expense",
+        "value": "610"
+      },
+      "amount": 500,
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "jobId": "sync_contract_123",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05"
+      },
+      "classRef": {
+        "name": "Operations",
+        "value": "810"
+      },
+      "companyId": "realm_demo_12345",
+      "currency": {
+        "value": "USD"
+      },
+      "department": {
+        "name": "Main Office",
+        "value": "910"
+      },
+      "description": "Sandbox bank deposit",
+      "documentNumber": "DEP-940",
+      "id": "accounting_ledger_entry_deposit_940_1",
+      "importBatchId": "batch_contract_2026_05",
+      "importedAt": "2026-06-15T19:45:00.000Z",
+      "jobId": "sync_contract_123",
+      "lineId": "1",
+      "party": {
+        "name": "Acme Customer",
+        "value": "300"
+      },
+      "postedAt": "2026-05-19",
+      "provider": "intuit",
+      "providerEnvironment": "sandbox",
+      "realmId": "realm_demo_12345",
+      "source": "quickbooks_accounting_api",
+      "sourceObject": "Deposit",
+      "sourceObjectId": "940:1",
+      "sourceUpdatedAt": "2026-06-15T19:25:45.000Z",
+      "syncedAt": "2026-06-15T19:45:00.000Z",
+      "tenantId": "tenant_contract_123",
+      "transactionDate": "2026-05-19",
+      "transactionId": "940",
+      "transactionType": "deposit"
     }
   ],
   "page": {

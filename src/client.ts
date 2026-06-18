@@ -2,10 +2,13 @@ import { HandrailQuickBooksHttpClient } from "./http.js";
 import { createQuickBooksSdkConfig } from "./runtime.js";
 import { AccountsResource } from "./resources/accounts.js";
 import { CheckpointsResource } from "./resources/checkpoints.js";
+import { ClassesResource } from "./resources/classes.js";
 import { ConnectionsResource } from "./resources/connections.js";
 import { DrilldownsResource } from "./resources/drilldowns.js";
 import { ImportBatchesResource } from "./resources/import-batches.js";
+import { ItemsResource } from "./resources/items.js";
 import { LedgerEntriesResource } from "./resources/ledger-entries.js";
+import { LocationsResource } from "./resources/locations.js";
 import { PartiesResource } from "./resources/parties.js";
 import { RawImportsResource } from "./resources/raw-imports.js";
 import { ReconciliationResource } from "./resources/reconciliation.js";
@@ -17,11 +20,14 @@ import type { HandrailQuickBooksClientConfig, HandrailQuickBooksSdkConfigInput }
 export class HandrailQuickBooksClient {
   readonly accounts: AccountsResource;
   readonly checkpoints: CheckpointsResource;
+  readonly classes: ClassesResource;
   readonly config: HandrailQuickBooksClientConfig;
   readonly connections: ConnectionsResource;
   readonly drilldowns: DrilldownsResource;
   readonly importBatches: ImportBatchesResource;
+  readonly items: ItemsResource;
   readonly ledgerEntries: LedgerEntriesResource;
+  readonly locations: LocationsResource;
   readonly parties: PartiesResource;
   readonly rawImports: RawImportsResource;
   readonly reconciliation: ReconciliationResource;
@@ -40,6 +46,9 @@ export class HandrailQuickBooksClient {
     this.importBatches = new ImportBatchesResource(this.config, this.http);
     this.checkpoints = new CheckpointsResource(this.config, this.http);
     this.accounts = new AccountsResource(this.config, this.http);
+    this.items = new ItemsResource(this.config, this.http);
+    this.classes = new ClassesResource(this.config, this.http);
+    this.locations = new LocationsResource(this.config, this.http);
     this.parties = new PartiesResource(this.config, this.http);
     this.transactions = new TransactionsResource(this.config, this.http);
     this.ledgerEntries = new LedgerEntriesResource(this.config, this.http);

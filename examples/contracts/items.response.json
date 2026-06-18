@@ -1,0 +1,52 @@
+{
+  "data": [
+    {
+      "tenantId": "tenant_contract_123",
+      "realmId": "realm_demo_12345",
+      "companyId": "realm_demo_12345",
+      "provider": "intuit",
+      "providerEnvironment": "sandbox",
+      "source": "quickbooks_accounting_api",
+      "sourceObjectId": "700",
+      "importBatchId": "batch_contract_2026_05",
+      "jobId": "sync_contract_123",
+      "importedAt": "2026-06-15T19:45:00.000Z",
+      "syncedAt": "2026-06-15T19:45:00.000Z",
+      "sourceUpdatedAt": "2026-06-15T19:24:30.000Z",
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "jobId": "sync_contract_123",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05"
+      },
+      "id": "accounting_item_700",
+      "sourceObject": "Item",
+      "name": "Consulting Services",
+      "fullyQualifiedName": "Services:Consulting Services",
+      "displayName": "Services:Consulting Services",
+      "itemType": "Service",
+      "status": "active",
+      "active": true,
+      "sku": "CONSULT",
+      "taxable": false,
+      "unitPrice": 125,
+      "parentRef": {
+        "value": "701",
+        "name": "Services"
+      },
+      "parentItemId": "701",
+      "parentItemName": "Services",
+      "hierarchyPath": ["Services", "Consulting Services"],
+      "hierarchyLevel": 1,
+      "incomeAccountRef": {
+        "value": "400",
+        "name": "Service Revenue"
+      }
+    }
+  ],
+  "page": {
+    "cursor": "cursor_items_next",
+    "hasMore": false,
+    "limit": 25
+  }
+}
