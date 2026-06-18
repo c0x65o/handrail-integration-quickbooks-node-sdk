@@ -3,7 +3,10 @@ import {
   HandrailQuickBooksConfigError,
   HandrailQuickBooksError
 } from "./errors.js";
-import { HANDRAIL_QUICKBOOKS_ENV_KEYS } from "./runtime.js";
+import {
+  HANDRAIL_QUICKBOOKS_ENV_KEYS,
+  createQuickBooksSdkConfig
+} from "./runtime.js";
 import { commands, helpText, resolveCommand } from "./cli/commands/index.js";
 import { parseCliArgs } from "./cli/parser.js";
 import type {
@@ -62,6 +65,7 @@ export async function runCli(argv: readonly string[], options: RunCliOptions = {
       new HandrailQuickBooksClient({
         apiKey: config.apiKey,
         baseUrl: config.baseUrl,
+        providerMode: config.providerMode,
         retries: config.retries,
         tenantId: config.tenantId,
         timeoutMs: config.timeoutMs
@@ -88,14 +92,36 @@ function resolveGlobalConfig(
   flags: ReadonlyMap<string, string | true>,
   env: NodeJS.ProcessEnv
 ): CliGlobalConfig {
+  const explicitBaseUrl = flagValue(flags, "base-url");
+  const explicitProviderMode = flagValue(flags, "provider-mode");
+  const envBaseUrl = env[HANDRAIL_QUICKBOOKS_ENV_KEYS.baseUrl]?.trim();
+  const resolvedSdkConfig = createQuickBooksSdkConfig(
+    {
+      baseUrl: explicitBaseUrl,
+      providerMode: explicitProviderMode as CliGlobalConfig["providerMode"]
+    },
+    env
+  );
+
   return {
-    apiKey: flagValue(flags, "api-key") ?? env[HANDRAIL_QUICKBOOKS_ENV_KEYS.apiKey],
-    baseUrl: flagValue(flags, "base-url") ?? env[HANDRAIL_QUICKBOOKS_ENV_KEYS.baseUrl],
+    apiKey: flagValue(flags, "api-key") ?? env[HANDRAIL_QUICKBOOKS_ENV_KEYS.apiKey]?.trim(),
+    baseUrlOverride: explicitBaseUrl || envBaseUrl
+      ? {
+        envName: HANDRAIL_QUICKBOOKS_ENV_KEYS.baseUrl,
+        flagName: "--base-url",
+        present: true,
+        scope: "local_operator_override_only"
+      }
+      : undefined,
+    baseUrl: resolvedSdkConfig.baseUrl,
+    providerMode: resolvedSdkConfig.providerMode,
     retries: optionalNumber(flags, "retries"),
+    serviceEnv: resolvedSdkConfig.serviceEnv,
     tenantId:
       flagValue(flags, "tenant-id") ??
       flagValue(flags, "tenant") ??
-      env[HANDRAIL_QUICKBOOKS_ENV_KEYS.tenantId],
+      env[HANDRAIL_QUICKBOOKS_ENV_KEYS.tenantId]?.trim(),
+    tenantMapJson: env[HANDRAIL_QUICKBOOKS_ENV_KEYS.tenantMapJson]?.trim(),
     timeoutMs: optionalNumber(flags, "timeout-ms")
   };
 }

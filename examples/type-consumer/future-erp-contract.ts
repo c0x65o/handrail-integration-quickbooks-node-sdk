@@ -1,4 +1,12 @@
-import type {
+import {
+  parseFutureErpQuickBooksTenantMapJson,
+  resolveFutureErpQuickBooksTenantId,
+  type HandrailQuickBooksFutureErpTenantContext,
+  type HandrailQuickBooksFutureErpTenantMap,
+  type HandrailQuickBooksFutureErpTenantMapContractId,
+  type HandrailQuickBooksFutureErpTenantMapping,
+  type HandrailQuickBooksFutureErpTenantMappingStatus,
+  type HandrailQuickBooksFutureErpTenantMapResolveOptions,
   HandrailQuickBooksAccount,
   HandrailQuickBooksAccountListResponse,
   HandrailQuickBooksAccountsPayableAgingReport,
@@ -36,6 +44,7 @@ import type {
   HandrailQuickBooksProfitAndLossReport,
   HandrailQuickBooksProfitAndLossRequest,
   HandrailQuickBooksProviderEnvironment,
+  HandrailQuickBooksProviderMode,
   HandrailQuickBooksRawImportStatus,
   HandrailQuickBooksRawImportStatusListResponse,
   HandrailQuickBooksReportDrilldownReference,
@@ -45,6 +54,7 @@ import type {
   HandrailQuickBooksReportResponse,
   HandrailQuickBooksReportSnapshotMetadata,
   HandrailQuickBooksReportTotal,
+  HandrailQuickBooksReportedProviderMode,
   HandrailQuickBooksRequestOptions,
   HandrailQuickBooksRetryState,
   HandrailQuickBooksSdkConfigInput,
@@ -73,8 +83,50 @@ const config: HandrailQuickBooksSdkConfigInput = {
     scheme: "bearer",
     token: "service-token"
   },
-  baseUrl: "https://quickbooks.example.test",
+  providerMode: "sandbox",
+  serviceEnv: "staging",
   tenantId: "tenant_123"
+};
+
+const futureErpTenantMapContractId: HandrailQuickBooksFutureErpTenantMapContractId =
+  "future-erp.quickbooks-tenant-mapping.v1";
+const futureErpTenantMappingStatus: HandrailQuickBooksFutureErpTenantMappingStatus = "active";
+const futureErpTenantContext: HandrailQuickBooksFutureErpTenantContext = {
+  futureErpAccountId: "acct_alpha",
+  futureErpCompanyId: "company_alpha"
+};
+const futureErpTenantMapping: HandrailQuickBooksFutureErpTenantMapping = {
+  ...futureErpTenantContext,
+  serviceTenantId: "tenant_123",
+  status: futureErpTenantMappingStatus
+};
+const futureErpTenantMap: HandrailQuickBooksFutureErpTenantMap = {
+  contractId: futureErpTenantMapContractId,
+  consumerProject: "Hitcents Future ERP",
+  providerMode: "sandbox",
+  schemaVersion: 1,
+  serviceEnv: "staging",
+  sourceOfTruth: "Handrail QuickBooks Integration service",
+  tenantMappings: [futureErpTenantMapping]
+};
+const futureErpResolveOptions: HandrailQuickBooksFutureErpTenantMapResolveOptions = {
+  providerMode: "sandbox",
+  serviceEnv: "staging"
+};
+const parsedFutureErpTenantMap = parseFutureErpQuickBooksTenantMapJson(
+  JSON.stringify(futureErpTenantMap)
+);
+const resolvedFutureErpTenantId = resolveFutureErpQuickBooksTenantId(
+  parsedFutureErpTenantMap,
+  futureErpTenantContext,
+  futureErpResolveOptions
+);
+const futureErpConfig: HandrailQuickBooksSdkConfigInput = {
+  apiKey: "service-api-key",
+  futureErpTenantContext,
+  providerMode: "sandbox",
+  serviceEnv: "staging",
+  tenantMap: parsedFutureErpTenantMap
 };
 
 const listRequest: HandrailQuickBooksListRequest = {
@@ -127,6 +179,8 @@ const deltaCounts: HandrailQuickBooksDeltaSyncCounts = {
 };
 
 const providerEnvironment: HandrailQuickBooksProviderEnvironment = "sandbox";
+const providerMode: HandrailQuickBooksProviderMode = "sandbox";
+const reportedProviderMode: HandrailQuickBooksReportedProviderMode = "unavailable";
 const connectionStatus: HandrailQuickBooksConnectionStatus = "connected";
 const reportName: HandrailQuickBooksReportName = "profit_and_loss";
 const drilldownReference: HandrailQuickBooksReportDrilldownReference = {
@@ -342,6 +396,7 @@ const reportResponses: readonly HandrailQuickBooksReportResponse[] = [
 
 const connection: HandrailQuickBooksConnectionStatusResponse = {
   providerEnvironment,
+  providerMode,
   status: connectionStatus,
   tenantId: "tenant_123"
 };
@@ -400,5 +455,8 @@ void [
   syncRequest,
   requestOptions,
   config,
+  futureErpConfig,
+  resolvedFutureErpTenantId,
+  reportedProviderMode,
   reportTotal
 ];

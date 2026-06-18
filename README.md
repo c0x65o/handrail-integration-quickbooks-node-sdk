@@ -2,7 +2,17 @@
 
 Internal TypeScript package foundation for Handrail ERP-style apps that need to consume normalized QuickBooks data through the central Handrail QuickBooks integration service.
 
-ERP apps must call the Handrail integration service at `https://quickbooks.handrail-daas.com`. They must not store Intuit OAuth tokens, refresh tokens, webhooks, or call Intuit/QuickBooks APIs directly. OAuth, token custody, webhooks, CDC/imports, normalized accounting data, sync jobs, and reconciliation remain owned by the central service.
+ERP apps must call the Handrail integration service through the service URL resolved from
+`HANDRAIL_QBO_SERVICE_ENV`. The staging host is
+`https://quickbooks.hitcents.staging.handrail-daas.com`; the production host is
+`https://quickbooks.handrail-daas.com`.
+They must not store Intuit OAuth tokens, refresh tokens, webhooks, or call Intuit/QuickBooks
+APIs directly. OAuth, token custody, webhooks, CDC/imports, normalized accounting data,
+sync jobs, and reconciliation remain owned by the central service.
+
+Service ownership and the Future ERP tenant-mapping contract are documented in the sibling service repo:
+[QuickBooks Production Integration](../handrail-integration-quickbooks/docs/quickbooks-production.md#service-responsibility)
+and [Future ERP QuickBooks Tenant Mapping Contract](../handrail-integration-quickbooks/docs/future-erp-tenant-mapping-contract.md).
 
 ## Install
 
@@ -26,15 +36,33 @@ ERP apps should treat this package as their only QuickBooks-facing dependency. T
 
 ERP apps must not store Intuit access tokens, refresh tokens, OAuth client secrets, webhook secrets, or call Intuit/QuickBooks APIs directly. If an ERP app needs data not exposed here, add a stable integration-service contract and SDK method instead of bypassing the service.
 
+This SDK repo owns only reusable consumer code: runtime config helpers, TypeScript request and
+response types, CLI smoke/status helpers, tenant-map resolution support, and HTTP calls to the
+Handrail QuickBooks service API. It must not own service deployment, Intuit app credentials,
+Intuit token custody, owner/admin tenant administration, API-key issuance, or direct
+Intuit/QuickBooks API calls.
+
+Hitcents Future ERP is the current consumer project. Future ERP owns only server-side storage
+and validation of its account/company-to-service-tenant mapping plus server-only use of this SDK
+and runtime config. Future ERP must not store Intuit tokens or call Intuit/QuickBooks APIs
+directly.
+
 Recommended adoption steps:
 
 1. Add the package through a workspace reference or internal package source.
-2. Configure `HANDRAIL_QBO_BASE_URL`, `HANDRAIL_QBO_API_KEY`, and `HANDRAIL_QBO_TENANT_ID` through Handrail runtime configuration for each environment.
-3. Instantiate `HandrailQuickBooksClient` from server-side code only. Do not bundle service credentials into browser code.
-4. Use stable business namespaces for application workflows and reserve `audit` fields for support/debug links.
-5. Use the CLI locally or in operator shells for smoke tests with redacted runtime credentials.
+2. Configure `HANDRAIL_QBO_SERVICE_ENV`, `HANDRAIL_QBO_PROVIDER_MODE`,
+   `HANDRAIL_QBO_API_KEY`, and the server-only tenant map through Handrail runtime
+   configuration for each environment.
+3. Resolve the selected Future ERP account/company to a QuickBooks service tenant id from the
+   tenant map before making SDK calls.
+4. Instantiate `HandrailQuickBooksClient` from server-side code only. Do not bundle service
+   credentials or tenant-map payloads into browser code.
+5. Use stable business namespaces for application workflows and reserve `audit` fields for support/debug links.
+6. Use the CLI locally or in operator shells for smoke/status tests with redacted runtime credentials.
 
-For Handrail-managed deploys, these values should be provided as env/config rows and rendered into the service runtime by Handrail. Do not patch Kubernetes Secrets directly; a later deploy regenerates them from Handrail-owned configuration.
+For Handrail-managed deploys, these values should be provided as env/config rows and rendered
+into the consuming app runtime by Handrail. Do not patch Kubernetes Secrets directly; a later
+deploy regenerates them from Handrail-owned configuration.
 
 ## Runtime Configuration
 
@@ -42,35 +70,63 @@ Configure the SDK explicitly in application code or through runtime env injected
 
 | Env var | Purpose |
 | --- | --- |
-| `HANDRAIL_QBO_BASE_URL` | Optional service base URL. Defaults to `https://quickbooks.handrail-daas.com`. |
-| `HANDRAIL_QBO_API_KEY` | Required for CLI smoke tests and expected for authenticated app calls. Service API key or bearer credential for the calling app. Do not commit real values. |
-| `HANDRAIL_QBO_TENANT_ID` | Required for CLI smoke tests and recommended as the default Handrail tenant identifier for SDK calls. |
+| `HANDRAIL_QBO_SERVICE_ENV` | Standard Future ERP runtime selector for the QuickBooks service environment: `dev`, `staging`, or `production`. SDK runtime config support belongs in this repo and should derive the service base URL from this value. |
+| `HANDRAIL_QBO_PROVIDER_MODE` | Standard Future ERP runtime selector for the Intuit provider mode: `sandbox` or `production`. SDK calls and status helpers should preserve this value where the service contract requires provider-mode context. |
+| `HANDRAIL_QBO_API_KEY` | Required server-only service API key or bearer credential issued by the QuickBooks Integration service. Do not commit real values or expose them to browser code. |
+| `HANDRAIL_QBO_TENANT_MAP_JSON` | Required server-only Future ERP mapping artifact for account/company-to-service-tenant resolution. The artifact shape is defined by `future-erp.quickbooks-tenant-mapping.v1` in the service repo. |
+| `HANDRAIL_QBO_BASE_URL` | Local developer override only, for pointing at a manually started service. Normal Future ERP runtime config must not require this value. |
+| `HANDRAIL_QBO_TENANT_ID` | Local CLI/operator convenience only when targeting one known service tenant explicitly. Future ERP must not use this as the standard mapping model. |
+
+Current SDK-owned service-env URL resolution:
+
+| Service env | Service base URL |
+| --- | --- |
+| `dev` | `https://quickbooks.handrail-daas.com` |
+| `staging` | `https://quickbooks.hitcents.staging.handrail-daas.com` |
+| `production` | `https://quickbooks.handrail-daas.com` |
+
+Local development may still pass an explicit `baseUrl` option or use the CLI/local
+`HANDRAIL_QBO_BASE_URL` override when pointing at a manually started service.
 
 No Intuit credentials belong in this package or in ERP app repositories.
-Provider environment and profile values, such as sandbox or production, are service-owned status metadata returned by diagnostics endpoints. They are not SDK constructor options, CLI flags, or ERP app credentials.
+Provider credentials and profile secrets stay service-owned. `HANDRAIL_QBO_PROVIDER_MODE` is
+consumer configuration and status context, not an Intuit credential.
 
 The CLI reads the same env vars, or the equivalent flags:
 
 ```sh
-export HANDRAIL_QBO_BASE_URL="https://quickbooks.handrail-daas.com"
-export HANDRAIL_QBO_TENANT_ID="tenant_123"
-export HANDRAIL_QBO_API_KEY="<service credential from Handrail runtime config>"
+export HANDRAIL_QBO_SERVICE_ENV="staging"
+export HANDRAIL_QBO_PROVIDER_MODE="sandbox"
+export HANDRAIL_QBO_API_KEY="REDACTED_QBO_SERVICE_API_KEY"
+export HANDRAIL_QBO_TENANT_MAP_JSON='{"schemaVersion":1,"contractId":"future-erp.quickbooks-tenant-mapping.v1","consumerProject":"Hitcents Future ERP","sourceOfTruth":"Handrail QuickBooks Integration service","serviceEnv":"staging","providerMode":"sandbox","tenantMappings":[{"futureErpAccountId":"acct_REDACTED_ALPHA","futureErpCompanyId":"company_REDACTED_ALPHA","serviceTenantId":"future-erp-dev-sandbox-tenant","displayName":"REDACTED Future ERP Sandbox Company","status":"active"}]}'
 ```
 
-Never commit real `HANDRAIL_QBO_API_KEY` values or Intuit token material.
+Never commit real `HANDRAIL_QBO_API_KEY` values, full tenant-map payloads, or Intuit token material.
+Do not print API keys or full tenant-map payloads in logs, screenshots, browser-visible config,
+analytics, or support tickets.
 
 Application code may also pass config explicitly when a host app resolves tenant/auth context per request:
 
 ```ts
+const tenantMap = JSON.parse(process.env.HANDRAIL_QBO_TENANT_MAP_JSON ?? "{}");
+const serviceTenantId = resolveServiceTenantIdFromFutureErpContext(tenantMap, {
+  futureErpAccountId: request.accountId,
+  futureErpCompanyId: request.companyId
+});
+const providerMode = tenantMap.providerMode === "production" ? "production" : "sandbox";
+
 const quickBooks = new HandrailQuickBooksClient({
-  apiKey: request.serviceApiKey,
-  baseUrl: process.env.HANDRAIL_QBO_BASE_URL,
-  tenantId: request.tenantId,
+  apiKey: process.env.HANDRAIL_QBO_API_KEY,
+  providerMode,
+  tenantId: serviceTenantId,
   timeoutMs: 10_000
 });
 ```
 
-Keep `apiKey` and any custom `auth.token` values server-side. Logs, test fixtures, snapshots, and support tickets should redact those values.
+`resolveServiceTenantIdFromFutureErpContext` represents the host app or SDK tenant-map resolver.
+The resolved value is a QuickBooks service tenant id, not an Intuit `realmId`. Keep `apiKey`,
+tenant-map payloads, and any custom `auth.token` values server-side. Logs, test fixtures,
+snapshots, and support tickets should redact those values.
 
 ## Usage
 
@@ -79,8 +135,8 @@ import { HandrailQuickBooksClient } from "@handrail/quickbooks-node-sdk";
 
 const quickBooks = new HandrailQuickBooksClient({
   apiKey: process.env.HANDRAIL_QBO_API_KEY,
-  baseUrl: process.env.HANDRAIL_QBO_BASE_URL,
-  tenantId: "tenant_123"
+  providerMode: "sandbox",
+  tenantId: "future-erp-dev-sandbox-tenant"
 });
 
 const connection = await quickBooks.connections.status();
@@ -195,11 +251,18 @@ Supported commands:
 - `smoke` prints a redacted operator JSON summary for connection/provider status, token custody state, raw import and sync job metadata, import volume, normalized account/item/class/location/party/transaction/ledger-entry counts, checkpoint position, and report availability.
 - `reconcile` runs reconciliation for an account and period.
 - `status` reads tenant connection status.
-- `status` may include sanitized service-owned provider metadata such as `providerEnvironment` and `providerProfile` when the integration service reports it.
+- `status` may include sanitized service-owned provider metadata such as `providerMode`, `providerEnvironment`, and `providerProfile` when the integration service reports it.
 - `token-status` reads bounded token custody diagnostics without exposing token values.
 - `raw-import-status` reads one import batch with `--import-batch-id` or lists recent batches.
 
-Successful CLI commands print JSON. Most commands return the SDK method value directly. `smoke` intentionally reshapes successful SDK responses into bounded operator evidence: status values, ids, timestamps, import volume/object/entity counts, normalized resource counts, checkpoint id/ref/kind/watermark/cursor refs, and report availability counts. It omits audit payload references except bounded checkpoint cursor refs and does not print raw resource rows. Use `--import-batch-id`, `--sync-job-id`, and `--checkpoint-id` for deterministic probes; use `--as-of`/`--as-of-date`, `--period-start`, `--period-end`, `--basis`, `--currency`, `--limit`, `--bucket-days`, `--account-id`, `--party-id`, and `--transaction-id` to constrain report and count probes. Add `--skip-report-probes` or `--report-probes false` when only status/import/checkpoint evidence is needed.
+Successful CLI commands print JSON. `status` and `smoke` append a `futureErpConfig`
+artifact with copyable, redacted `HANDRAIL_QBO_SERVICE_ENV`,
+`HANDRAIL_QBO_PROVIDER_MODE`, `HANDRAIL_QBO_API_KEY`, and
+`HANDRAIL_QBO_TENANT_MAP_JSON` values for owner/operator handoff. If
+`HANDRAIL_QBO_BASE_URL` or `--base-url` is present, it is reported only in
+`localOverrideDiagnostics` as a local operator override and is excluded from
+the copyable Future ERP config block. Most other commands return the SDK method
+value directly. `smoke` intentionally reshapes successful SDK responses into bounded operator evidence: status values, ids, timestamps, import volume/object/entity counts, normalized resource counts, checkpoint id/ref/kind/watermark/cursor refs, and report availability counts. It omits audit payload references except bounded checkpoint cursor refs and does not print raw resource rows. Use `--import-batch-id`, `--sync-job-id`, and `--checkpoint-id` for deterministic probes; use `--as-of`/`--as-of-date`, `--period-start`, `--period-end`, `--basis`, `--currency`, `--limit`, `--bucket-days`, `--account-id`, `--party-id`, and `--transaction-id` to constrain report and count probes. Add `--skip-report-probes` or `--report-probes false` when only status/import/checkpoint evidence is needed.
 
 For `status`, `token-status`, and `raw-import-status`, JSON is the service-owned diagnostics contract and may include bounded audit references such as `realmId`, `sourcePayloadRef`, `sourcePayloadRefs`, `connectionId`, `importBatchId`, checkpoint refs, checkpoint watermarks, import volume counts, and safe retry metadata for failed raw imports or sync jobs. CLI output must not include Intuit access tokens, refresh tokens, OAuth client secrets, raw Authorization headers, API keys, raw provider error payloads, or full raw QuickBooks payloads.
 
@@ -207,28 +270,33 @@ CLI errors print safe diagnostics only: message, code, HTTP status, request id, 
 
 ## Local Smoke-test Flow
 
-Use offline tests for normal development and reserve live smoke tests for environments with Handrail-provided service credentials.
+Use offline tests for normal development and reserve live smoke tests for environments with
+Handrail-provided service credentials and a server-only tenant map.
 
 1. Install dependencies in this package.
 2. Run the offline unit tests when changing SDK or CLI behavior.
 3. Export runtime config from a safe local shell or operator environment.
-4. Verify connection status before running commands that start sync or reconciliation work.
+4. Resolve the service tenant id from the tenant map for the Future ERP account/company under test.
+5. Verify connection status before running commands that start sync or reconciliation work.
 
 ```sh
 npm install
 npm run test
 
-export HANDRAIL_QBO_BASE_URL="https://quickbooks.handrail-daas.com"
-export HANDRAIL_QBO_TENANT_ID="tenant_123"
-export HANDRAIL_QBO_API_KEY="<redacted service credential>"
+export HANDRAIL_QBO_SERVICE_ENV="staging"
+export HANDRAIL_QBO_PROVIDER_MODE="sandbox"
+export HANDRAIL_QBO_API_KEY="REDACTED_QBO_SERVICE_API_KEY"
+export HANDRAIL_QBO_TENANT_MAP_JSON='{"schemaVersion":1,"contractId":"future-erp.quickbooks-tenant-mapping.v1","consumerProject":"Hitcents Future ERP","sourceOfTruth":"Handrail QuickBooks Integration service","serviceEnv":"staging","providerMode":"sandbox","tenantMappings":[{"futureErpAccountId":"acct_REDACTED_ALPHA","futureErpCompanyId":"company_REDACTED_ALPHA","serviceTenantId":"future-erp-dev-sandbox-tenant","displayName":"REDACTED Future ERP Sandbox Company","status":"active"}]}'
 
-handrail-qbo status
-handrail-qbo token-status
-handrail-qbo raw-import-status --import-batch-id batch_123
-handrail-qbo smoke --import-batch-id batch_123 --as-of 2026-05-31 --period-start 2026-05-01 --period-end 2026-05-31 --basis accrual --currency USD
-handrail-qbo pull-accounts --active --limit 25
-handrail-qbo sync --mode incremental --entities accounts,ledger_entries
-handrail-qbo report trial-balance --as-of 2026-05-31 --basis accrual
+SERVICE_TENANT_ID="future-erp-dev-sandbox-tenant" # resolved from HANDRAIL_QBO_TENANT_MAP_JSON
+
+handrail-qbo status --tenant-id "$SERVICE_TENANT_ID"
+handrail-qbo token-status --tenant-id "$SERVICE_TENANT_ID"
+handrail-qbo raw-import-status --tenant-id "$SERVICE_TENANT_ID" --import-batch-id batch_123
+handrail-qbo smoke --tenant-id "$SERVICE_TENANT_ID" --import-batch-id batch_123 --as-of 2026-05-31 --period-start 2026-05-01 --period-end 2026-05-31 --basis accrual --currency USD
+handrail-qbo pull-accounts --tenant-id "$SERVICE_TENANT_ID" --active --limit 25
+handrail-qbo sync --tenant-id "$SERVICE_TENANT_ID" --mode incremental --entities accounts,ledger_entries
+handrail-qbo report trial-balance --tenant-id "$SERVICE_TENANT_ID" --as-of 2026-05-31 --basis accrual
 ```
 
 Safe diagnostics guidance:
@@ -236,14 +304,18 @@ Safe diagnostics guidance:
 - Prefer `status`, `token-status`, and `raw-import-status` for operator checks.
 - Prefer `smoke` when support needs one bounded JSON summary that proves connection, token custody, import volume, normalized counts, checkpoint position, and report endpoint availability.
 - Share `requestId`, command name, tenant id, job id, import batch id, and timestamps with support.
-- Do not paste API keys, Intuit OAuth values, raw Authorization headers, webhook secrets, or full raw QuickBooks payloads into logs or tickets.
+- Do not paste API keys, full tenant-map payloads, Intuit OAuth values, raw Authorization headers,
+  webhook secrets, or full raw QuickBooks payloads into logs or tickets.
 - Treat `realmId`, QBO object IDs, sync tokens, source payload refs, and import batch ids as bounded audit references, not reusable credentials.
 
 ## Request Behavior
 
 `HandrailQuickBooksClient` sends requests to the Handrail integration service only. It supports:
 
-- `baseUrl`, `tenantId`, `apiKey`, or explicit `auth` configuration.
+- Runtime config derived from `HANDRAIL_QBO_SERVICE_ENV`, `HANDRAIL_QBO_PROVIDER_MODE`,
+  `HANDRAIL_QBO_API_KEY`, and server-only tenant mapping as the Future ERP contract evolves.
+- Local-only `baseUrl` overrides, explicit `tenantId` targeting, `apiKey`, or explicit `auth`
+  configuration for developer/operator smoke paths.
 - Per-client `timeoutMs`, defaulting to 10 seconds.
 - Safe retries for idempotent reads. Mutating calls are not retried unless an idempotency key is supplied where supported.
 - Structured `HandrailQuickBooksError` failures with `code`, `status`, `requestId`, `retryable`, and safe diagnostic `details`.
@@ -261,10 +333,10 @@ Example service response contracts live in `examples/contracts/` for connection 
 Later smoke tests against the integration service should use the CLI with Handrail-provided runtime config:
 
 ```sh
-HANDRAIL_QBO_BASE_URL="https://quickbooks.handrail-daas.com" \
-HANDRAIL_QBO_TENANT_ID="tenant_123" \
-HANDRAIL_QBO_API_KEY="<redacted service credential>" \
-handrail-qbo status
+HANDRAIL_QBO_SERVICE_ENV="staging" \
+HANDRAIL_QBO_PROVIDER_MODE="sandbox" \
+HANDRAIL_QBO_API_KEY="REDACTED_QBO_SERVICE_API_KEY" \
+handrail-qbo status --tenant-id "future-erp-dev-sandbox-tenant"
 ```
 
 ## Scripts

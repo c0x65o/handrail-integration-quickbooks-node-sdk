@@ -5,6 +5,7 @@ import {
   optionalNumberFlag,
   withoutUndefined
 } from "./shared.js";
+import { withFutureErpConfigArtifact } from "../future-erp-config.js";
 import { HandrailQuickBooksConfigError, HandrailQuickBooksError } from "../../errors.js";
 import type {
   HandrailQuickBooksAccountingBasis,
@@ -48,6 +49,7 @@ export const smokeCommand: CliCommandDefinition = {
 };
 
 async function runSmokeCommand(context: CliCommandContext) {
+  const futureErpConfigOutput = withFutureErpConfigArtifact({}, context);
   const limit = optionalNumberFlag(context.flags, "limit") ?? DEFAULT_SMOKE_LIMIT;
   const importBatchId = optionalFlag(context.flags, "import-batch-id");
   const syncJobId = optionalFlag(context.flags, "sync-job-id");
@@ -128,7 +130,11 @@ async function runSmokeCommand(context: CliCommandContext) {
     checkpoint: checkpointValue ? summarizeCheckpoint(checkpointValue, context.config.tenantId) : undefined,
     reports: shouldProbeReports(context.flags)
       ? await summarizeReportAvailability(context)
-      : { skipped: true }
+      : { skipped: true },
+    futureErpConfig: futureErpConfigOutput.futureErpConfig,
+    ...("localOverrideDiagnostics" in futureErpConfigOutput
+      ? { localOverrideDiagnostics: futureErpConfigOutput.localOverrideDiagnostics }
+      : {})
   };
 }
 
@@ -314,6 +320,7 @@ function summarizeConnection(value: HandrailQuickBooksConnectionStatusResponse) 
     connectedAt: value.connection?.connectedAt,
     lastSyncedAt: value.connection?.lastSyncedAt,
     providerEnvironment: value.providerEnvironment,
+    providerMode: value.providerMode,
     providerProfile: value.providerProfile
       ? withoutUndefined({
         environment: value.providerProfile.environment,

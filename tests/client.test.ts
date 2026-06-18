@@ -31,6 +31,7 @@ describe("HandrailQuickBooksClient", () => {
   it("builds tenant-scoped connection status requests", async () => {
     const { fetch, requests } = mockFetch([
       {
+        providerMode: "sandbox",
         status: "connected",
         tenantId: "tenant_123"
       }
@@ -39,14 +40,17 @@ describe("HandrailQuickBooksClient", () => {
       apiKey: "test-api-key",
       baseUrl: "https://quickbooks.example.test/api",
       fetch,
+      providerMode: "sandbox",
       tenantId: "tenant_123"
     });
 
     await expect(client.connections.status()).resolves.toEqual({
+      providerMode: "sandbox",
       status: "connected",
       tenantId: "tenant_123"
     });
 
+    expect(client.config.providerMode).toBe("sandbox");
     expect(requests).toHaveLength(1);
     expect(requestUrl(requests[0])).toBe(
       "https://quickbooks.example.test/api/v1/tenants/tenant_123/quickbooks/connections/status"
@@ -55,6 +59,7 @@ describe("HandrailQuickBooksClient", () => {
     const headers = new Headers(requests[0].init?.headers);
     expect(headers.get("authorization")).toBe("Bearer test-api-key");
     expect(headers.get("x-handrail-tenant-id")).toBe("tenant_123");
+    expect(headers.has("x-handrail-qbo-provider-mode")).toBe(false);
   });
 
   it("uses fixture contracts for representative service requests and responses", async () => {
@@ -786,6 +791,7 @@ describe("HandrailQuickBooksClient", () => {
       apiKey: "test-api-key",
       baseUrl: "https://quickbooks.example.test",
       fetch,
+      providerMode: "sandbox",
       tenantId: "tenant_123"
     });
 
@@ -800,6 +806,7 @@ describe("HandrailQuickBooksClient", () => {
     expect(JSON.parse(String(requests[0].init?.body))).toEqual({
       returnUrl: "https://erp.example.test/settings/accounting"
     });
+    expect(requestUrl(requests[0])).not.toContain("providerMode=");
   });
 
   it("builds token status diagnostics requests", async () => {

@@ -12,6 +12,7 @@
     "tenantId": "tenant_contract_123"
   },
   "providerEnvironment": "sandbox",
+  "providerMode": "sandbox",
   "providerProfile": {
     "environment": "sandbox",
     "name": "active",
