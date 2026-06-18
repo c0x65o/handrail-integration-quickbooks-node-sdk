@@ -24,9 +24,11 @@ import type {
   HandrailQuickBooksParty,
   HandrailQuickBooksProfitAndLossReport,
   HandrailQuickBooksProfitAndLossRequest,
+  HandrailQuickBooksProviderMode,
   HandrailQuickBooksRawImportStatus,
   HandrailQuickBooksReconciliationRequest,
   HandrailQuickBooksReconciliationResult,
+  HandrailQuickBooksServiceEnv,
   HandrailQuickBooksStartSyncRequest,
   HandrailQuickBooksSyncCheckpoint,
   HandrailQuickBooksSyncJobSummary,
@@ -42,10 +44,21 @@ export interface CliOutput {
 
 export interface CliGlobalConfig {
   readonly apiKey?: string;
+  readonly baseUrlOverride?: CliBaseUrlOverrideDiagnostic;
   readonly baseUrl?: string;
+  readonly providerMode?: HandrailQuickBooksProviderMode;
   readonly retries?: number;
+  readonly serviceEnv?: HandrailQuickBooksServiceEnv;
   readonly tenantId?: string;
+  readonly tenantMapJson?: string;
   readonly timeoutMs?: number;
+}
+
+export interface CliBaseUrlOverrideDiagnostic {
+  readonly envName: "HANDRAIL_QBO_BASE_URL";
+  readonly flagName: "--base-url";
+  readonly present: true;
+  readonly scope: "local_operator_override_only";
 }
 
 export interface CliQuickBooksClient {

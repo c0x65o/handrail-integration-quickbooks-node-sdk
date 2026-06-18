@@ -774,6 +774,7 @@ export const contractResponses = {
       tenantId: contractTenantId
     },
     providerEnvironment: "sandbox",
+    providerMode: "sandbox",
     providerProfile: {
       environment: "sandbox",
       name: "active",

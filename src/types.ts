@@ -3,17 +3,26 @@ export interface HandrailQuickBooksSdkConfigInput {
   readonly auth?: HandrailQuickBooksAuthConfig;
   readonly baseUrl?: string;
   readonly fetch?: HandrailQuickBooksFetch;
+  readonly futureErpTenantContext?: HandrailQuickBooksFutureErpTenantContext;
+  readonly providerMode?: HandrailQuickBooksProviderMode;
   readonly retries?: number;
+  readonly serviceEnv?: HandrailQuickBooksServiceEnv;
   readonly tenantId?: string;
+  readonly tenantMap?: HandrailQuickBooksFutureErpTenantMap;
+  readonly tenantMapJson?: string;
   readonly timeoutMs?: number;
 }
+
+export type HandrailQuickBooksServiceEnv = "dev" | "staging" | "production";
 
 export interface HandrailQuickBooksClientConfig {
   readonly apiKey?: string;
   readonly auth?: HandrailQuickBooksAuthConfig;
   readonly baseUrl: string;
   readonly fetch?: HandrailQuickBooksFetch;
+  readonly providerMode?: HandrailQuickBooksProviderMode;
   readonly retries: number;
+  readonly serviceEnv?: HandrailQuickBooksServiceEnv;
   readonly tenantId?: string;
   readonly timeoutMs: number;
 }
@@ -56,6 +65,47 @@ export type HandrailQuickBooksConnectionStatus =
   | "disabled";
 
 export type HandrailQuickBooksProviderEnvironment = "sandbox" | "production";
+export type HandrailQuickBooksProviderMode = HandrailQuickBooksProviderEnvironment;
+export type HandrailQuickBooksReportedProviderMode =
+  | HandrailQuickBooksProviderMode
+  | "unavailable";
+
+export type HandrailQuickBooksFutureErpTenantMapContractId =
+  "future-erp.quickbooks-tenant-mapping.v1";
+
+export type HandrailQuickBooksFutureErpTenantMappingStatus =
+  | "active"
+  | "disabled"
+  | "pending_connection"
+  | "reauthorization_required";
+
+export interface HandrailQuickBooksFutureErpTenantContext {
+  readonly futureErpAccountId: string;
+  readonly futureErpCompanyId: string;
+}
+
+export interface HandrailQuickBooksFutureErpTenantMapping
+  extends HandrailQuickBooksFutureErpTenantContext {
+  readonly displayName?: string;
+  readonly notes?: string;
+  readonly serviceTenantId: string;
+  readonly status: HandrailQuickBooksFutureErpTenantMappingStatus;
+}
+
+export interface HandrailQuickBooksFutureErpTenantMap {
+  readonly schemaVersion: 1;
+  readonly contractId: HandrailQuickBooksFutureErpTenantMapContractId;
+  readonly consumerProject?: string;
+  readonly sourceOfTruth?: string;
+  readonly serviceEnv?: HandrailQuickBooksServiceEnv;
+  readonly providerMode?: HandrailQuickBooksProviderMode;
+  readonly tenantMappings: readonly HandrailQuickBooksFutureErpTenantMapping[];
+}
+
+export interface HandrailQuickBooksFutureErpTenantMapResolveOptions {
+  readonly providerMode?: HandrailQuickBooksProviderMode;
+  readonly serviceEnv?: HandrailQuickBooksServiceEnv;
+}
 
 export type HandrailQuickBooksProviderProfileStatus =
   | "configured"
@@ -148,6 +198,7 @@ export interface HandrailQuickBooksConnectionSummary {
 export interface HandrailQuickBooksConnectionStatusResponse {
   readonly connection?: HandrailQuickBooksConnectionSummary;
   readonly providerEnvironment?: HandrailQuickBooksProviderEnvironment;
+  readonly providerMode?: HandrailQuickBooksReportedProviderMode;
   readonly providerProfile?: HandrailQuickBooksProviderProfileMetadata;
   readonly status: HandrailQuickBooksConnectionStatus;
   readonly tenantId: string;

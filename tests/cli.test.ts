@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { runCli } from "../src/cli.js";
-import { HandrailQuickBooksError } from "../src/index.js";
+import {
+  DEFAULT_HANDRAIL_QUICKBOOKS_BASE_URL,
+  HandrailQuickBooksError
+} from "../src/index.js";
 import type { CliGlobalConfig, CliQuickBooksClient } from "../src/cli/types.js";
 import {
   contractCheckpointId,
@@ -28,6 +31,7 @@ describe("handrail-qbo CLI", () => {
     expect(stdout.value).toContain("report trial-balance");
     expect(stdout.value).toContain("smoke");
     expect(stdout.value).toContain("token-status");
+    expect(stdout.value).toContain("HANDRAIL_QBO_PROVIDER_MODE");
     expect(stderr.value).toBe("");
   });
 
@@ -73,7 +77,8 @@ describe("handrail-qbo CLI", () => {
         },
         env: {
           HANDRAIL_QBO_API_KEY: "test-secret",
-          HANDRAIL_QBO_BASE_URL: "https://quickbooks.example.test"
+          HANDRAIL_QBO_BASE_URL: "https://quickbooks.example.test",
+          HANDRAIL_QBO_PROVIDER_MODE: " production "
         },
         stderr,
         stdout
@@ -81,18 +86,173 @@ describe("handrail-qbo CLI", () => {
     );
 
     expect(exitCode).toBe(0);
-    expect(capturedConfig).toEqual({
+    expect(capturedConfig).toMatchObject({
       apiKey: "test-secret",
+      baseUrlOverride: {
+        envName: "HANDRAIL_QBO_BASE_URL",
+        flagName: "--base-url",
+        present: true,
+        scope: "local_operator_override_only"
+      },
       baseUrl: "https://quickbooks.example.test",
-      retries: undefined,
-      tenantId: "tenant_123",
-      timeoutMs: undefined
+      providerMode: "production",
+      tenantId: "tenant_123"
     });
     expect(client.connections.connectUrl).toHaveBeenCalledWith({
       returnUrl: "https://erp.example.test/settings/accounting?tab=qbo",
       state: "state_123"
     });
     expect(JSON.parse(stdout.value)).toEqual(contractResponses.connectUrl);
+    expect(stderr.value).toBe("");
+  });
+
+  it("resolves HANDRAIL_QBO_SERVICE_ENV into CLI base URL config", async () => {
+    const stdout = new StringWriter();
+    const stderr = new StringWriter();
+    const client = createMockClient();
+    let capturedConfig: CliGlobalConfig | undefined;
+
+    const exitCode = await runCli(["status"], {
+      createClient: (config) => {
+        capturedConfig = config;
+        return client;
+      },
+      env: {
+        HANDRAIL_QBO_API_KEY: "test-secret",
+        HANDRAIL_QBO_SERVICE_ENV: " staging ",
+        HANDRAIL_QBO_TENANT_ID: "tenant_123"
+      },
+      stderr,
+      stdout
+    });
+
+    expect(exitCode).toBe(0);
+    expect(capturedConfig?.baseUrl).toBe(DEFAULT_HANDRAIL_QUICKBOOKS_BASE_URL);
+    expect(capturedConfig?.serviceEnv).toBe("staging");
+    expect(stderr.value).toBe("");
+  });
+
+  it("accepts provider mode from a flag before env config without printing secrets", async () => {
+    const stdout = new StringWriter();
+    const stderr = new StringWriter();
+    const client = createMockClient();
+    let capturedConfig: CliGlobalConfig | undefined;
+
+    const exitCode = await runCli(["--provider-mode", "production", "status"], {
+      createClient: (config) => {
+        capturedConfig = config;
+        return client;
+      },
+      env: {
+        HANDRAIL_QBO_API_KEY: "test-secret",
+        HANDRAIL_QBO_PROVIDER_MODE: "sandbox",
+        HANDRAIL_QBO_TENANT_ID: "tenant_123"
+      },
+      stderr,
+      stdout
+    });
+
+    expect(exitCode).toBe(0);
+    expect(capturedConfig?.providerMode).toBe("production");
+    expect(stdout.value).not.toContain("test-secret");
+    expect(stderr.value).toBe("");
+  });
+
+  it("rejects invalid provider mode config without echoing API keys", async () => {
+    const stdout = new StringWriter();
+    const stderr = new StringWriter();
+
+    const exitCode = await runCli(["status"], {
+      env: {
+        HANDRAIL_QBO_API_KEY: "test-secret",
+        HANDRAIL_QBO_PROVIDER_MODE: "dev",
+        HANDRAIL_QBO_TENANT_ID: "tenant_123"
+      },
+      stderr,
+      stdout
+    });
+
+    expect(exitCode).toBe(2);
+    expect(stderr.value).toContain("HANDRAIL_QBO_PROVIDER_MODE must be one of: sandbox, production");
+    expect(stderr.value).not.toContain("test-secret");
+    expect(stdout.value).toBe("");
+  });
+
+  it("prints status with copyable redacted Future ERP config from env tenant map", async () => {
+    const client = createMockClient();
+    const stdout = new StringWriter();
+    const stderr = new StringWriter();
+    const tenantMapJson = futureErpTenantMapJson();
+
+    const exitCode = await runCli(["status"], {
+      createClient: () => client,
+      env: {
+        HANDRAIL_QBO_API_KEY: "real-status-api-key",
+        HANDRAIL_QBO_BASE_URL: "https://local-operator-quickbooks.example.test",
+        HANDRAIL_QBO_PROVIDER_MODE: "sandbox",
+        HANDRAIL_QBO_SERVICE_ENV: "staging",
+        HANDRAIL_QBO_TENANT_ID: contractTenantId,
+        HANDRAIL_QBO_TENANT_MAP_JSON: tenantMapJson
+      },
+      stderr,
+      stdout
+    });
+
+    expect(exitCode).toBe(0);
+    const output = JSON.parse(stdout.value);
+    expect(output).toMatchObject({
+      providerEnvironment: "sandbox",
+      providerMode: "sandbox",
+      status: "connected",
+      futureErpConfig: {
+        artifact: "future-erp.quickbooks-runtime-config.redacted.v1",
+        copyableEnv: {
+          HANDRAIL_QBO_API_KEY: "REDACTED_QBO_SERVICE_API_KEY",
+          HANDRAIL_QBO_PROVIDER_MODE: "sandbox",
+          HANDRAIL_QBO_SERVICE_ENV: "staging"
+        },
+        tenantMap: {
+          envName: "HANDRAIL_QBO_TENANT_MAP_JSON",
+          redacted: true,
+          source: "env",
+          value: {
+            contractId: "future-erp.quickbooks-tenant-mapping.v1",
+            providerMode: "sandbox",
+            serviceEnv: "staging",
+            tenantMappings: [
+              {
+                displayName: "REDACTED_DISPLAY_NAME_1",
+                futureErpAccountId: "REDACTED_FUTURE_ERP_ACCOUNT_ID_1",
+                futureErpCompanyId: "REDACTED_FUTURE_ERP_COMPANY_ID_1",
+                serviceTenantId: contractTenantId,
+                status: "active"
+              }
+            ]
+          }
+        }
+      },
+      localOverrideDiagnostics: {
+        quickBooksBaseUrl: {
+          envName: "HANDRAIL_QBO_BASE_URL",
+          flagName: "--base-url",
+          futureErpConfig: "excluded",
+          present: true,
+          scope: "local_operator_override_only"
+        }
+      }
+    });
+    expect(JSON.parse(output.futureErpConfig.copyableEnv.HANDRAIL_QBO_TENANT_MAP_JSON)).toEqual(
+      output.futureErpConfig.tenantMap.value
+    );
+    expect(output.futureErpConfig.copyableEnv).not.toHaveProperty("HANDRAIL_QBO_BASE_URL");
+    expect(JSON.stringify(output.futureErpConfig)).not.toContain("HANDRAIL_QBO_BASE_URL");
+    expect(stdout.value).not.toContain("real-status-api-key");
+    expect(stdout.value).not.toContain("acct_sensitive_alpha");
+    expect(stdout.value).not.toContain("company_sensitive_alpha");
+    expect(stdout.value).not.toContain("Sensitive Alpha LLC");
+    expect(stdout.value).not.toMatch(
+      /"access_token"|"refresh_token"|"client_secret"|"clientId"|"clientSecret"|"Authorization"|"rawPayload"/
+    );
     expect(stderr.value).toBe("");
   });
 
@@ -119,8 +279,10 @@ describe("handrail-qbo CLI", () => {
       type: "asset"
     });
     const statusOutput = JSON.parse(statusStdout.value);
-    expect(statusOutput).toEqual(contractResponses.connectionStatus);
+    expect(statusOutput).toMatchObject(contractResponses.connectionStatus);
+    expect(statusOutput.futureErpConfig).toBeDefined();
     expect(statusOutput.providerEnvironment).toBe("sandbox");
+    expect(statusOutput.providerMode).toBe("sandbox");
     expect(statusOutput.providerProfile).toEqual({
       environment: "sandbox",
       name: "active",
@@ -231,6 +393,8 @@ describe("handrail-qbo CLI", () => {
       createClient: () => client,
       env: {
         HANDRAIL_QBO_API_KEY: "test-cli-api-key",
+        HANDRAIL_QBO_PROVIDER_MODE: "sandbox",
+        HANDRAIL_QBO_SERVICE_ENV: "staging",
         HANDRAIL_QBO_TENANT_ID: contractTenantId
       },
       stderr,
@@ -384,7 +548,38 @@ describe("handrail-qbo CLI", () => {
       tenantId: contractTenantId
     });
     expect(output.reports.trialBalance.totalNames).toBeUndefined();
+    expect(output.futureErpConfig).toMatchObject({
+      artifact: "future-erp.quickbooks-runtime-config.redacted.v1",
+      copyableEnv: {
+        HANDRAIL_QBO_API_KEY: "REDACTED_QBO_SERVICE_API_KEY",
+        HANDRAIL_QBO_PROVIDER_MODE: "sandbox",
+        HANDRAIL_QBO_SERVICE_ENV: "staging"
+      },
+      tenantMap: {
+        envName: "HANDRAIL_QBO_TENANT_MAP_JSON",
+        redacted: true,
+        source: "operator_tenant_id_template",
+        value: {
+          contractId: "future-erp.quickbooks-tenant-mapping.v1",
+          providerMode: "sandbox",
+          serviceEnv: "staging",
+          tenantMappings: [
+            {
+              displayName: "REDACTED_FUTURE_ERP_COMPANY_DISPLAY_NAME",
+              futureErpAccountId: "REPLACE_WITH_FUTURE_ERP_ACCOUNT_ID",
+              futureErpCompanyId: "REPLACE_WITH_FUTURE_ERP_COMPANY_ID",
+              serviceTenantId: contractTenantId,
+              status: "active"
+            }
+          ]
+        }
+      }
+    });
+    expect(JSON.parse(output.futureErpConfig.copyableEnv.HANDRAIL_QBO_TENANT_MAP_JSON)).toEqual(
+      output.futureErpConfig.tenantMap.value
+    );
     expect(stdout.value).not.toContain("test-cli-api-key");
+    expect(stdout.value).not.toContain("HANDRAIL_QBO_BASE_URL");
     expect(stdout.value).not.toMatch(
       /"access_token"|"refresh_token"|"client_secret"|"clientId"|"clientSecret"|"Authorization"|"rawPayload"|"sourcePayloadRef"|"sourcePayloadRefs"/
     );
@@ -573,6 +768,27 @@ function requiredEnv() {
   };
 }
 
+function futureErpTenantMapJson() {
+  return JSON.stringify({
+    schemaVersion: 1,
+    contractId: "future-erp.quickbooks-tenant-mapping.v1",
+    consumerProject: "Hitcents Future ERP",
+    sourceOfTruth: "Handrail QuickBooks Integration service",
+    serviceEnv: "staging",
+    providerMode: "sandbox",
+    tenantMappings: [
+      {
+        futureErpAccountId: "acct_sensitive_alpha",
+        futureErpCompanyId: "company_sensitive_alpha",
+        serviceTenantId: contractTenantId,
+        displayName: "Sensitive Alpha LLC",
+        notes: "Sensitive owner handoff notes",
+        status: "active"
+      }
+    ]
+  });
+}
+
 function createMockClient(): CliQuickBooksClient {
   return {
     accounts: {
@@ -581,6 +797,9 @@ function createMockClient(): CliQuickBooksClient {
     checkpoints: {
       get: vi.fn().mockResolvedValue(contractResponses.checkpoint),
       list: vi.fn().mockResolvedValue(contractResponses.checkpoints)
+    },
+    classes: {
+      list: vi.fn().mockResolvedValue(contractResponses.classes)
     },
     connections: {
       connectUrl: vi.fn().mockResolvedValue(contractResponses.connectUrl),
@@ -591,8 +810,14 @@ function createMockClient(): CliQuickBooksClient {
       get: vi.fn().mockResolvedValue(contractResponses.importBatch),
       list: vi.fn().mockResolvedValue(contractResponses.importBatches)
     },
+    items: {
+      list: vi.fn().mockResolvedValue(contractResponses.items)
+    },
     ledgerEntries: {
       list: vi.fn().mockResolvedValue(contractResponses.ledgerEntries)
+    },
+    locations: {
+      list: vi.fn().mockResolvedValue(contractResponses.locations)
     },
     parties: {
       list: vi.fn().mockResolvedValue(contractResponses.parties)
