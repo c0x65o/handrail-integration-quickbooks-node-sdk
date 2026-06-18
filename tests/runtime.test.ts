@@ -9,7 +9,10 @@ import {
   HANDRAIL_QUICKBOOKS_PROVIDER_MODES,
   HANDRAIL_QUICKBOOKS_SERVICE_BASE_URLS,
   HANDRAIL_QUICKBOOKS_SERVICE_ENVS,
+<<<<<<< HEAD
   HANDRAIL_QUICKBOOKS_STAGING_BASE_URL,
+=======
+>>>>>>> origin/main
   createQuickBooksSdkConfig,
   parseFutureErpQuickBooksTenantMapJson,
   readHandrailQuickBooksProviderMode,
@@ -118,7 +121,11 @@ describe("createQuickBooksSdkConfig", () => {
     expect(HANDRAIL_QUICKBOOKS_SERVICE_ENVS).toEqual(["dev", "staging", "production"]);
     expect(HANDRAIL_QUICKBOOKS_SERVICE_BASE_URLS).toEqual({
       dev: DEFAULT_HANDRAIL_QUICKBOOKS_BASE_URL,
+<<<<<<< HEAD
       staging: HANDRAIL_QUICKBOOKS_STAGING_BASE_URL,
+=======
+      staging: DEFAULT_HANDRAIL_QUICKBOOKS_BASE_URL,
+>>>>>>> origin/main
       production: DEFAULT_HANDRAIL_QUICKBOOKS_BASE_URL
     });
   });

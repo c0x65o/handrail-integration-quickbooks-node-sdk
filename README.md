@@ -3,9 +3,13 @@
 Internal TypeScript package foundation for Handrail ERP-style apps that need to consume normalized QuickBooks data through the central Handrail QuickBooks integration service.
 
 ERP apps must call the Handrail integration service through the service URL resolved from
+<<<<<<< HEAD
 `HANDRAIL_QBO_SERVICE_ENV`. The staging host is
 `https://quickbooks.hitcents.staging.handrail-daas.com`; the production host is
 `https://quickbooks.handrail-daas.com`.
+=======
+`HANDRAIL_QBO_SERVICE_ENV`; the production host is `https://quickbooks.handrail-daas.com`.
+>>>>>>> origin/main
 They must not store Intuit OAuth tokens, refresh tokens, webhooks, or call Intuit/QuickBooks
 APIs directly. OAuth, token custody, webhooks, CDC/imports, normalized accounting data,
 sync jobs, and reconciliation remain owned by the central service.
@@ -82,11 +86,20 @@ Current SDK-owned service-env URL resolution:
 | Service env | Service base URL |
 | --- | --- |
 | `dev` | `https://quickbooks.handrail-daas.com` |
+<<<<<<< HEAD
 | `staging` | `https://quickbooks.hitcents.staging.handrail-daas.com` |
 | `production` | `https://quickbooks.handrail-daas.com` |
 
 Local development may still pass an explicit `baseUrl` option or use the CLI/local
 `HANDRAIL_QBO_BASE_URL` override when pointing at a manually started service.
+=======
+| `staging` | `https://quickbooks.handrail-daas.com` |
+| `production` | `https://quickbooks.handrail-daas.com` |
+
+The repo currently documents one public QuickBooks Integration service host. When separate
+dev or staging public hosts are owner-approved and documented, update the SDK mapping in
+`HANDRAIL_QUICKBOOKS_SERVICE_BASE_URLS`.
+>>>>>>> origin/main
 
 No Intuit credentials belong in this package or in ERP app repositories.
 Provider credentials and profile secrets stay service-owned. `HANDRAIL_QBO_PROVIDER_MODE` is
