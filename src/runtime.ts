@@ -13,7 +13,7 @@ import { HandrailQuickBooksConfigError } from "./errors.js";
 
 export const DEFAULT_HANDRAIL_QUICKBOOKS_BASE_URL = "https://quickbooks.handrail-daas.com";
 export const HANDRAIL_QUICKBOOKS_STAGING_BASE_URL =
-  "https://quickbooks.hitcents.staging.handrail-daas.com";
+  "https://quickbooks.handrail.staging.handrail-daas.com";
 export const HANDRAIL_QUICKBOOKS_FUTURE_ERP_TENANT_MAP_CONTRACT_ID =
   "future-erp.quickbooks-tenant-mapping.v1";
 

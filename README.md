@@ -4,7 +4,7 @@ Internal TypeScript package foundation for Handrail ERP-style apps that need to 
 
 ERP apps must call the Handrail integration service through the service URL resolved from
 `HANDRAIL_QBO_SERVICE_ENV`. The staging host is
-`https://quickbooks.hitcents.staging.handrail-daas.com`; the production host is
+`https://quickbooks.handrail.staging.handrail-daas.com`; the production host is
 `https://quickbooks.handrail-daas.com`.
 They must not store Intuit OAuth tokens, refresh tokens, webhooks, or call Intuit/QuickBooks
 APIs directly. OAuth, token custody, webhooks, CDC/imports, normalized accounting data,
@@ -82,8 +82,8 @@ Current SDK-owned service-env URL resolution:
 
 | Service env | Service base URL |
 | --- | --- |
-| `dev` | `https://quickbooks.hitcents.staging.handrail-daas.com` |
-| `staging` | `https://quickbooks.hitcents.staging.handrail-daas.com` |
+| `dev` | `https://quickbooks.handrail.staging.handrail-daas.com` |
+| `staging` | `https://quickbooks.handrail.staging.handrail-daas.com` |
 | `production` | `https://quickbooks.handrail-daas.com` |
 
 Local development may still pass an explicit `baseUrl` option or use the CLI/local
