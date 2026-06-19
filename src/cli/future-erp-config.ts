@@ -36,24 +36,30 @@ export function withFutureErpConfigArtifact<TOutput extends object>(
 
 function buildFutureErpConfigArtifact(context: CliCommandContext) {
   const tenantMap = futureErpTenantMapForOutput(context);
+  const copyableEnv = {
+    [HANDRAIL_QUICKBOOKS_ENV_KEYS.serviceEnv]:
+      context.config.serviceEnv ?? tenantMap?.value.serviceEnv ?? SERVICE_ENV_PLACEHOLDER,
+    [HANDRAIL_QUICKBOOKS_ENV_KEYS.providerMode]:
+      context.config.providerMode ?? tenantMap?.value.providerMode ?? PROVIDER_MODE_PLACEHOLDER,
+    [HANDRAIL_QUICKBOOKS_ENV_KEYS.apiKey]:
+      context.config.apiKey ? REDACTED_API_KEY : API_KEY_PLACEHOLDER,
+    ...(tenantMap
+      ? { [HANDRAIL_QUICKBOOKS_ENV_KEYS.tenantMapJson]: JSON.stringify(tenantMap.value) }
+      : {
+        [HANDRAIL_QUICKBOOKS_ENV_KEYS.tenantId]:
+          context.config.tenantId ?? "REPLACE_WITH_HANDRAIL_QBO_SERVICE_TENANT_ID"
+      })
+  };
 
   return {
     schemaVersion: 1,
     artifact: "future-erp.quickbooks-runtime-config.redacted.v1",
     purpose: "Copyable redacted Future ERP QuickBooks runtime config.",
-    copyableEnv: {
-      [HANDRAIL_QUICKBOOKS_ENV_KEYS.serviceEnv]:
-        context.config.serviceEnv ?? tenantMap.value.serviceEnv ?? SERVICE_ENV_PLACEHOLDER,
-      [HANDRAIL_QUICKBOOKS_ENV_KEYS.providerMode]:
-        context.config.providerMode ?? tenantMap.value.providerMode ?? PROVIDER_MODE_PLACEHOLDER,
-      [HANDRAIL_QUICKBOOKS_ENV_KEYS.apiKey]:
-        context.config.apiKey ? REDACTED_API_KEY : API_KEY_PLACEHOLDER,
-      [HANDRAIL_QUICKBOOKS_ENV_KEYS.tenantMapJson]: JSON.stringify(tenantMap.value)
-    },
-    tenantMap,
+    copyableEnv,
+    ...(tenantMap ? { tenantMap } : { tenantId: context.config.tenantId }),
     redactions: [
       "HANDRAIL_QBO_API_KEY is always redacted.",
-      "Future ERP account ids, company ids, display names, and notes are redacted or templated.",
+      "Future ERP tenant-map account ids, company ids, display names, and notes are redacted or templated.",
       "Intuit OAuth token material, client secrets, Authorization headers, and provider source data are never included."
     ]
   };
@@ -69,6 +75,10 @@ function futureErpTenantMapForOutput(context: CliCommandContext) {
         parseFutureErpQuickBooksTenantMapJson(context.config.tenantMapJson)
       )
     };
+  }
+
+  if (context.config.tenantId) {
+    return undefined;
   }
 
   return {

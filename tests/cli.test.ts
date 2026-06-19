@@ -554,31 +554,13 @@ describe("handrail-qbo CLI", () => {
       copyableEnv: {
         HANDRAIL_QBO_API_KEY: "REDACTED_QBO_SERVICE_API_KEY",
         HANDRAIL_QBO_PROVIDER_MODE: "sandbox",
-        HANDRAIL_QBO_SERVICE_ENV: "staging"
+        HANDRAIL_QBO_SERVICE_ENV: "staging",
+        HANDRAIL_QBO_TENANT_ID: contractTenantId
       },
-      tenantMap: {
-        envName: "HANDRAIL_QBO_TENANT_MAP_JSON",
-        redacted: true,
-        source: "operator_tenant_id_template",
-        value: {
-          contractId: "future-erp.quickbooks-tenant-mapping.v1",
-          providerMode: "sandbox",
-          serviceEnv: "staging",
-          tenantMappings: [
-            {
-              displayName: "REDACTED_FUTURE_ERP_COMPANY_DISPLAY_NAME",
-              futureErpAccountId: "REPLACE_WITH_FUTURE_ERP_ACCOUNT_ID",
-              futureErpCompanyId: "REPLACE_WITH_FUTURE_ERP_COMPANY_ID",
-              serviceTenantId: contractTenantId,
-              status: "active"
-            }
-          ]
-        }
-      }
+      tenantId: contractTenantId
     });
-    expect(JSON.parse(output.futureErpConfig.copyableEnv.HANDRAIL_QBO_TENANT_MAP_JSON)).toEqual(
-      output.futureErpConfig.tenantMap.value
-    );
+    expect(output.futureErpConfig).not.toHaveProperty("tenantMap");
+    expect(output.futureErpConfig.copyableEnv).not.toHaveProperty("HANDRAIL_QBO_TENANT_MAP_JSON");
     expect(stdout.value).not.toContain("test-cli-api-key");
     expect(stdout.value).not.toContain("HANDRAIL_QBO_BASE_URL");
     expect(stdout.value).not.toMatch(
