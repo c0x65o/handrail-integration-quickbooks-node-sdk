@@ -83,13 +83,8 @@ const config: HandrailQuickBooksSdkConfigInput = {
     scheme: "bearer",
     token: "service-token"
   },
-<<<<<<< HEAD
   providerMode: "sandbox",
   serviceEnv: "staging",
-=======
-  baseUrl: "https://quickbooks.example.test",
-  providerMode: "sandbox",
->>>>>>> origin/main
   tenantId: "tenant_123"
 };
 

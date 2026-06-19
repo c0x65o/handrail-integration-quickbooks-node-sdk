@@ -12,10 +12,7 @@ export {
   HANDRAIL_QUICKBOOKS_PROVIDER_MODES,
   HANDRAIL_QUICKBOOKS_SERVICE_BASE_URLS,
   HANDRAIL_QUICKBOOKS_SERVICE_ENVS,
-<<<<<<< HEAD
   HANDRAIL_QUICKBOOKS_STAGING_BASE_URL,
-=======
->>>>>>> origin/main
   createQuickBooksSdkConfig,
   parseFutureErpQuickBooksTenantMap,
   parseFutureErpQuickBooksTenantMapJson,

@@ -12,11 +12,8 @@ import type {
 import { HandrailQuickBooksConfigError } from "./errors.js";
 
 export const DEFAULT_HANDRAIL_QUICKBOOKS_BASE_URL = "https://quickbooks.handrail-daas.com";
-<<<<<<< HEAD
 export const HANDRAIL_QUICKBOOKS_STAGING_BASE_URL =
   "https://quickbooks.hitcents.staging.handrail-daas.com";
-=======
->>>>>>> origin/main
 export const HANDRAIL_QUICKBOOKS_FUTURE_ERP_TENANT_MAP_CONTRACT_ID =
   "future-erp.quickbooks-tenant-mapping.v1";
 
@@ -30,12 +27,8 @@ export const HANDRAIL_QUICKBOOKS_SERVICE_BASE_URLS: Record<
   HandrailQuickBooksServiceEnv,
   string
 > = {
-  dev: DEFAULT_HANDRAIL_QUICKBOOKS_BASE_URL,
-<<<<<<< HEAD
+  dev: HANDRAIL_QUICKBOOKS_STAGING_BASE_URL,
   staging: HANDRAIL_QUICKBOOKS_STAGING_BASE_URL,
-=======
-  staging: DEFAULT_HANDRAIL_QUICKBOOKS_BASE_URL,
->>>>>>> origin/main
   production: DEFAULT_HANDRAIL_QUICKBOOKS_BASE_URL
 } as const;
 

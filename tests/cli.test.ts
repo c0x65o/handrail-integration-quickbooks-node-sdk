@@ -2,11 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import { runCli } from "../src/cli.js";
 import {
-<<<<<<< HEAD
-  HANDRAIL_QUICKBOOKS_STAGING_BASE_URL,
-=======
   DEFAULT_HANDRAIL_QUICKBOOKS_BASE_URL,
->>>>>>> origin/main
+  HANDRAIL_QUICKBOOKS_STAGING_BASE_URL,
   HandrailQuickBooksError
 } from "../src/index.js";
 import type { CliGlobalConfig, CliQuickBooksClient } from "../src/cli/types.js";
@@ -131,11 +128,7 @@ describe("handrail-qbo CLI", () => {
     });
 
     expect(exitCode).toBe(0);
-<<<<<<< HEAD
     expect(capturedConfig?.baseUrl).toBe(HANDRAIL_QUICKBOOKS_STAGING_BASE_URL);
-=======
-    expect(capturedConfig?.baseUrl).toBe(DEFAULT_HANDRAIL_QUICKBOOKS_BASE_URL);
->>>>>>> origin/main
     expect(capturedConfig?.serviceEnv).toBe("staging");
     expect(stderr.value).toBe("");
   });
