@@ -70,6 +70,7 @@
         "value": "300"
       },
       "postedAt": "2026-05-17",
+      "postingType": "Debit",
       "provider": "intuit",
       "providerEnvironment": "sandbox",
       "realmId": "realm_demo_12345",
@@ -119,6 +120,7 @@
         "value": "300"
       },
       "postedAt": "2026-05-19",
+      "postingType": "Credit",
       "provider": "intuit",
       "providerEnvironment": "sandbox",
       "realmId": "realm_demo_12345",

@@ -191,6 +191,10 @@ from the QuickBooks `Department` object with `locationSource: "department"` and
 `locationObjectStatus: "mapped_to_department"`; the SDK does not invent a distinct QuickBooks
 `Location` object contract.
 
+Ledger entries are canonical posting rows only when the QuickBooks service provides an explicit
+`postingType: "Debit" | "Credit"`. Future ERP and other consumers must persist that value directly
+instead of inferring polarity from amount signs, account classes, or shell-owned accounting rules.
+
 Raw import and sync job responses expose first-class status metadata for initial loads and delta syncs. `syncMode` is `full` for initial load work and `incremental` for checkpoint-resumed CDC/query work; `syncPhase` is `initial_load` or `delta_sync`. `importVolume` repeats the service-normalized object/entity totals, errors, and warnings directly on `rawImports` and `syncJobs`, while `checkpoint` includes the checkpoint id/ref/kind, sync mode, provider-updated-at watermark, cursor refs, job refs, timestamps, status, and bounded audit refs. These fields are safe SDK contract fields and must not contain raw QuickBooks payloads.
 
 `fullSync()` and `incrementalSync()` are typed wrappers around the existing service-owned

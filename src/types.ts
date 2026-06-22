@@ -574,6 +574,8 @@ export interface HandrailQuickBooksTransaction extends HandrailQuickBooksProvide
   readonly balance?: number;
 }
 
+export type HandrailQuickBooksLedgerPostingType = "Debit" | "Credit";
+
 export interface HandrailQuickBooksLedgerEntry extends HandrailQuickBooksProviderMetadata {
   readonly id: string;
   readonly sourceObject: "JournalEntry" | HandrailQuickBooksTransactionSourceObject;
@@ -584,7 +586,7 @@ export interface HandrailQuickBooksLedgerEntry extends HandrailQuickBooksProvide
   readonly postedAt?: string;
   readonly documentNumber?: string;
   readonly account?: HandrailQuickBooksAccountingReference;
-  readonly postingType?: string;
+  readonly postingType: HandrailQuickBooksLedgerPostingType;
   readonly amount?: number;
   readonly currency?: HandrailQuickBooksAccountingCurrencyReference;
   readonly description?: string;

@@ -84,6 +84,7 @@ export type {
   HandrailQuickBooksItemListResponse,
   HandrailQuickBooksLedgerEntry,
   HandrailQuickBooksLedgerEntryListResponse,
+  HandrailQuickBooksLedgerPostingType,
   HandrailQuickBooksLedgerSearchRequest,
   HandrailQuickBooksListRequest,
   HandrailQuickBooksListResponse,

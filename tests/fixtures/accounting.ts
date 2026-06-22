@@ -229,6 +229,7 @@ export const accountingFixtures = {
         value: "300"
       },
       postedAt: "2026-05-17",
+      postingType: "Debit",
       sourceObject: "Bill",
       sourceObjectId: "920:1",
       sourceUpdatedAt: "2026-06-15T19:25:15.000Z",
@@ -269,6 +270,7 @@ export const accountingFixtures = {
         value: "300"
       },
       postedAt: "2026-05-19",
+      postingType: "Credit",
       sourceObject: "Deposit",
       sourceObjectId: "940:1",
       sourceUpdatedAt: "2026-06-15T19:25:45.000Z",
