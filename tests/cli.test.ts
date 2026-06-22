@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import { runCli } from "../src/cli.js";
 import {
-  DEFAULT_HANDRAIL_QUICKBOOKS_BASE_URL,
   HANDRAIL_QUICKBOOKS_STAGING_BASE_URL,
   HandrailQuickBooksError
 } from "../src/index.js";
@@ -247,10 +246,12 @@ describe("handrail-qbo CLI", () => {
     );
     expect(output.futureErpConfig.copyableEnv).not.toHaveProperty("HANDRAIL_QBO_BASE_URL");
     expect(JSON.stringify(output.futureErpConfig)).not.toContain("HANDRAIL_QBO_BASE_URL");
+    expect(stdout.value).not.toContain(tenantMapJson);
     expect(stdout.value).not.toContain("real-status-api-key");
     expect(stdout.value).not.toContain("acct_sensitive_alpha");
     expect(stdout.value).not.toContain("company_sensitive_alpha");
     expect(stdout.value).not.toContain("Sensitive Alpha LLC");
+    expect(stdout.value).not.toContain("Sensitive owner handoff notes");
     expect(stdout.value).not.toMatch(
       /"access_token"|"refresh_token"|"client_secret"|"clientId"|"clientSecret"|"Authorization"|"rawPayload"/
     );

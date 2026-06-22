@@ -5,7 +5,9 @@ import {
   HandrailQuickBooksClient,
   HandrailQuickBooksConfigError,
   HandrailQuickBooksError,
-  type HandrailQuickBooksFetch
+  type HandrailQuickBooksFetch,
+  type NormalizedQuickBooksFullSyncResponseEnvelope,
+  type NormalizedQuickBooksIncrementalSyncResponseEnvelope
 } from "../src/index.js";
 import {
   accountingFixtures,
@@ -64,6 +66,7 @@ describe("HandrailQuickBooksClient", () => {
 
   it("uses fixture contracts for representative service requests and responses", async () => {
     const { fetch, requests } = mockFetch([
+      contractResponses.health,
       contractResponses.connectionStatus,
       contractResponses.tokenStatus,
       contractResponses.connectUrl,
@@ -98,6 +101,7 @@ describe("HandrailQuickBooksClient", () => {
       tenantId: contractTenantId
     });
 
+    const health = await client.health.get();
     const connectionStatus = await client.connections.status();
     const tokenStatus = await client.connections.tokenStatus();
     const connectUrl = await client.connections.connectUrl(contractRequests.connectUrl);
@@ -157,6 +161,7 @@ describe("HandrailQuickBooksClient", () => {
     });
     const drilldown = await client.drilldowns.get(contractRequests.drilldown);
 
+    expect(health).toEqual(contractResponses.health);
     expect(connectionStatus).toEqual(contractResponses.connectionStatus);
     expect(tokenStatus).toEqual(contractResponses.tokenStatus);
     expect(connectUrl).toEqual(contractResponses.connectUrl);
@@ -306,24 +311,29 @@ describe("HandrailQuickBooksClient", () => {
       ]
     });
 
-    expect(requests).toHaveLength(26);
+    expect(requests).toHaveLength(27);
     expect(requestUrl(requests[0])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/connections/status`
+      `${contractBaseUrl}/.well-known/healthz`
     );
     expect(requests[0].init?.method).toBe("GET");
 
     expect(requestUrl(requests[1])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/connections/token-status`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/connections/status`
     );
     expect(requests[1].init?.method).toBe("GET");
 
     expect(requestUrl(requests[2])).toBe(
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/connections/token-status`
+    );
+    expect(requests[2].init?.method).toBe("GET");
+
+    expect(requestUrl(requests[3])).toBe(
       `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/connections/connect-url`
     );
-    expect(requests[2].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[2].init?.body))).toEqual(contractRequests.connectUrl);
+    expect(requests[3].init?.method).toBe("POST");
+    expect(JSON.parse(String(requests[3].init?.body))).toEqual(contractRequests.connectUrl);
 
-    const accountsUrl = new URL(requestUrl(requests[3]));
+    const accountsUrl = new URL(requestUrl(requests[4]));
     expect(accountsUrl.origin + accountsUrl.pathname).toBe(
       `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/accounts`
     );
@@ -331,63 +341,63 @@ describe("HandrailQuickBooksClient", () => {
     expect(accountsUrl.searchParams.get("active")).toBe("true");
     expect(accountsUrl.searchParams.get("cursor")).toBe("cursor_accounts_after");
     expect(accountsUrl.searchParams.get("limit")).toBe("25");
-    expect(requests[3].init?.method).toBe("GET");
-
-    expect(requestUrl(requests[4])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/parties?limit=25&partyType=customer`
-    );
     expect(requests[4].init?.method).toBe("GET");
 
     expect(requestUrl(requests[5])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/transactions?limit=25&transactionType=payment`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/parties?limit=25&partyType=customer`
     );
     expect(requests[5].init?.method).toBe("GET");
 
     expect(requestUrl(requests[6])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/sync-jobs`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/transactions?limit=25&transactionType=payment`
     );
-    expect(requests[6].init?.method).toBe("POST");
-    expect(new Headers(requests[6].init?.headers).get("idempotency-key")).toBe(
-      "sync-contract-idempotency-key"
-    );
-    expect(JSON.parse(String(requests[6].init?.body))).toEqual(contractRequests.startSync);
+    expect(requests[6].init?.method).toBe("GET");
 
     expect(requestUrl(requests[7])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/sync-jobs/${contractJobId}`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/sync-jobs`
     );
-    expect(requests[7].init?.method).toBe("GET");
+    expect(requests[7].init?.method).toBe("POST");
+    expect(new Headers(requests[7].init?.headers).get("idempotency-key")).toBe(
+      "sync-contract-idempotency-key"
+    );
+    expect(JSON.parse(String(requests[7].init?.body))).toEqual(contractRequests.startSync);
 
     expect(requestUrl(requests[8])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/sync-jobs?limit=10`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/sync-jobs/${contractJobId}`
     );
     expect(requests[8].init?.method).toBe("GET");
 
     expect(requestUrl(requests[9])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/raw-imports/${contractImportBatchId}/status`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/sync-jobs?limit=10`
     );
     expect(requests[9].init?.method).toBe("GET");
 
     expect(requestUrl(requests[10])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/raw-imports?limit=10`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/raw-imports/${contractImportBatchId}/status`
     );
     expect(requests[10].init?.method).toBe("GET");
 
     expect(requestUrl(requests[11])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/import-batches/${contractImportBatchId}`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/raw-imports?limit=10`
     );
     expect(requests[11].init?.method).toBe("GET");
 
     expect(requestUrl(requests[12])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/import-batches?limit=10`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/import-batches/${contractImportBatchId}`
     );
     expect(requests[12].init?.method).toBe("GET");
 
     expect(requestUrl(requests[13])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/checkpoints/${contractCheckpointId}`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/import-batches?limit=10`
     );
     expect(requests[13].init?.method).toBe("GET");
 
-    const checkpointsUrl = new URL(requestUrl(requests[14]));
+    expect(requestUrl(requests[14])).toBe(
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/checkpoints/${contractCheckpointId}`
+    );
+    expect(requests[14].init?.method).toBe("GET");
+
+    const checkpointsUrl = new URL(requestUrl(requests[15]));
     expect(checkpointsUrl.origin + checkpointsUrl.pathname).toBe(
       `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/checkpoints`
     );
@@ -395,76 +405,76 @@ describe("HandrailQuickBooksClient", () => {
     expect(checkpointsUrl.searchParams.get("limit")).toBe("2");
     expect(checkpointsUrl.searchParams.get("objectType")).toBe("Account");
     expect(checkpointsUrl.searchParams.get("syncMode")).toBe("incremental");
-    expect(requests[14].init?.method).toBe("GET");
-
-    expect(requestUrl(requests[15])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/reports/trial-balance`
-    );
-    expect(requests[15].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[15].init?.body))).toEqual(contractRequests.trialBalance);
+    expect(requests[15].init?.method).toBe("GET");
 
     expect(requestUrl(requests[16])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/profit-and-loss`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/reports/trial-balance`
     );
     expect(requests[16].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[16].init?.body))).toEqual(contractRequests.profitAndLoss);
+    expect(JSON.parse(String(requests[16].init?.body))).toEqual(contractRequests.trialBalance);
 
     expect(requestUrl(requests[17])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/balance-sheet`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/profit-and-loss`
     );
     expect(requests[17].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[17].init?.body))).toEqual(contractRequests.balanceSheet);
+    expect(JSON.parse(String(requests[17].init?.body))).toEqual(contractRequests.profitAndLoss);
 
     expect(requestUrl(requests[18])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/cash-flow`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/balance-sheet`
     );
     expect(requests[18].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[18].init?.body))).toEqual(contractRequests.cashFlow);
+    expect(JSON.parse(String(requests[18].init?.body))).toEqual(contractRequests.balanceSheet);
 
     expect(requestUrl(requests[19])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/general-ledger`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/cash-flow`
     );
     expect(requests[19].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[19].init?.body))).toEqual(contractRequests.generalLedger);
+    expect(JSON.parse(String(requests[19].init?.body))).toEqual(contractRequests.cashFlow);
 
     expect(requestUrl(requests[20])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/accounts-receivable-aging`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/general-ledger`
     );
     expect(requests[20].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[20].init?.body))).toEqual(contractRequests.aging);
+    expect(JSON.parse(String(requests[20].init?.body))).toEqual(contractRequests.generalLedger);
 
     expect(requestUrl(requests[21])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/accounts-payable-aging`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/accounts-receivable-aging`
     );
     expect(requests[21].init?.method).toBe("POST");
     expect(JSON.parse(String(requests[21].init?.body))).toEqual(contractRequests.aging);
 
     expect(requestUrl(requests[22])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/ledger-entries?limit=50`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/accounts-payable-aging`
     );
-    expect(requests[22].init?.method).toBe("GET");
+    expect(requests[22].init?.method).toBe("POST");
+    expect(JSON.parse(String(requests[22].init?.body))).toEqual(contractRequests.aging);
 
     expect(requestUrl(requests[23])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/ledger-entries/search`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/ledger-entries?limit=50`
     );
-    expect(requests[23].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[23].init?.body))).toEqual(contractRequests.ledgerSearch);
+    expect(requests[23].init?.method).toBe("GET");
 
     expect(requestUrl(requests[24])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/reconciliation/runs`
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/ledger-entries/search`
     );
     expect(requests[24].init?.method).toBe("POST");
-    expect(new Headers(requests[24].init?.headers).get("idempotency-key")).toBe(
-      "reconcile-contract-idempotency-key"
-    );
-    expect(JSON.parse(String(requests[24].init?.body))).toEqual(contractRequests.reconciliation);
+    expect(JSON.parse(String(requests[24].init?.body))).toEqual(contractRequests.ledgerSearch);
 
     expect(requestUrl(requests[25])).toBe(
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/reconciliation/runs`
+    );
+    expect(requests[25].init?.method).toBe("POST");
+    expect(new Headers(requests[25].init?.headers).get("idempotency-key")).toBe(
+      "reconcile-contract-idempotency-key"
+    );
+    expect(JSON.parse(String(requests[25].init?.body))).toEqual(contractRequests.reconciliation);
+
+    expect(requestUrl(requests[26])).toBe(
       `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/drilldowns/report_line/report-line-profit-and-loss-income`
     );
-    expect(requests[25].init?.method).toBe("GET");
+    expect(requests[26].init?.method).toBe("GET");
 
-    const headers = new Headers(requests[0].init?.headers);
+    const headers = new Headers(requests[1].init?.headers);
     expect(headers.get("authorization")).toBe(`Bearer ${contractApiKey}`);
     expect(headers.get("x-handrail-tenant-id")).toBe(contractTenantId);
     expect(JSON.stringify([
@@ -640,8 +650,11 @@ describe("HandrailQuickBooksClient", () => {
       "connect-url.response.json",
       "connection-status.response.json",
       "drilldown.response.json",
+      "full-sync.response.json",
       "general-ledger.response.json",
+      "health.response.json",
       "import-batch.response.json",
+      "incremental-sync.response.json",
       "items.response.json",
       "ledger-search.response.json",
       "locations.response.json",
@@ -661,6 +674,7 @@ describe("HandrailQuickBooksClient", () => {
       ])
     );
     expect(JSON.stringify(examples)).not.toMatch(unsafeProviderPayloadPattern);
+    expect(examples["health.response.json"]).toEqual(contractResponses.health);
     expect(examples["accounts.response.json"]).toMatchObject({
       data: [
         {
@@ -735,6 +749,67 @@ describe("HandrailQuickBooksClient", () => {
       syncMode: "incremental",
       syncPhase: "delta_sync"
     });
+    expect(examples["full-sync.response.json"]).toMatchObject({
+      contractId: "handrail.quickbooks.normalized-sync-envelope.v1",
+      syncMode: "full",
+      syncPhase: "initial_load",
+      normalizedResourceCounts: {
+        accounts: 3,
+        parties: 2,
+        transactions: 3
+      },
+      normalizedResources: {
+        accounts: [
+          expect.objectContaining({
+            id: "accounting_account_100",
+            sourceObject: "Account"
+          })
+        ],
+        parties: [
+          expect.objectContaining({
+            id: "accounting_party_customer_300",
+            sourceObject: "Customer"
+          })
+        ],
+        transactions: [
+          expect.objectContaining({
+            sourceObject: "Payment",
+            transactionType: "payment"
+          })
+        ]
+      },
+      checkpoint: {
+        syncMode: "full"
+      }
+    });
+    expect(examples["incremental-sync.response.json"]).toMatchObject({
+      contractId: "handrail.quickbooks.normalized-sync-envelope.v1",
+      syncMode: "incremental",
+      syncPhase: "delta_sync",
+      deltaCounts: {
+        changedCount: 1,
+        failedCount: 0,
+        insertedCount: 3,
+        skippedCount: 2
+      },
+      normalizedResources: {
+        accounts: [
+          expect.objectContaining({
+            id: "accounting_account_400",
+            sourceObject: "Account"
+          })
+        ],
+        ledger_entries: [
+          expect.objectContaining({
+            sourceObject: "Payment",
+            transactionId: "700"
+          })
+        ]
+      },
+      checkpoint: {
+        syncMode: "incremental"
+      }
+    });
     const profitAndLoss = examples["profit-and-loss.response.json"] as {
       checkpointRefs: string[];
       lines: Array<{ drilldown?: { type?: string } }>;
@@ -807,6 +882,145 @@ describe("HandrailQuickBooksClient", () => {
       returnUrl: "https://erp.example.test/settings/accounting"
     });
     expect(requestUrl(requests[0])).not.toContain("providerMode=");
+  });
+
+  it("returns normalized full and incremental sync envelopes through the client contract", async () => {
+    const { fetch, requests } = mockFetch([
+      contractResponses.fullSyncJob,
+      contractResponses.syncJob
+    ]);
+    const client = new HandrailQuickBooksClient({
+      apiKey: contractApiKey,
+      baseUrl: contractBaseUrl,
+      fetch,
+      tenantId: contractTenantId
+    });
+
+    const fullEnvelope: NormalizedQuickBooksFullSyncResponseEnvelope = await client.fullSync(
+      {
+        entities: ["accounts", "parties", "transactions"],
+        importBatchId: contractImportBatchId
+      },
+      {
+        idempotencyKey: "full-sync-contract-idempotency-key"
+      }
+    );
+    const incrementalEnvelope: NormalizedQuickBooksIncrementalSyncResponseEnvelope =
+      await client.incrementalSync(
+        {
+          entities: ["accounts"],
+          since: "2026-05-01T00:00:00.000Z"
+        },
+        {
+          idempotencyKey: "incremental-sync-contract-idempotency-key"
+        }
+      );
+
+    expect(fullEnvelope).toMatchObject({
+      contractId: "handrail.quickbooks.normalized-sync-envelope.v1",
+      syncMode: "full",
+      syncPhase: "initial_load",
+      tenantId: contractTenantId,
+      jobId: contractJobId,
+      importBatchId: contractImportBatchId,
+      deltaCounts: {
+        changedCount: 0,
+        failedCount: 0,
+        insertedCount: 8,
+        skippedCount: 0
+      },
+      normalizedResourceCounts: {
+        accounts: 3,
+        parties: 2,
+        transactions: 3
+      },
+      normalizedResources: {
+        accounts: expect.arrayContaining([
+          expect.objectContaining({
+            id: "accounting_account_100",
+            sourceObject: "Account"
+          })
+        ]),
+        parties: expect.arrayContaining([
+          expect.objectContaining({
+            id: "accounting_party_customer_300",
+            sourceObject: "Customer"
+          })
+        ]),
+        transactions: expect.arrayContaining([
+          expect.objectContaining({
+            sourceObject: "Payment",
+            transactionType: "payment"
+          })
+        ])
+      }
+    });
+    expect(fullEnvelope.syncJob).toEqual(contractResponses.fullSyncJob);
+    expect(fullEnvelope.importBatch).toEqual(contractResponses.importBatch);
+    expect(fullEnvelope.checkpoint?.syncMode).toBe("full");
+
+    expect(incrementalEnvelope).toMatchObject({
+      contractId: "handrail.quickbooks.normalized-sync-envelope.v1",
+      syncMode: "incremental",
+      syncPhase: "delta_sync",
+      tenantId: contractTenantId,
+      jobId: contractJobId,
+      importBatchId: contractImportBatchId,
+      deltaCounts: {
+        changedCount: 1,
+        failedCount: 0,
+        insertedCount: 3,
+        skippedCount: 2
+      },
+      normalizedResourceCounts: {
+        accounts: 3,
+        ledger_entries: 4,
+        parties: 2,
+        transactions: 3
+      },
+      normalizedResources: {
+        accounts: expect.arrayContaining([
+          expect.objectContaining({
+            id: "accounting_account_400",
+            sourceObject: "Account"
+          })
+        ]),
+        ledger_entries: expect.arrayContaining([
+          expect.objectContaining({
+            transactionId: "700",
+            sourceObject: "Payment"
+          })
+        ])
+      }
+    });
+    expect(incrementalEnvelope.syncJob).toEqual(contractResponses.syncJob);
+    expect(incrementalEnvelope.importBatch).toEqual(contractResponses.importBatch);
+    expect(incrementalEnvelope.checkpoint?.syncMode).toBe("incremental");
+    expect(JSON.stringify([fullEnvelope, incrementalEnvelope])).not.toMatch(unsafeProviderPayloadPattern);
+
+    expect(requests).toHaveLength(2);
+    expect(requestUrl(requests[0])).toBe(
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/sync-jobs`
+    );
+    expect(new Headers(requests[0].init?.headers).get("idempotency-key")).toBe(
+      "full-sync-contract-idempotency-key"
+    );
+    expect(JSON.parse(String(requests[0].init?.body))).toEqual({
+      entities: ["accounts", "parties", "transactions"],
+      importBatchId: contractImportBatchId,
+      mode: "full"
+    });
+    expect(requestUrl(requests[1])).toBe(
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/sync-jobs`
+    );
+    expect(new Headers(requests[1].init?.headers).get("idempotency-key")).toBe(
+      "incremental-sync-contract-idempotency-key"
+    );
+    expect(JSON.parse(String(requests[1].init?.body))).toEqual({
+      entities: ["accounts"],
+      mode: "incremental",
+      since: "2026-05-01T00:00:00.000Z"
+    });
   });
 
   it("builds token status diagnostics requests", async () => {

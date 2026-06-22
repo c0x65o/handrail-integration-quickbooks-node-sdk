@@ -26,6 +26,7 @@ import {
   HandrailQuickBooksDrilldownResult,
   HandrailQuickBooksGeneralLedgerReport,
   HandrailQuickBooksGeneralLedgerRequest,
+  HandrailQuickBooksHealthResponse,
   HandrailQuickBooksImportBatchListResponse,
   HandrailQuickBooksImportBatchSummary,
   HandrailQuickBooksItem,
@@ -38,6 +39,7 @@ import {
   HandrailQuickBooksLocation,
   HandrailQuickBooksLocationListResponse,
   HandrailQuickBooksNormalizedResource,
+  HandrailQuickBooksNormalizedResourceMap,
   HandrailQuickBooksPageInfo,
   HandrailQuickBooksParty,
   HandrailQuickBooksPartyListResponse,
@@ -70,6 +72,8 @@ import {
   HandrailQuickBooksTrialBalanceLine,
   HandrailQuickBooksTrialBalanceReport,
   HandrailQuickBooksTrialBalanceRequest,
+  NormalizedQuickBooksFullSyncResponseEnvelope,
+  NormalizedQuickBooksIncrementalSyncResponseEnvelope,
   ListAccountsRequest,
   ListClassesRequest,
   ListItemsRequest,
@@ -272,6 +276,52 @@ const syncJob: HandrailQuickBooksSyncJobSummary = {
   syncPhase: "delta_sync",
   tenantId: "tenant_123"
 };
+const fullSyncEnvelope: NormalizedQuickBooksFullSyncResponseEnvelope = {
+  audit,
+  checkpoint: {
+    ...checkpointMetadata,
+    syncMode: "full"
+  },
+  companyId: "realm_123",
+  contractId: "handrail.quickbooks.normalized-sync-envelope.v1",
+  deltaCounts: {
+    changedCount: 0,
+    failedCount: 0,
+    insertedCount: 2,
+    skippedCount: 0
+  },
+  importBatch,
+  importBatchId: "batch_123",
+  importVolume: syncJob.importVolume,
+  jobId: "job_123",
+  normalizedResourceCounts: { accounts: 2 },
+  status: "succeeded",
+  syncJob: {
+    ...syncJob,
+    syncMode: "full",
+    syncPhase: "initial_load"
+  },
+  syncMode: "full",
+  syncPhase: "initial_load",
+  tenantId: "tenant_123"
+};
+const incrementalSyncEnvelope: NormalizedQuickBooksIncrementalSyncResponseEnvelope = {
+  audit,
+  checkpoint: checkpointMetadata,
+  companyId: "realm_123",
+  contractId: "handrail.quickbooks.normalized-sync-envelope.v1",
+  deltaCounts,
+  importBatch,
+  importBatchId: "batch_123",
+  importVolume: syncJob.importVolume,
+  jobId: "job_123",
+  normalizedResourceCounts: { accounts: 2 },
+  status: "succeeded",
+  syncJob,
+  syncMode: "incremental",
+  syncPhase: "delta_sync",
+  tenantId: "tenant_123"
+};
 
 declare const account: HandrailQuickBooksAccount;
 declare const item: HandrailQuickBooksItem;
@@ -290,6 +340,15 @@ const normalizedResources: readonly HandrailQuickBooksNormalizedResource[] = [
   transaction,
   ledgerEntry
 ];
+const normalizedResourceMap: HandrailQuickBooksNormalizedResourceMap = {
+  accounts: [account],
+  classes: [classObject],
+  items: [item],
+  ledger_entries: [ledgerEntry],
+  locations: [location],
+  parties: [party],
+  transactions: [transaction]
+};
 
 const accountList: HandrailQuickBooksAccountListResponse = { data: [account], page: pageInfo };
 const itemList: HandrailQuickBooksItemListResponse = { data: [item], page: pageInfo };
@@ -400,6 +459,10 @@ const connection: HandrailQuickBooksConnectionStatusResponse = {
   status: connectionStatus,
   tenantId: "tenant_123"
 };
+const health: HandrailQuickBooksHealthResponse = {
+  ok: true,
+  service: "handrail-integration-quickbooks"
+};
 const tokenStatus: HandrailQuickBooksTokenStatusResponse = {
   audit,
   status: "healthy",
@@ -450,9 +513,13 @@ void [
   reportRequests,
   reportResponses,
   connection,
+  health,
   tokenStatus,
   drilldownResult,
   syncRequest,
+  fullSyncEnvelope,
+  incrementalSyncEnvelope,
+  normalizedResourceMap,
   requestOptions,
   config,
   futureErpConfig,

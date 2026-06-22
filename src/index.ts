@@ -26,6 +26,7 @@ export { CheckpointsResource } from "./resources/checkpoints.js";
 export { ClassesResource } from "./resources/classes.js";
 export { ConnectionsResource } from "./resources/connections.js";
 export { DrilldownsResource } from "./resources/drilldowns.js";
+export { HealthResource } from "./resources/health.js";
 export { ImportBatchesResource } from "./resources/import-batches.js";
 export { ItemsResource } from "./resources/items.js";
 export { LedgerEntriesResource } from "./resources/ledger-entries.js";
@@ -34,7 +35,11 @@ export { PartiesResource } from "./resources/parties.js";
 export { RawImportsResource } from "./resources/raw-imports.js";
 export { ReconciliationResource } from "./resources/reconciliation.js";
 export { ReportsResource } from "./resources/reports.js";
-export { SyncJobsResource } from "./resources/sync-jobs.js";
+export {
+  SyncJobsResource,
+  toNormalizedQuickBooksFullSyncResponseEnvelope,
+  toNormalizedQuickBooksIncrementalSyncResponseEnvelope
+} from "./resources/sync-jobs.js";
 export { TransactionsResource } from "./resources/transactions.js";
 export type { ListAccountsRequest } from "./resources/accounts.js";
 export type { HandrailQuickBooksCheckpointListRequest } from "./types.js";
@@ -43,6 +48,7 @@ export type { ListItemsRequest } from "./resources/items.js";
 export type { ListLocationsRequest } from "./resources/locations.js";
 export type { ListPartiesRequest } from "./resources/parties.js";
 export type { ListTransactionsRequest } from "./resources/transactions.js";
+export type { HandrailQuickBooksSyncOptions } from "./resources/sync-jobs.js";
 export type {
   HandrailQuickBooksRequestOptions
 } from "./http.js";
@@ -88,6 +94,7 @@ export type {
   HandrailQuickBooksGeneralLedgerReport,
   HandrailQuickBooksGeneralLedgerRequest,
   HandrailQuickBooksGeneralLedgerRow,
+  HandrailQuickBooksHealthResponse,
   HandrailQuickBooksImportBatchListRequest,
   HandrailQuickBooksImportBatchListResponse,
   HandrailQuickBooksImportBatchStatus,
@@ -103,6 +110,7 @@ export type {
   HandrailQuickBooksLocation,
   HandrailQuickBooksLocationListResponse,
   HandrailQuickBooksNormalizedResource,
+  HandrailQuickBooksNormalizedResourceMap,
   HandrailQuickBooksPageInfo,
   HandrailQuickBooksParty,
   HandrailQuickBooksPartyListResponse,
@@ -154,7 +162,12 @@ export type {
   HandrailQuickBooksTokenStatusResponse,
   HandrailQuickBooksTrialBalanceLine,
   HandrailQuickBooksTrialBalanceReport,
-  HandrailQuickBooksTrialBalanceRequest
+  HandrailQuickBooksTrialBalanceRequest,
+  NormalizedQuickBooksFullSyncRequest,
+  NormalizedQuickBooksFullSyncResponseEnvelope,
+  NormalizedQuickBooksIncrementalSyncRequest,
+  NormalizedQuickBooksIncrementalSyncResponseEnvelope,
+  NormalizedQuickBooksSyncResponseEnvelopeBase
 } from "./types.js";
 export type {
   HandrailQuickBooksErrorBody,

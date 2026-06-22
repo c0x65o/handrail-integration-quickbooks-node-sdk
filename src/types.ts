@@ -112,6 +112,11 @@ export type HandrailQuickBooksProviderProfileStatus =
   | "missing"
   | "unknown";
 
+export interface HandrailQuickBooksHealthResponse {
+  readonly ok: true;
+  readonly service: "handrail-integration-quickbooks";
+}
+
 export interface HandrailQuickBooksProviderProfileMetadata {
   readonly environment?: HandrailQuickBooksProviderEnvironment;
   readonly name?: string;
@@ -269,6 +274,7 @@ export interface HandrailQuickBooksSyncJobSummary {
   readonly importVolume: HandrailQuickBooksImportVolumeSummary;
   readonly deltaCounts: HandrailQuickBooksDeltaSyncCounts;
   readonly checkpoint?: HandrailQuickBooksSyncCheckpointMetadata;
+  readonly normalizedResources?: HandrailQuickBooksNormalizedResourceMap;
   readonly objectCount: number;
   readonly objectType: HandrailQuickBooksRawImportObjectType;
   readonly startedAt: string;
@@ -282,6 +288,45 @@ export interface HandrailQuickBooksStartSyncRequest {
   readonly importBatchId?: string;
   readonly mode?: "incremental" | "full";
   readonly since?: string;
+}
+
+export type NormalizedQuickBooksFullSyncRequest =
+  Omit<HandrailQuickBooksStartSyncRequest, "mode"> & {
+    readonly mode?: "full";
+  };
+
+export type NormalizedQuickBooksIncrementalSyncRequest =
+  Omit<HandrailQuickBooksStartSyncRequest, "mode"> & {
+    readonly mode?: "incremental";
+  };
+
+export interface NormalizedQuickBooksSyncResponseEnvelopeBase {
+  readonly contractId: "handrail.quickbooks.normalized-sync-envelope.v1";
+  readonly tenantId: string;
+  readonly companyId: string;
+  readonly importBatchId: string;
+  readonly jobId: string;
+  readonly status: HandrailQuickBooksSyncJobStatus;
+  readonly deltaCounts: HandrailQuickBooksDeltaSyncCounts;
+  readonly importVolume: HandrailQuickBooksImportVolumeSummary;
+  readonly normalizedResourceCounts: Partial<Record<HandrailQuickBooksRawImportEntity, number>>;
+  readonly normalizedResources?: HandrailQuickBooksNormalizedResourceMap;
+  readonly syncJob: HandrailQuickBooksSyncJobSummary;
+  readonly importBatch?: HandrailQuickBooksImportBatchSummary;
+  readonly checkpoint?: HandrailQuickBooksSyncCheckpointMetadata;
+  readonly audit: HandrailQuickBooksAuditReference;
+}
+
+export interface NormalizedQuickBooksFullSyncResponseEnvelope
+  extends NormalizedQuickBooksSyncResponseEnvelopeBase {
+  readonly syncMode: "full";
+  readonly syncPhase: "initial_load";
+}
+
+export interface NormalizedQuickBooksIncrementalSyncResponseEnvelope
+  extends NormalizedQuickBooksSyncResponseEnvelopeBase {
+  readonly syncMode: "incremental";
+  readonly syncPhase: "delta_sync";
 }
 
 export type HandrailQuickBooksDeltaSyncCounts = {
@@ -623,6 +668,16 @@ export type HandrailQuickBooksNormalizedResource =
   | HandrailQuickBooksLocation
   | HandrailQuickBooksParty
   | HandrailQuickBooksTransaction;
+
+export interface HandrailQuickBooksNormalizedResourceMap {
+  readonly accounts?: readonly HandrailQuickBooksAccount[];
+  readonly classes?: readonly HandrailQuickBooksClass[];
+  readonly items?: readonly HandrailQuickBooksItem[];
+  readonly ledger_entries?: readonly HandrailQuickBooksLedgerEntry[];
+  readonly locations?: readonly HandrailQuickBooksLocation[];
+  readonly parties?: readonly HandrailQuickBooksParty[];
+  readonly transactions?: readonly HandrailQuickBooksTransaction[];
+}
 
 export interface HandrailQuickBooksReportPeriod {
   readonly endDate: string;

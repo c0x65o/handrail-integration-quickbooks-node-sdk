@@ -134,6 +134,7 @@ const quickBooks = new HandrailQuickBooksClient({
   tenantId: "future-erp-dev-sandbox-tenant"
 });
 
+const health = await quickBooks.health.get();
 const connection = await quickBooks.connections.status();
 const connect = await quickBooks.connections.connectUrl({
   returnUrl: "https://erp.example.test/settings/accounting"
@@ -141,6 +142,10 @@ const connect = await quickBooks.connections.connectUrl({
 const sync = await quickBooks.syncJobs.start({
   entities: ["accounts", "items", "classes", "locations", "ledger_entries"],
   mode: "incremental"
+});
+const incrementalSync = await quickBooks.incrementalSync({
+  entities: ["accounts", "ledger_entries"],
+  since: "2026-05-01T00:00:00.000Z"
 });
 const trialBalance = await quickBooks.reports.trialBalance({
   asOfDate: "2026-05-31"
@@ -176,7 +181,9 @@ const checkpoint = await quickBooks.checkpoints.get("quickbooks_incremental_acco
 The public surface exposes stable Handrail business concepts through resource modules:
 
 - `connections.status()`, `connections.tokenStatus()`, and `connections.connectUrl()`
-- `syncJobs.start()`, `syncJobs.get()`, and `syncJobs.list()`
+- `health.get()`
+- `fullSync()`, `incrementalSync()`, `syncJobs.fullSync()`, `syncJobs.incrementalSync()`,
+  `syncJobs.start()`, `syncJobs.get()`, and `syncJobs.list()`
 - `rawImports.status()` and `rawImports.list()`
 - `importBatches.get()` and `importBatches.list()`
 - `checkpoints.get()` and `checkpoints.list()`
@@ -216,9 +223,50 @@ from the QuickBooks `Department` object with `locationSource: "department"` and
 
 Raw import and sync job responses expose first-class status metadata for initial loads and delta syncs. `syncMode` is `full` for initial load work and `incremental` for checkpoint-resumed CDC/query work; `syncPhase` is `initial_load` or `delta_sync`. `importVolume` repeats the service-normalized object/entity totals, errors, and warnings directly on `rawImports` and `syncJobs`, while `checkpoint` includes the checkpoint id/ref/kind, sync mode, provider-updated-at watermark, cursor refs, job refs, timestamps, status, and bounded audit refs. These fields are safe SDK contract fields and must not contain raw QuickBooks payloads.
 
+`fullSync()` and `incrementalSync()` are typed wrappers around the existing service-owned
+`POST /v1/tenants/:tenantId/quickbooks/sync-jobs` endpoint. They force `mode: "full"` or
+`mode: "incremental"` and map the returned sanitized sync job summary into
+`NormalizedQuickBooksFullSyncResponseEnvelope` or
+`NormalizedQuickBooksIncrementalSyncResponseEnvelope`. The envelope repeats only normalized sync
+evidence: tenant/company ids, import batch id, job id, status, delta counts, import volume,
+normalized resource counts, checkpoint metadata, bounded audit refs, and the sanitized sync job
+summary. When the service includes bounded `normalizedResources`, the SDK preserves those
+entity-keyed resources for ERP Financials canonical persistence. It does not expose raw provider
+payloads, Intuit tokens, Authorization headers, client secrets, tenant-map JSON, or API key values.
+
+Future ERP deterministic contract examples are pinned in `examples/contracts/full-sync.response.json`
+and `examples/contracts/incremental-sync.response.json`. Provider P&L parity evidence is pinned in
+`examples/contracts/profit-and-loss.response.json` for the same sandbox company, accrual basis, USD
+currency, and May 2026 window used by Future ERP tests. That report response is reconciliation
+evidence only; ERP product reporting should read persisted ERP Financials canonical reports.
+
 Raw import and sync job responses may include a `retry` object with `retryable`, `attemptCount`, `maxAttempts`, optional `nextRetryAt`, `lastErrorCode`, and `retryReason`. These fields describe central-service retry readiness only; they use service-owned codes and must not contain Intuit tokens, Authorization headers, raw provider errors, or raw QuickBooks payloads.
 
 Stable namespaces are the SDK compatibility surface. Method names, request/response shapes, normalized business identifiers, report snapshot refs, source refs, checkpoint refs, and bounded drilldown metadata should change only through versioned updates. Bounded audit fields may help support teams correlate central-service state with QuickBooks objects, but product workflows should not depend on raw Intuit payload structure.
+
+## ERP Contract Exports
+
+ERP Financials and Future ERP should import from the package root, `@handrail/quickbooks-node-sdk`.
+The package currently publishes one export path, `"."`, backed by `dist/index.js` and
+`dist/index.d.ts`. Stable consumer contract names include:
+
+| Surface | SDK names | Service path |
+| --- | --- | --- |
+| Health | `health.get()`, `HealthResource`, `HandrailQuickBooksHealthResponse` | `GET /.well-known/healthz` |
+| Connection/token status | `connections.status()`, `connections.tokenStatus()`, `ConnectionsResource`, `HandrailQuickBooksConnectionStatusResponse`, `HandrailQuickBooksTokenStatusResponse` | `GET /v1/tenants/:tenantId/quickbooks/connections/status`, `GET /v1/tenants/:tenantId/quickbooks/connections/token-status` |
+| Full/incremental sync | `fullSync()`, `incrementalSync()`, `syncJobs.fullSync()`, `syncJobs.incrementalSync()`, `syncJobs.start()`, `syncJobs.get()`, `syncJobs.list()`, `SyncJobsResource`, `HandrailQuickBooksStartSyncRequest`, `NormalizedQuickBooksFullSyncRequest`, `NormalizedQuickBooksIncrementalSyncRequest`, `NormalizedQuickBooksFullSyncResponseEnvelope`, `NormalizedQuickBooksIncrementalSyncResponseEnvelope`, `HandrailQuickBooksSyncJobSummary`, `HandrailQuickBooksSyncJobListResponse` | `POST /v1/tenants/:tenantId/quickbooks/sync-jobs`, `GET /v1/tenants/:tenantId/quickbooks/sync-jobs/:jobId`, `GET /v1/tenants/:tenantId/quickbooks/sync-jobs` |
+| Accounts | `accounts.list()`, `accounts.get()`, `AccountsResource`, `ListAccountsRequest`, `HandrailQuickBooksAccount`, `HandrailQuickBooksAccountListResponse` | `GET /v1/tenants/:tenantId/accounting/accounts`, `GET /v1/tenants/:tenantId/accounting/accounts/:accountId` |
+| Parties | `parties.list()`, `parties.get()`, `PartiesResource`, `ListPartiesRequest`, `HandrailQuickBooksParty`, `HandrailQuickBooksPartyListResponse` | `GET /v1/tenants/:tenantId/accounting/parties`, `GET /v1/tenants/:tenantId/accounting/parties/:partyId` |
+| Transactions | `transactions.list()`, `transactions.get()`, `TransactionsResource`, `ListTransactionsRequest`, `HandrailQuickBooksTransaction`, `HandrailQuickBooksTransactionListResponse` | `GET /v1/tenants/:tenantId/accounting/transactions`, `GET /v1/tenants/:tenantId/accounting/transactions/:transactionId` |
+| Ledger entries/postings | `ledgerEntries.list()`, `ledgerEntries.search()`, `ledgerEntries.get()`, `LedgerEntriesResource`, `HandrailQuickBooksLedgerEntry`, `HandrailQuickBooksLedgerEntryListResponse`, `HandrailQuickBooksLedgerSearchRequest` | `GET /v1/tenants/:tenantId/accounting/ledger-entries`, `POST /v1/tenants/:tenantId/accounting/ledger-entries/search`, `GET /v1/tenants/:tenantId/accounting/ledger-entries/:ledgerEntryId` |
+| Provider reports | `reports.trialBalance()`, `reports.profitAndLoss()`, `reports.balanceSheet()`, `reports.cashFlow()`, `reports.generalLedger()`, `reports.accountsReceivableAging()`, `reports.accountsPayableAging()`, `ReportsResource`, `HandrailQuickBooksReportRequest`, `HandrailQuickBooksReportResponse`, `HandrailQuickBooksReportSnapshotMetadata`, report-specific request/response types | `POST /v1/tenants/:tenantId/quickbooks/reports/trial-balance`, `POST /v1/tenants/:tenantId/accounting/reports/:reportName` |
+| Reconciliation evidence | `reconciliation.run()`, `ReconciliationResource`, `HandrailQuickBooksReconciliationRequest`, `HandrailQuickBooksReconciliationResult` | `POST /v1/tenants/:tenantId/quickbooks/reconciliation/runs` |
+| Checkpoints | `checkpoints.get()`, `checkpoints.list()`, `CheckpointsResource`, `HandrailQuickBooksSyncCheckpoint`, `HandrailQuickBooksSyncCheckpointMetadata`, `HandrailQuickBooksSyncCheckpointListResponse`, `HandrailQuickBooksCheckpointListRequest` | `GET /v1/tenants/:tenantId/quickbooks/checkpoints/:checkpointId`, `GET /v1/tenants/:tenantId/quickbooks/checkpoints` |
+| Source timestamps | `sourceUpdatedAt` on `HandrailQuickBooksAccount`, `HandrailQuickBooksItem`, `HandrailQuickBooksClass`, `HandrailQuickBooksLocation`, `HandrailQuickBooksParty`, `HandrailQuickBooksTransaction`, `HandrailQuickBooksLedgerEntry`; `providerUpdatedAtWatermark` on checkpoint metadata | Same normalized resource, sync job, raw import, and checkpoint paths above |
+| Drilldown-safe refs | `drilldowns.get()`, `DrilldownsResource`, `HandrailQuickBooksDrilldownRequest`, `HandrailQuickBooksDrilldownResult`, `HandrailQuickBooksReportDrilldownReference`, `reportSnapshotRef`, `sourceRefs`, `checkpointRefs`, bounded `audit.sourcePayloadRef(s)` | `GET /v1/tenants/:tenantId/quickbooks/drilldowns/:type/:id` |
+
+The type-level consumer gate is `npm run check:consumer-types`, which builds the SDK and compiles
+`examples/type-consumer/future-erp-contract.ts` through the package export path.
 
 ## CLI
 
@@ -325,7 +373,7 @@ Unit tests are fully offline and use mocked fetch/SDK clients plus fixtures from
 npm run test
 ```
 
-Example service response contracts live in `examples/contracts/` for connection status, token status, raw import status, connect URL, normalized accounting resources, CDC sync start, import batches, checkpoints, trial balance, profit and loss, balance sheet, cash flow, general ledger, A/R aging, A/P aging, ledger search, reconciliation, and drilldowns. The report, reconciliation, and drilldown examples pin `reportSnapshotId`, `reportSnapshotRef`, `sourceRefs`, and `checkpointRefs` as the Future ERP compatibility surface. The transaction and ledger examples include sandbox-backed Bill, Payment, and Deposit contracts; no-data transaction objects remain visible through zero object counts in import metadata. The raw import example demonstrates `syncMode: "full"` / `syncPhase: "initial_load"` metadata, and the CDC sync start example demonstrates `syncMode: "incremental"` / `syncPhase: "delta_sync"` metadata. The `*.response.json` files describe the successful SDK return value and successful CLI stdout shape for those commands; the CLI does not wrap or reshape successful responses. These examples include normalized Handrail accounting concepts and bounded audit/debug references only; they do not include token material, real credentials, raw provider payloads, or direct Intuit API contracts.
+Example service response contracts live in `examples/contracts/` for health, connection status, token status, raw import status, connect URL, normalized accounting resources, full sync envelopes, CDC/incremental sync start and normalized envelopes, import batches, checkpoints, trial balance, profit and loss, balance sheet, cash flow, general ledger, A/R aging, A/P aging, ledger search, reconciliation, and drilldowns. The report, reconciliation, and drilldown examples pin `reportSnapshotId`, `reportSnapshotRef`, `sourceRefs`, and `checkpointRefs` as the Future ERP compatibility surface. The transaction and ledger examples include sandbox-backed Bill, Payment, and Deposit contracts; no-data transaction objects remain visible through zero object counts in import metadata. The raw import example demonstrates `syncMode: "full"` / `syncPhase: "initial_load"` metadata, and the CDC sync start plus incremental envelope examples demonstrate `syncMode: "incremental"` / `syncPhase: "delta_sync"` metadata. The `*.response.json` files describe the successful SDK return value and successful CLI stdout shape for those commands; the CLI does not wrap or reshape successful responses. These examples include normalized Handrail accounting concepts and bounded audit/debug references only; they do not include token material, real credentials, raw provider payloads, or direct Intuit API contracts.
 
 Later smoke tests against the integration service should use the CLI with Handrail-provided runtime config:
 

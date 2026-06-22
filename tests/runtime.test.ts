@@ -110,6 +110,26 @@ describe("createQuickBooksSdkConfig", () => {
     ).toBe(HANDRAIL_QUICKBOOKS_SERVICE_BASE_URLS.staging);
   });
 
+  it("uses standard single-tenant HANDRAIL_QBO_TENANT_ID without HANDRAIL_QBO_BASE_URL", () => {
+    const config = createQuickBooksSdkConfig(
+      {},
+      {
+        [HANDRAIL_QUICKBOOKS_ENV_KEYS.apiKey]: "single-tenant-service-api-key",
+        [HANDRAIL_QUICKBOOKS_ENV_KEYS.providerMode]: "sandbox",
+        [HANDRAIL_QUICKBOOKS_ENV_KEYS.serviceEnv]: "staging",
+        [HANDRAIL_QUICKBOOKS_ENV_KEYS.tenantId]: "future-erp-dev-sandbox-tenant"
+      }
+    );
+
+    expect(config).toMatchObject({
+      apiKey: "single-tenant-service-api-key",
+      baseUrl: HANDRAIL_QUICKBOOKS_SERVICE_BASE_URLS.staging,
+      providerMode: "sandbox",
+      serviceEnv: "staging",
+      tenantId: "future-erp-dev-sandbox-tenant"
+    });
+  });
+
   it("falls back to the Handrail integration service base URL", () => {
     expect(createQuickBooksSdkConfig({}, {}).baseUrl).toBe(DEFAULT_HANDRAIL_QUICKBOOKS_BASE_URL);
   });

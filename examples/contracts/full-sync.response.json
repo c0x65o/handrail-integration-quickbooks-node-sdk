@@ -1,0 +1,159 @@
+{
+  "contractId": "handrail.quickbooks.normalized-sync-envelope.v1",
+  "tenantId": "tenant_contract_123",
+  "companyId": "realm_demo_12345",
+  "importBatchId": "batch_contract_2026_05",
+  "jobId": "sync_contract_123",
+  "status": "succeeded",
+  "syncMode": "full",
+  "syncPhase": "initial_load",
+  "deltaCounts": {
+    "changedCount": 0,
+    "failedCount": 0,
+    "insertedCount": 8,
+    "skippedCount": 0
+  },
+  "importVolume": {
+    "entityCounts": {
+      "accounts": 3,
+      "parties": 2,
+      "transactions": 3
+    },
+    "errorCount": 0,
+    "objectCount": 8,
+    "objectCounts": {
+      "Account": 3,
+      "Bill": 1,
+      "Customer": 1,
+      "Deposit": 1,
+      "Payment": 1,
+      "Vendor": 1
+    },
+    "totalObjectCount": 8,
+    "warningCount": 0
+  },
+  "normalizedResourceCounts": {
+    "accounts": 3,
+    "parties": 2,
+    "transactions": 3
+  },
+  "normalizedResources": {
+    "accounts": [
+      {
+        "id": "accounting_account_100",
+        "tenantId": "tenant_contract_123",
+        "realmId": "realm_demo_12345",
+        "companyId": "realm_demo_12345",
+        "provider": "intuit",
+        "providerEnvironment": "sandbox",
+        "source": "quickbooks_accounting_api",
+        "sourceObject": "Account",
+        "sourceObjectId": "100",
+        "name": "Operating Cash",
+        "accountType": "Bank",
+        "classification": "Asset",
+        "importBatchId": "batch_contract_2026_05",
+        "jobId": "sync_contract_123",
+        "importedAt": "2026-06-15T19:45:00.000Z",
+        "syncedAt": "2026-06-15T19:45:00.000Z",
+        "sourceUpdatedAt": "2026-06-15T19:20:00.000Z",
+        "audit": {
+          "importBatchId": "batch_contract_2026_05",
+          "jobId": "sync_contract_123",
+          "realmId": "realm_demo_12345",
+          "sourcePayloadRef": "raw://batch_contract_2026_05"
+        }
+      }
+    ],
+    "parties": [
+      {
+        "id": "accounting_party_customer_300",
+        "tenantId": "tenant_contract_123",
+        "realmId": "realm_demo_12345",
+        "companyId": "realm_demo_12345",
+        "provider": "intuit",
+        "providerEnvironment": "sandbox",
+        "source": "quickbooks_accounting_api",
+        "sourceObject": "Customer",
+        "sourceObjectId": "300",
+        "displayName": "Acme Customer",
+        "partyType": "customer",
+        "importBatchId": "batch_contract_2026_05",
+        "jobId": "sync_contract_123",
+        "importedAt": "2026-06-15T19:45:00.000Z",
+        "syncedAt": "2026-06-15T19:45:00.000Z",
+        "sourceUpdatedAt": "2026-06-15T19:23:00.000Z",
+        "audit": {
+          "importBatchId": "batch_contract_2026_05",
+          "jobId": "sync_contract_123",
+          "realmId": "realm_demo_12345",
+          "sourcePayloadRef": "raw://batch_contract_2026_05"
+        }
+      }
+    ],
+    "transactions": [
+      {
+        "id": "accounting_transaction_payment_700",
+        "tenantId": "tenant_contract_123",
+        "realmId": "realm_demo_12345",
+        "companyId": "realm_demo_12345",
+        "provider": "intuit",
+        "providerEnvironment": "sandbox",
+        "source": "quickbooks_accounting_api",
+        "sourceObject": "Payment",
+        "sourceObjectId": "700",
+        "transactionType": "payment",
+        "transactionDate": "2026-05-15",
+        "amount": 1250,
+        "importBatchId": "batch_contract_2026_05",
+        "jobId": "sync_contract_123",
+        "importedAt": "2026-06-15T19:45:00.000Z",
+        "syncedAt": "2026-06-15T19:45:00.000Z",
+        "sourceUpdatedAt": "2026-06-15T19:25:00.000Z",
+        "audit": {
+          "importBatchId": "batch_contract_2026_05",
+          "jobId": "sync_contract_123",
+          "realmId": "realm_demo_12345",
+          "sourcePayloadRef": "raw://batch_contract_2026_05"
+        }
+      }
+    ]
+  },
+  "checkpoint": {
+    "checkpointId": "quickbooks_full_initial_load_accounts_Account",
+    "checkpointKind": "provider_updated_at_watermark",
+    "checkpointRef": "checkpoint://quickbooks/tenant_contract_123/quickbooks_full_initial_load_accounts_Account",
+    "entity": "accounts",
+    "objectType": "Account",
+    "syncMode": "full",
+    "providerUpdatedAtWatermark": "2026-06-15T19:25:00.000Z",
+    "importBatchId": "batch_contract_2026_05",
+    "jobIds": [
+      "sync_contract_123"
+    ],
+    "syncJobRefs": [
+      "raw://batch_contract_2026_05/sync-jobs/sync_contract_123"
+    ],
+    "cursorRefs": [
+      "raw://batch_contract_2026_05",
+      "raw://batch_contract_2026_05/objects/Account"
+    ],
+    "startedAt": "2026-06-15T19:30:00.000Z",
+    "completedAt": "2026-06-15T19:45:00.000Z",
+    "status": "succeeded",
+    "audit": {
+      "checkpointId": "quickbooks_full_initial_load_accounts_Account",
+      "importBatchId": "batch_contract_2026_05",
+      "realmId": "realm_demo_12345",
+      "sourcePayloadRefs": [
+        "raw://batch_contract_2026_05",
+        "raw://batch_contract_2026_05/objects/Account"
+      ]
+    }
+  },
+  "audit": {
+    "importBatchId": "batch_contract_2026_05",
+    "realmId": "realm_demo_12345",
+    "sourcePayloadRef": "raw://batch_contract_2026_05/sync-jobs/sync_contract_123"
+  }
+}

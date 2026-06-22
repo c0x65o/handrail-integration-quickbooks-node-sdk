@@ -15,6 +15,7 @@ import type {
   HandrailQuickBooksDrilldownResult,
   HandrailQuickBooksGeneralLedgerReport,
   HandrailQuickBooksGeneralLedgerRequest,
+  HandrailQuickBooksHealthResponse,
   HandrailQuickBooksImportBatchSummary,
   HandrailQuickBooksImportVolumeSummary,
   HandrailQuickBooksItem,
@@ -1116,6 +1117,10 @@ export const contractResponses = {
       }
     }
   } satisfies HandrailQuickBooksGeneralLedgerReport,
+  health: {
+    ok: true,
+    service: "handrail-integration-quickbooks"
+  } satisfies HandrailQuickBooksHealthResponse,
   importBatch: {
     audit: {
       importBatchId: contractImportBatchId,
@@ -1327,6 +1332,34 @@ export const contractResponses = {
     reconciliationId: "recon_contract_123",
     status: "balanced"
   } satisfies HandrailQuickBooksReconciliationResult,
+  fullSyncJob: {
+    audit: {
+      importBatchId: contractImportBatchId,
+      realmId: "realm_demo_12345",
+      sourcePayloadRef: `raw://${contractImportBatchId}/sync-jobs/${contractJobId}`
+    },
+    batch: undefined as HandrailQuickBooksImportBatchSummary | undefined,
+    companyId: "realm_demo_12345",
+    completedAt: "2026-06-15T19:45:00.000Z",
+    checkpoint: initialLoadCheckpointMetadata,
+    deltaCounts: initialLoadDeltaCounts,
+    entity: "accounts",
+    importBatchId: contractImportBatchId,
+    importVolume: initialLoadImportVolume,
+    jobId: contractJobId,
+    normalizedResources: {
+      accounts: accountingFixtures.accounts,
+      parties: accountingFixtures.parties,
+      transactions: accountingFixtures.transactions
+    },
+    objectCount: 8,
+    objectType: "Account",
+    startedAt: "2026-06-15T19:30:00.000Z",
+    status: "succeeded",
+    syncMode: "full",
+    syncPhase: "initial_load",
+    tenantId: contractTenantId
+  } satisfies HandrailQuickBooksSyncJobSummary,
   syncJob: {
     audit: {
       importBatchId: contractImportBatchId,
@@ -1342,6 +1375,12 @@ export const contractResponses = {
     importBatchId: contractImportBatchId,
     importVolume: incrementalImportVolume,
     jobId: contractJobId,
+    normalizedResources: {
+      accounts: accountingFixtures.accounts,
+      ledger_entries: accountingFixtures.ledgerEntries,
+      parties: accountingFixtures.parties,
+      transactions: accountingFixtures.transactions
+    },
     objectCount: 3,
     objectType: "Account",
     startedAt: "2026-06-15T19:30:00.000Z",
@@ -1406,6 +1445,7 @@ export const contractResponses = {
   } satisfies HandrailQuickBooksTrialBalanceReport
 };
 
+contractResponses.fullSyncJob.batch = contractResponses.importBatch;
 contractResponses.syncJob.batch = contractResponses.importBatch;
 contractResponses.checkpoints.data = [contractResponses.checkpoint];
 contractResponses.importBatches.data = [contractResponses.importBatch];
