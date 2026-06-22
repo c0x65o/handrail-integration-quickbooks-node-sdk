@@ -82,17 +82,8 @@ describe("HandrailQuickBooksClient", () => {
       contractResponses.importBatches,
       contractResponses.checkpoint,
       contractResponses.checkpoints,
-      contractResponses.trialBalance,
-      contractResponses.profitAndLoss,
-      contractResponses.balanceSheet,
-      contractResponses.cashFlow,
-      contractResponses.generalLedger,
-      contractResponses.accountsReceivableAging,
-      contractResponses.accountsPayableAging,
       contractResponses.ledgerEntries,
-      contractResponses.ledgerEntries,
-      contractResponses.reconciliation,
-      contractResponses.drilldown
+      contractResponses.ledgerEntries
     ]);
     const client = new HandrailQuickBooksClient({
       apiKey: contractApiKey,
@@ -141,25 +132,10 @@ describe("HandrailQuickBooksClient", () => {
       objectType: "Account",
       syncMode: "incremental"
     });
-    const trialBalance = await client.reports.trialBalance(contractRequests.trialBalance);
-    const profitAndLoss = await client.reports.profitAndLoss(contractRequests.profitAndLoss);
-    const balanceSheet = await client.reports.balanceSheet(contractRequests.balanceSheet);
-    const cashFlow = await client.reports.cashFlow(contractRequests.cashFlow);
-    const generalLedger = await client.reports.generalLedger(contractRequests.generalLedger);
-    const accountsReceivableAging = await client.reports.accountsReceivableAging(
-      contractRequests.aging
-    );
-    const accountsPayableAging = await client.reports.accountsPayableAging(
-      contractRequests.aging
-    );
     const ledgerList = await client.ledgerEntries.list({
       limit: 50
     });
     const ledgerEntries = await client.ledgerEntries.search(contractRequests.ledgerSearch);
-    const reconciliation = await client.reconciliation.run(contractRequests.reconciliation, {
-      idempotencyKey: "reconcile-contract-idempotency-key"
-    });
-    const drilldown = await client.drilldowns.get(contractRequests.drilldown);
 
     expect(health).toEqual(contractResponses.health);
     expect(connectionStatus).toEqual(contractResponses.connectionStatus);
@@ -254,24 +230,6 @@ describe("HandrailQuickBooksClient", () => {
     expect(importBatches).toEqual(contractResponses.importBatches);
     expect(checkpoint).toEqual(contractResponses.checkpoint);
     expect(checkpoints).toEqual(contractResponses.checkpoints);
-    expect(trialBalance).toEqual(contractResponses.trialBalance);
-    expect(profitAndLoss).toEqual(contractResponses.profitAndLoss);
-    expect(profitAndLoss).toMatchObject({
-      checkpointRefs: [`checkpoint://quickbooks/${contractTenantId}/quickbooks_incremental_accounts_Account`],
-      importBatchId: "batch_contract_2026_05",
-      reportSnapshotId:
-        "quickbooks_profit_and_loss_tenant_contract_123_2026-05-01_2026-05-31_batch_contract_2026_05",
-      reportSnapshotRef:
-        "report-snapshot://quickbooks/tenant_contract_123/quickbooks_profit_and_loss_tenant_contract_123_2026-05-01_2026-05-31_batch_contract_2026_05",
-      sourceRefs: [
-        "raw://batch_contract_2026_05/reports/profit-and-loss/2026-05-01_2026-05-31"
-      ]
-    });
-    expect(balanceSheet).toEqual(contractResponses.balanceSheet);
-    expect(cashFlow).toEqual(contractResponses.cashFlow);
-    expect(generalLedger).toEqual(contractResponses.generalLedger);
-    expect(accountsReceivableAging).toEqual(contractResponses.accountsReceivableAging);
-    expect(accountsPayableAging).toEqual(contractResponses.accountsPayableAging);
     expect(ledgerList).toEqual(contractResponses.ledgerEntries);
     expect(ledgerEntries).toEqual(contractResponses.ledgerEntries);
     expect(ledgerEntries.data[0]).toMatchObject({
@@ -284,34 +242,7 @@ describe("HandrailQuickBooksClient", () => {
         value: "300"
       }
     });
-    expect(reconciliation).toEqual(contractResponses.reconciliation);
-    expect(reconciliation.reportSnapshotId).toBe(
-      "quickbooks_general_ledger_tenant_contract_123_2026-05-01_2026-05-31_batch_contract_2026_05"
-    );
-    expect(drilldown).toEqual(contractResponses.drilldown);
-    expect(drilldown).toMatchObject({
-      checkpointRefs: [`checkpoint://quickbooks/${contractTenantId}/quickbooks_incremental_accounts_Account`],
-      reportSnapshotId:
-        "quickbooks_profit_and_loss_tenant_contract_123_latest_latest_batch_contract_2026_05",
-      sourceRefs: [
-        "raw://batch_contract_2026_05/reports/profit-and-loss/latest_latest"
-      ]
-    });
-    expect(drilldown).toMatchObject({
-      reportName: "profit_and_loss",
-      relatedLedgerEntries: [
-        {
-          id: "accounting_ledger_entry_payment_700_2"
-        }
-      ],
-      relatedTransactions: [
-        {
-          id: "accounting_transaction_payment_700"
-        }
-      ]
-    });
-
-    expect(requests).toHaveLength(27);
+    expect(requests).toHaveLength(18);
     expect(requestUrl(requests[0])).toBe(
       `${contractBaseUrl}/.well-known/healthz`
     );
@@ -408,71 +339,15 @@ describe("HandrailQuickBooksClient", () => {
     expect(requests[15].init?.method).toBe("GET");
 
     expect(requestUrl(requests[16])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/reports/trial-balance`
-    );
-    expect(requests[16].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[16].init?.body))).toEqual(contractRequests.trialBalance);
-
-    expect(requestUrl(requests[17])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/profit-and-loss`
-    );
-    expect(requests[17].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[17].init?.body))).toEqual(contractRequests.profitAndLoss);
-
-    expect(requestUrl(requests[18])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/balance-sheet`
-    );
-    expect(requests[18].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[18].init?.body))).toEqual(contractRequests.balanceSheet);
-
-    expect(requestUrl(requests[19])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/cash-flow`
-    );
-    expect(requests[19].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[19].init?.body))).toEqual(contractRequests.cashFlow);
-
-    expect(requestUrl(requests[20])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/general-ledger`
-    );
-    expect(requests[20].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[20].init?.body))).toEqual(contractRequests.generalLedger);
-
-    expect(requestUrl(requests[21])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/accounts-receivable-aging`
-    );
-    expect(requests[21].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[21].init?.body))).toEqual(contractRequests.aging);
-
-    expect(requestUrl(requests[22])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/reports/accounts-payable-aging`
-    );
-    expect(requests[22].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[22].init?.body))).toEqual(contractRequests.aging);
-
-    expect(requestUrl(requests[23])).toBe(
       `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/ledger-entries?limit=50`
     );
-    expect(requests[23].init?.method).toBe("GET");
+    expect(requests[16].init?.method).toBe("GET");
 
-    expect(requestUrl(requests[24])).toBe(
+    expect(requestUrl(requests[17])).toBe(
       `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/ledger-entries/search`
     );
-    expect(requests[24].init?.method).toBe("POST");
-    expect(JSON.parse(String(requests[24].init?.body))).toEqual(contractRequests.ledgerSearch);
-
-    expect(requestUrl(requests[25])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/reconciliation/runs`
-    );
-    expect(requests[25].init?.method).toBe("POST");
-    expect(new Headers(requests[25].init?.headers).get("idempotency-key")).toBe(
-      "reconcile-contract-idempotency-key"
-    );
-    expect(JSON.parse(String(requests[25].init?.body))).toEqual(contractRequests.reconciliation);
-
-    expect(requestUrl(requests[26])).toBe(
-      `${contractBaseUrl}/v1/tenants/${contractTenantId}/quickbooks/drilldowns/report_line/report-line-profit-and-loss-income`
-    );
-    expect(requests[26].init?.method).toBe("GET");
+    expect(requests[17].init?.method).toBe("POST");
+    expect(JSON.parse(String(requests[17].init?.body))).toEqual(contractRequests.ledgerSearch);
 
     const headers = new Headers(requests[1].init?.headers);
     expect(headers.get("authorization")).toBe(`Bearer ${contractApiKey}`);
@@ -490,17 +365,8 @@ describe("HandrailQuickBooksClient", () => {
       importBatches,
       checkpoint,
       checkpoints,
-      trialBalance,
-      profitAndLoss,
-      balanceSheet,
-      cashFlow,
-      generalLedger,
-      accountsReceivableAging,
-      accountsPayableAging,
       ledgerList,
-      ledgerEntries,
-      reconciliation,
-      drilldown
+      ledgerEntries
     ])).not.toMatch(unsafeProviderPayloadPattern);
   });
 
@@ -640,18 +506,12 @@ describe("HandrailQuickBooksClient", () => {
 
     expect(contractFiles).toEqual([
       "accounts.response.json",
-      "ap-aging.response.json",
-      "ar-aging.response.json",
-      "balance-sheet.response.json",
-      "cash-flow.response.json",
       "cdc-sync-start.response.json",
       "checkpoints.response.json",
       "classes.response.json",
       "connect-url.response.json",
       "connection-status.response.json",
-      "drilldown.response.json",
       "full-sync.response.json",
-      "general-ledger.response.json",
       "health.response.json",
       "import-batch.response.json",
       "incremental-sync.response.json",
@@ -659,12 +519,9 @@ describe("HandrailQuickBooksClient", () => {
       "ledger-search.response.json",
       "locations.response.json",
       "parties.response.json",
-      "profit-and-loss.response.json",
       "raw-import-status.response.json",
-      "reconciliation.response.json",
       "token-status.response.json",
-      "transactions.response.json",
-      "trial-balance.response.json"
+      "transactions.response.json"
     ]);
 
     const examples = Object.fromEntries(
@@ -809,49 +666,6 @@ describe("HandrailQuickBooksClient", () => {
       checkpoint: {
         syncMode: "incremental"
       }
-    });
-    const profitAndLoss = examples["profit-and-loss.response.json"] as {
-      checkpointRefs: string[];
-      lines: Array<{ drilldown?: { type?: string } }>;
-      name: string;
-      reportSnapshotId: string;
-      reportSnapshotRef: string;
-      sourceRefs: string[];
-      totals: { netIncome: { amount: string } };
-    };
-    expect(profitAndLoss.name).toBe("profit_and_loss");
-    expect(profitAndLoss.reportSnapshotId).toBe(
-      "quickbooks_profit_and_loss_tenant_contract_123_2026-05-01_2026-05-31_batch_contract_2026_05"
-    );
-    expect(profitAndLoss.reportSnapshotRef).toBe(
-      "report-snapshot://quickbooks/tenant_contract_123/quickbooks_profit_and_loss_tenant_contract_123_2026-05-01_2026-05-31_batch_contract_2026_05"
-    );
-    expect(profitAndLoss.sourceRefs).toEqual([
-      "raw://batch_contract_2026_05/reports/profit-and-loss/2026-05-01_2026-05-31"
-    ]);
-    expect(profitAndLoss.checkpointRefs).toEqual([
-      "checkpoint://quickbooks/tenant_contract_123/quickbooks_incremental_accounts_Account"
-    ]);
-    expect(profitAndLoss.lines.some((line) => line.drilldown?.type === "report_line")).toBe(true);
-    expect(profitAndLoss.totals.netIncome.amount).toBe("1250.00");
-    expect(examples["drilldown.response.json"]).toMatchObject({
-      reportSnapshotId:
-        "quickbooks_profit_and_loss_tenant_contract_123_latest_latest_batch_contract_2026_05",
-      sourceRefs: [
-        "raw://batch_contract_2026_05/reports/profit-and-loss/latest_latest"
-      ],
-      relatedAuditReferences: [
-        {
-          sourcePayloadRef: "raw://batch_contract_2026_05/reports/profit-and-loss/2026-05"
-        }
-      ],
-      relatedLedgerEntries: [
-        {
-          id: "accounting_ledger_entry_payment_700_2"
-        }
-      ],
-      reportName: "profit_and_loss",
-      type: "report_line"
     });
   });
 
@@ -1045,21 +859,11 @@ describe("HandrailQuickBooksClient", () => {
     expect(requests[0].init?.method).toBe("GET");
   });
 
-  it("builds sync, trial balance, and ledger search requests", async () => {
+  it("builds sync and ledger search requests", async () => {
     const { fetch, requests } = mockFetch([
       {
         jobId: "sync_123",
         status: "queued"
-      },
-      {
-        generatedAt: "2026-06-15T00:00:00.000Z",
-        lines: [],
-        name: "trial_balance",
-        period: {
-          endDate: "2026-05-31",
-          startDate: "2026-05-01"
-        },
-        tenantId: "tenant_123"
       },
       {
         data: [],
@@ -1084,9 +888,6 @@ describe("HandrailQuickBooksClient", () => {
         idempotencyKey: "sync-request-123"
       }
     );
-    await client.reports.trialBalance({
-      asOfDate: "2026-05-31"
-    });
     await client.ledgerEntries.search({
       accountId: "acct_100",
       from: "2026-05-01",
@@ -1103,16 +904,9 @@ describe("HandrailQuickBooksClient", () => {
     });
 
     expect(requestUrl(requests[1])).toBe(
-      "https://quickbooks.example.test/v1/tenants/tenant_123/quickbooks/reports/trial-balance"
-    );
-    expect(JSON.parse(String(requests[1].init?.body))).toEqual({
-      asOfDate: "2026-05-31"
-    });
-
-    expect(requestUrl(requests[2])).toBe(
       "https://quickbooks.example.test/v1/tenants/tenant_123/accounting/ledger-entries/search"
     );
-    expect(JSON.parse(String(requests[2].init?.body))).toEqual({
+    expect(JSON.parse(String(requests[1].init?.body))).toEqual({
       accountId: "acct_100",
       from: "2026-05-01",
       to: "2026-05-31"

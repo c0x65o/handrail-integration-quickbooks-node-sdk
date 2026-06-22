@@ -1,20 +1,9 @@
 import type {
   HandrailQuickBooksAccount,
-  HandrailQuickBooksAccountsPayableAgingReport,
-  HandrailQuickBooksAccountsReceivableAgingReport,
-  HandrailQuickBooksAgingReportRequest,
-  HandrailQuickBooksBalanceSheetReport,
-  HandrailQuickBooksBalanceSheetRequest,
-  HandrailQuickBooksCashFlowReport,
-  HandrailQuickBooksCashFlowRequest,
   HandrailQuickBooksClass,
   HandrailQuickBooksConnectUrlRequest,
   HandrailQuickBooksConnectUrlResponse,
   HandrailQuickBooksConnectionStatusResponse,
-  HandrailQuickBooksDrilldownRequest,
-  HandrailQuickBooksDrilldownResult,
-  HandrailQuickBooksGeneralLedgerReport,
-  HandrailQuickBooksGeneralLedgerRequest,
   HandrailQuickBooksHealthResponse,
   HandrailQuickBooksImportBatchSummary,
   HandrailQuickBooksImportVolumeSummary,
@@ -24,19 +13,13 @@ import type {
   HandrailQuickBooksListResponse,
   HandrailQuickBooksLocation,
   HandrailQuickBooksParty,
-  HandrailQuickBooksProfitAndLossReport,
-  HandrailQuickBooksProfitAndLossRequest,
   HandrailQuickBooksRawImportStatus,
-  HandrailQuickBooksReconciliationRequest,
-  HandrailQuickBooksReconciliationResult,
   HandrailQuickBooksStartSyncRequest,
   HandrailQuickBooksSyncCheckpoint,
   HandrailQuickBooksSyncCheckpointMetadata,
   HandrailQuickBooksSyncJobSummary,
   HandrailQuickBooksTokenStatusResponse,
-  HandrailQuickBooksTransaction,
-  HandrailQuickBooksTrialBalanceReport,
-  HandrailQuickBooksTrialBalanceRequest
+  HandrailQuickBooksTransaction
 } from "../../src/index.js";
 
 export const contractTenantId = "tenant_contract_123";
@@ -49,23 +32,6 @@ const contractCheckpointRef = `checkpoint://quickbooks/${contractTenantId}/${con
 const contractInitialLoadCheckpointId = "quickbooks_full_initial_load_accounts_Account";
 const contractInitialLoadCheckpointRef =
   `checkpoint://quickbooks/${contractTenantId}/${contractInitialLoadCheckpointId}`;
-
-function reportSnapshotMetadata(reportName: string, dateKey: string) {
-  const reportSnapshotId =
-    `quickbooks_${reportName}_${contractTenantId}_${dateKey}_${contractImportBatchId}`;
-
-  return {
-    checkpointRefs: [contractCheckpointRef],
-    importBatchId: contractImportBatchId,
-    jobId: contractJobId,
-    realmId: "realm_demo_12345",
-    reportSnapshotId,
-    reportSnapshotRef: `report-snapshot://quickbooks/${contractTenantId}/${reportSnapshotId}`,
-    sourceRefs: [
-      `raw://${contractImportBatchId}/reports/${reportName.replaceAll("_", "-")}/${dateKey}`
-    ]
-  } as const;
-}
 
 const providerMetadata = {
   tenantId: contractTenantId,
@@ -517,71 +483,18 @@ export const contractRequests = {
     returnUrl: "https://erp.example.test/settings/accounting",
     state: "state_contract_123"
   } satisfies HandrailQuickBooksConnectUrlRequest,
-  aging: {
-    accountingBasis: "accrual",
-    asOfDate: "2026-05-31",
-    bucketDays: [30, 60, 90],
-    currencyCode: "USD"
-  } satisfies HandrailQuickBooksAgingReportRequest,
-  balanceSheet: {
-    accountingBasis: "accrual",
-    asOfDate: "2026-05-31",
-    currencyCode: "USD"
-  } satisfies HandrailQuickBooksBalanceSheetRequest,
-  cashFlow: {
-    accountingBasis: "accrual",
-    currencyCode: "USD",
-    period: {
-      endDate: "2026-05-31",
-      startDate: "2026-05-01"
-    }
-  } satisfies HandrailQuickBooksCashFlowRequest,
-  drilldown: {
-    id: "report-line-profit-and-loss-income",
-    type: "report_line"
-  } satisfies HandrailQuickBooksDrilldownRequest,
-  generalLedger: {
-    accountingBasis: "accrual",
-    accountId: "accounting_account_100",
-    currencyCode: "USD",
-    period: {
-      endDate: "2026-05-31",
-      startDate: "2026-05-01"
-    }
-  } satisfies HandrailQuickBooksGeneralLedgerRequest,
   ledgerSearch: {
     accountId: "100",
     from: "2026-05-01",
     query: "deposit",
     to: "2026-05-31"
   } satisfies HandrailQuickBooksLedgerSearchRequest,
-  profitAndLoss: {
-    accountingBasis: "accrual",
-    currencyCode: "USD",
-    period: {
-      endDate: "2026-05-31",
-      startDate: "2026-05-01"
-    }
-  } satisfies HandrailQuickBooksProfitAndLossRequest,
-  reconciliation: {
-    accountId: "accounting_account_100",
-    endingBalance: "1250.00",
-    period: {
-      endDate: "2026-05-31",
-      startDate: "2026-05-01"
-    }
-  } satisfies HandrailQuickBooksReconciliationRequest,
   startSync: {
     entities: ["accounts", "ledger_entries"],
     importBatchId: contractImportBatchId,
     mode: "incremental",
     since: "2026-05-01T00:00:00.000Z"
-  } satisfies HandrailQuickBooksStartSyncRequest,
-  trialBalance: {
-    accountingBasis: "accrual",
-    asOfDate: "2026-05-31",
-    currencyCode: "USD"
-  } satisfies HandrailQuickBooksTrialBalanceRequest
+  } satisfies HandrailQuickBooksStartSyncRequest
 };
 
 const deltaCounts = {
@@ -784,339 +697,6 @@ export const contractResponses = {
     status: "connected",
     tenantId: contractTenantId
   } satisfies HandrailQuickBooksConnectionStatusResponse,
-  accountsPayableAging: {
-    ...reportSnapshotMetadata("accounts_payable_aging", "2026-05-31"),
-    asOfDate: "2026-05-31",
-    audit: {
-      checkpointId: contractCheckpointId,
-      importBatchId: contractImportBatchId,
-      jobId: contractJobId,
-      realmId: "realm_demo_12345",
-      sourcePayloadRefs: [
-        `raw://${contractImportBatchId}/reports/accounts-payable-aging/2026-05-31`,
-        `checkpoint://quickbooks/${contractTenantId}/${contractCheckpointId}`
-      ]
-    },
-    currencyCode: "USD",
-    generatedAt: "2026-06-15T19:35:00.000Z",
-    name: "accounts_payable_aging",
-    rows: [
-      {
-        current: "150.00",
-        days1To30: "0.00",
-        days31To60: "0.00",
-        days61To90: "0.00",
-        drilldown: {
-          drilldownId: "drilldown-ap-aging-demo-vendor",
-          type: "report_line"
-        },
-        over90: "0.00",
-        partyId: "accounting_party_vendor_500",
-        partyName: "Demo Vendor",
-        total: "150.00"
-      }
-    ],
-    tenantId: contractTenantId,
-    totals: {
-      current: "150.00",
-      days1To30: "0.00",
-      days31To60: "0.00",
-      days61To90: "0.00",
-      drilldown: {
-        drilldownId: "drilldown-ap-aging-total",
-        type: "report_total"
-      },
-      over90: "0.00",
-      total: "150.00"
-    }
-  } satisfies HandrailQuickBooksAccountsPayableAgingReport,
-  accountsReceivableAging: {
-    ...reportSnapshotMetadata("accounts_receivable_aging", "2026-05-31"),
-    asOfDate: "2026-05-31",
-    audit: {
-      checkpointId: contractCheckpointId,
-      importBatchId: contractImportBatchId,
-      jobId: contractJobId,
-      realmId: "realm_demo_12345",
-      sourcePayloadRefs: [
-        `raw://${contractImportBatchId}/reports/accounts-receivable-aging/2026-05-31`,
-        `checkpoint://quickbooks/${contractTenantId}/${contractCheckpointId}`
-      ]
-    },
-    currencyCode: "USD",
-    generatedAt: "2026-06-15T19:34:00.000Z",
-    name: "accounts_receivable_aging",
-    rows: [
-      {
-        current: "1250.00",
-        days1To30: "0.00",
-        days31To60: "0.00",
-        days61To90: "0.00",
-        drilldown: {
-          drilldownId: "drilldown-ar-aging-acme-customer",
-          type: "report_line"
-        },
-        over90: "0.00",
-        partyId: "accounting_party_customer_300",
-        partyName: "Acme Customer",
-        total: "1250.00"
-      }
-    ],
-    tenantId: contractTenantId,
-    totals: {
-      current: "1250.00",
-      days1To30: "0.00",
-      days31To60: "0.00",
-      days61To90: "0.00",
-      drilldown: {
-        drilldownId: "drilldown-ar-aging-total",
-        type: "report_total"
-      },
-      over90: "0.00",
-      total: "1250.00"
-    }
-  } satisfies HandrailQuickBooksAccountsReceivableAgingReport,
-  balanceSheet: {
-    ...reportSnapshotMetadata("balance_sheet", "2026-05-31"),
-    accountingBasis: "accrual",
-    asOfDate: "2026-05-31",
-    audit: {
-      checkpointId: contractCheckpointId,
-      importBatchId: contractImportBatchId,
-      jobId: contractJobId,
-      realmId: "realm_demo_12345",
-      sourcePayloadRefs: [
-        `raw://${contractImportBatchId}/reports/balance-sheet/2026-05-31`,
-        `checkpoint://quickbooks/${contractTenantId}/${contractCheckpointId}`
-      ]
-    },
-    currencyCode: "USD",
-    generatedAt: "2026-06-15T19:32:00.000Z",
-    lines: [
-      {
-        amount: "1250.00",
-        drilldown: {
-          drilldownId: "drilldown-balance-sheet-assets",
-          type: "report_line"
-        },
-        id: "report-line-balance-sheet-assets",
-        label: "Total Assets",
-        lineType: "total",
-        section: "assets"
-      },
-      {
-        amount: "0.00",
-        drilldown: {
-          drilldownId: "drilldown-balance-sheet-liabilities",
-          type: "report_line"
-        },
-        id: "report-line-balance-sheet-liabilities",
-        label: "Total Liabilities",
-        lineType: "total",
-        section: "liabilities"
-      },
-      {
-        amount: "1250.00",
-        drilldown: {
-          drilldownId: "drilldown-balance-sheet-equity",
-          type: "report_line"
-        },
-        id: "report-line-balance-sheet-equity",
-        label: "Total Equity",
-        lineType: "total",
-        section: "equity"
-      }
-    ],
-    name: "balance_sheet",
-    tenantId: contractTenantId,
-    totals: {
-      totalAssets: {
-        amount: "1250.00",
-        label: "Total Assets"
-      },
-      totalEquity: {
-        amount: "1250.00",
-        label: "Total Equity"
-      },
-      totalLiabilities: {
-        amount: "0.00",
-        label: "Total Liabilities"
-      },
-      totalLiabilitiesAndEquity: {
-        amount: "1250.00",
-        label: "Total Liabilities and Equity"
-      }
-    }
-  } satisfies HandrailQuickBooksBalanceSheetReport,
-  cashFlow: {
-    ...reportSnapshotMetadata("cash_flow", "2026-05-01_2026-05-31"),
-    accountingBasis: "accrual",
-    audit: {
-      checkpointId: contractCheckpointId,
-      importBatchId: contractImportBatchId,
-      jobId: contractJobId,
-      realmId: "realm_demo_12345",
-      sourcePayloadRefs: [
-        `raw://${contractImportBatchId}/reports/cash-flow/2026-05`,
-        `checkpoint://quickbooks/${contractTenantId}/${contractCheckpointId}`
-      ]
-    },
-    currencyCode: "USD",
-    generatedAt: "2026-06-15T19:33:00.000Z",
-    lines: [
-      {
-        amount: "1250.00",
-        drilldown: {
-          drilldownId: "drilldown-cash-flow-operating",
-          type: "report_line"
-        },
-        id: "report-line-cash-flow-operating",
-        label: "Net Cash from Operating Activities",
-        lineType: "total",
-        section: "operating"
-      }
-    ],
-    name: "cash_flow",
-    period: {
-      endDate: "2026-05-31",
-      startDate: "2026-05-01"
-    },
-    tenantId: contractTenantId,
-    totals: {
-      cashAtBeginningOfPeriod: {
-        amount: "0.00",
-        label: "Cash at Beginning of Period"
-      },
-      cashAtEndOfPeriod: {
-        amount: "1250.00",
-        label: "Cash at End of Period"
-      },
-      netCashChange: {
-        amount: "1250.00",
-        drilldown: {
-          drilldownId: "drilldown-cash-flow-net-change",
-          type: "report_total"
-        },
-        label: "Net Cash Change"
-      }
-    }
-  } satisfies HandrailQuickBooksCashFlowReport,
-  drilldown: {
-    ...reportSnapshotMetadata("profit_and_loss", "latest_latest"),
-    audit: {
-      checkpointId: contractCheckpointId,
-      importBatchId: contractImportBatchId,
-      jobId: contractJobId,
-      realmId: "realm_demo_12345",
-      sourcePayloadRefs: [
-        `raw://${contractImportBatchId}/reports/profit-and-loss/2026-05`,
-        `raw://${contractImportBatchId}/sync-jobs/${contractJobId}`
-      ]
-    },
-    generatedAt: "2026-06-15T19:36:00.000Z",
-    id: "report-line-profit-and-loss-income",
-    relatedAccounts: [accountingFixtures.accounts[2]],
-    relatedAuditReferences: [
-      {
-        checkpointId: contractCheckpointId,
-        importBatchId: contractImportBatchId,
-        jobId: contractJobId,
-        realmId: "realm_demo_12345",
-        sourcePayloadRef: `raw://${contractImportBatchId}/reports/profit-and-loss/2026-05`
-      }
-    ],
-    relatedLedgerEntries: [accountingFixtures.ledgerEntries[1]],
-    relatedParties: [accountingFixtures.parties[0]],
-    relatedReportLines: [
-      {
-        accountId: "accounting_account_400",
-        accountName: "Service Revenue",
-        amount: "1250.00",
-        drilldown: {
-          drilldownId: "report-line-profit-and-loss-income",
-          type: "report_line"
-        },
-        id: "report-line-profit-and-loss-income",
-        label: "Service Revenue",
-        lineType: "detail",
-        section: "income"
-      }
-    ],
-    relatedTransactions: [accountingFixtures.transactions[0]],
-    reportName: "profit_and_loss",
-    tenantId: contractTenantId,
-    type: "report_line"
-  } satisfies HandrailQuickBooksDrilldownResult,
-  generalLedger: {
-    ...reportSnapshotMetadata("general_ledger", "2026-05-01_2026-05-31"),
-    accountingBasis: "accrual",
-    audit: {
-      checkpointId: contractCheckpointId,
-      importBatchId: contractImportBatchId,
-      jobId: contractJobId,
-      realmId: "realm_demo_12345",
-      sourcePayloadRefs: [
-        `raw://${contractImportBatchId}/reports/general-ledger/2026-05`,
-        `checkpoint://quickbooks/${contractTenantId}/${contractCheckpointId}`
-      ]
-    },
-    closingBalance: "1250.00",
-    currencyCode: "USD",
-    generatedAt: "2026-06-15T19:33:30.000Z",
-    name: "general_ledger",
-    openingBalance: "0.00",
-    period: {
-      endDate: "2026-05-31",
-      startDate: "2026-05-01"
-    },
-    rows: [
-      {
-        accountId: "accounting_account_100",
-        accountName: "Operating Cash",
-        amount: "1250.00",
-        audit: {
-          importBatchId: contractImportBatchId,
-          jobId: contractJobId,
-          realmId: "realm_demo_12345",
-          sourcePayloadRef: `raw://${contractImportBatchId}`
-        },
-        balance: "1250.00",
-        currencyCode: "USD",
-        debit: "1250.00",
-        description: "Customer payment deposit",
-        documentNumber: "PMT-700",
-        drilldown: {
-          drilldownId: "drilldown-ledger-entry-payment-700-1",
-          type: "ledger_entry"
-        },
-        ledgerEntryId: "accounting_ledger_entry_payment_700_1",
-        partyId: "accounting_party_customer_300",
-        partyName: "Acme Customer",
-        transactionDate: "2026-05-15",
-        transactionId: "700",
-        transactionType: "payment"
-      }
-    ],
-    tenantId: contractTenantId,
-    totals: {
-      credits: {
-        amount: "0.00",
-        label: "Credits"
-      },
-      debits: {
-        amount: "1250.00",
-        label: "Debits"
-      },
-      netChange: {
-        amount: "1250.00",
-        drilldown: {
-          drilldownId: "drilldown-general-ledger-net-change",
-          type: "report_total"
-        },
-        label: "Net Change"
-      }
-    }
-  } satisfies HandrailQuickBooksGeneralLedgerReport,
   health: {
     ok: true,
     service: "handrail-integration-quickbooks"
@@ -1205,86 +785,6 @@ export const contractResponses = {
       limit: 25
     }
   } satisfies HandrailQuickBooksListResponse<HandrailQuickBooksParty>,
-  profitAndLoss: {
-    ...reportSnapshotMetadata("profit_and_loss", "2026-05-01_2026-05-31"),
-    accountingBasis: "accrual",
-    audit: {
-      checkpointId: contractCheckpointId,
-      importBatchId: contractImportBatchId,
-      jobId: contractJobId,
-      realmId: "realm_demo_12345",
-      sourcePayloadRefs: [
-        `raw://${contractImportBatchId}/reports/profit-and-loss/2026-05`,
-        `checkpoint://quickbooks/${contractTenantId}/${contractCheckpointId}`
-      ]
-    },
-    currencyCode: "USD",
-    generatedAt: "2026-06-15T19:31:30.000Z",
-    lines: [
-      {
-        accountId: "accounting_account_400",
-        accountName: "Service Revenue",
-        amount: "1250.00",
-        drilldown: {
-          drilldownId: "report-line-profit-and-loss-income",
-          type: "report_line"
-        },
-        id: "report-line-profit-and-loss-income",
-        label: "Service Revenue",
-        lineType: "detail",
-        section: "income"
-      },
-      {
-        amount: "0.00",
-        drilldown: {
-          drilldownId: "report-line-profit-and-loss-expenses",
-          type: "report_line"
-        },
-        id: "report-line-profit-and-loss-expenses",
-        label: "Expenses",
-        lineType: "section",
-        section: "expenses"
-      },
-      {
-        amount: "1250.00",
-        drilldown: {
-          drilldownId: "report-total-profit-and-loss-net-income",
-          type: "report_total"
-        },
-        id: "report-total-profit-and-loss-net-income",
-        label: "Net Income",
-        lineType: "total"
-      }
-    ],
-    name: "profit_and_loss",
-    period: {
-      endDate: "2026-05-31",
-      startDate: "2026-05-01"
-    },
-    tenantId: contractTenantId,
-    totals: {
-      grossProfit: {
-        amount: "1250.00",
-        label: "Gross Profit"
-      },
-      netIncome: {
-        amount: "1250.00",
-        drilldown: {
-          drilldownId: "report-total-profit-and-loss-net-income",
-          type: "report_total"
-        },
-        label: "Net Income"
-      },
-      totalExpenses: {
-        amount: "0.00",
-        label: "Total Expenses"
-      },
-      totalIncome: {
-        amount: "1250.00",
-        label: "Total Income"
-      }
-    }
-  } satisfies HandrailQuickBooksProfitAndLossReport,
   rawImportStatus: {
     audit: {
       checkpointId: contractInitialLoadCheckpointId,
@@ -1319,19 +819,6 @@ export const contractResponses = {
       limit: 10
     }
   } satisfies HandrailQuickBooksListResponse<HandrailQuickBooksRawImportStatus>,
-  reconciliation: {
-    ...reportSnapshotMetadata("general_ledger", "2026-05-01_2026-05-31"),
-    accountId: "accounting_account_100",
-    audit: {
-      importBatchId: contractImportBatchId,
-      qboObjectId: "100",
-      realmId: "realm_demo_12345",
-      sourcePayloadRef: `raw://${contractImportBatchId}/reconciliations/recon_contract_123`
-    },
-    difference: "0.00",
-    reconciliationId: "recon_contract_123",
-    status: "balanced"
-  } satisfies HandrailQuickBooksReconciliationResult,
   fullSyncJob: {
     audit: {
       importBatchId: contractImportBatchId,
@@ -1413,36 +900,7 @@ export const contractResponses = {
       hasMore: false,
       limit: 25
     }
-  } satisfies HandrailQuickBooksListResponse<HandrailQuickBooksTransaction>,
-  trialBalance: {
-    ...reportSnapshotMetadata("trial_balance", "2026-05-01_2026-05-31"),
-    audit: {
-      importBatchId: contractImportBatchId,
-      realmId: "realm_demo_12345",
-      sourcePayloadRef: `raw://${contractImportBatchId}/reports/trial-balance/2026-05-31`
-    },
-    generatedAt: "2026-06-15T19:31:00.000Z",
-    lines: [
-      {
-        accountId: "accounting_account_100",
-        accountName: "Operating Cash",
-        credit: "0.00",
-        debit: "1250.00"
-      },
-      {
-        accountId: "accounting_account_400",
-        accountName: "Service Revenue",
-        credit: "1250.00",
-        debit: "0.00"
-      }
-    ],
-    name: "trial_balance",
-    period: {
-      endDate: "2026-05-31",
-      startDate: "2026-05-01"
-    },
-    tenantId: contractTenantId
-  } satisfies HandrailQuickBooksTrialBalanceReport
+  } satisfies HandrailQuickBooksListResponse<HandrailQuickBooksTransaction>
 };
 
 contractResponses.fullSyncJob.batch = contractResponses.importBatch;

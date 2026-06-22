@@ -25,7 +25,6 @@ export { AccountsResource } from "./resources/accounts.js";
 export { CheckpointsResource } from "./resources/checkpoints.js";
 export { ClassesResource } from "./resources/classes.js";
 export { ConnectionsResource } from "./resources/connections.js";
-export { DrilldownsResource } from "./resources/drilldowns.js";
 export { HealthResource } from "./resources/health.js";
 export { ImportBatchesResource } from "./resources/import-batches.js";
 export { ItemsResource } from "./resources/items.js";
@@ -33,8 +32,6 @@ export { LedgerEntriesResource } from "./resources/ledger-entries.js";
 export { LocationsResource } from "./resources/locations.js";
 export { PartiesResource } from "./resources/parties.js";
 export { RawImportsResource } from "./resources/raw-imports.js";
-export { ReconciliationResource } from "./resources/reconciliation.js";
-export { ReportsResource } from "./resources/reports.js";
 export {
   SyncJobsResource,
   toNormalizedQuickBooksFullSyncResponseEnvelope,
@@ -56,21 +53,10 @@ export type {
   HandrailQuickBooksAccount,
   HandrailQuickBooksAccountListResponse,
   HandrailQuickBooksAccountType,
-  HandrailQuickBooksAccountingBasis,
   HandrailQuickBooksAccountingCurrencyReference,
   HandrailQuickBooksAccountingReference,
-  HandrailQuickBooksAccountsPayableAgingReport,
-  HandrailQuickBooksAccountsReceivableAgingReport,
   HandrailQuickBooksAuditReference,
   HandrailQuickBooksAuthConfig,
-  HandrailQuickBooksAgingReportRequest,
-  HandrailQuickBooksAgingRow,
-  HandrailQuickBooksAgingTotals,
-  HandrailQuickBooksAsOfReportRequest,
-  HandrailQuickBooksBalanceSheetReport,
-  HandrailQuickBooksBalanceSheetRequest,
-  HandrailQuickBooksCashFlowReport,
-  HandrailQuickBooksCashFlowRequest,
   HandrailQuickBooksClass,
   HandrailQuickBooksClassListResponse,
   HandrailQuickBooksClientConfig,
@@ -80,20 +66,14 @@ export type {
   HandrailQuickBooksConnectionStatus,
   HandrailQuickBooksConnectionStatusResponse,
   HandrailQuickBooksDeltaSyncCounts,
-  HandrailQuickBooksDrilldownRequest,
-  HandrailQuickBooksDrilldownResult,
   HandrailQuickBooksEntityName,
   HandrailQuickBooksFetch,
-  HandrailQuickBooksFinancialStatementRequest,
   HandrailQuickBooksFutureErpTenantContext,
   HandrailQuickBooksFutureErpTenantMap,
   HandrailQuickBooksFutureErpTenantMapContractId,
   HandrailQuickBooksFutureErpTenantMapping,
   HandrailQuickBooksFutureErpTenantMappingStatus,
   HandrailQuickBooksFutureErpTenantMapResolveOptions,
-  HandrailQuickBooksGeneralLedgerReport,
-  HandrailQuickBooksGeneralLedgerRequest,
-  HandrailQuickBooksGeneralLedgerRow,
   HandrailQuickBooksHealthResponse,
   HandrailQuickBooksImportBatchListRequest,
   HandrailQuickBooksImportBatchListResponse,
@@ -126,18 +106,6 @@ export type {
   HandrailQuickBooksRawImportStatus,
   HandrailQuickBooksRawImportStatusListResponse,
   HandrailQuickBooksReportedProviderMode,
-  HandrailQuickBooksReconciliationRequest,
-  HandrailQuickBooksReconciliationResult,
-  HandrailQuickBooksProfitAndLossReport,
-  HandrailQuickBooksProfitAndLossRequest,
-  HandrailQuickBooksReportDrilldownReference,
-  HandrailQuickBooksReportLine,
-  HandrailQuickBooksReportName,
-  HandrailQuickBooksReportPeriod,
-  HandrailQuickBooksReportRequest,
-  HandrailQuickBooksReportResponse,
-  HandrailQuickBooksReportSnapshotMetadata,
-  HandrailQuickBooksReportTotal,
   HandrailQuickBooksRetryLastErrorCode,
   HandrailQuickBooksRetryReason,
   HandrailQuickBooksRetrySource,
@@ -160,9 +128,6 @@ export type {
   HandrailQuickBooksTransactionSourceObject,
   HandrailQuickBooksTransactionType,
   HandrailQuickBooksTokenStatusResponse,
-  HandrailQuickBooksTrialBalanceLine,
-  HandrailQuickBooksTrialBalanceReport,
-  HandrailQuickBooksTrialBalanceRequest,
   NormalizedQuickBooksFullSyncRequest,
   NormalizedQuickBooksFullSyncResponseEnvelope,
   NormalizedQuickBooksIncrementalSyncRequest,

@@ -1,8 +1,6 @@
 import { connectUrlCommand } from "./connect-url.js";
 import { pullAccountsCommand } from "./pull-accounts.js";
 import { rawImportStatusCommand } from "./raw-imports.js";
-import { reconcileCommand } from "./reconcile.js";
-import { reportTrialBalanceCommand } from "./report-trial-balance.js";
 import { smokeCommand } from "./smoke.js";
 import { statusCommand, tokenStatusCommand } from "./status.js";
 import { syncCommand } from "./sync.js";
@@ -12,8 +10,6 @@ export const commands: readonly CliCommandDefinition[] = [
   connectUrlCommand,
   pullAccountsCommand,
   syncCommand,
-  reportTrialBalanceCommand,
-  reconcileCommand,
   smokeCommand,
   statusCommand,
   tokenStatusCommand,
@@ -76,10 +72,8 @@ export function helpText(commandName?: string) {
     "  handrail-qbo connect-url --tenant-id tenant_123 --api-key <redacted> --return-url https://erp.example.test/settings/accounting",
     "  handrail-qbo pull-accounts --tenant-id tenant_123 --api-key <redacted> --active --type asset",
     "  handrail-qbo sync --tenant-id tenant_123 --api-key <redacted> --mode incremental --entities accounts,ledger_entries",
-    "  handrail-qbo report trial-balance --tenant-id tenant_123 --api-key <redacted> --as-of 2026-05-31",
-    "  handrail-qbo smoke --tenant-id tenant_123 --api-key <redacted> --import-batch-id batch_123 --as-of 2026-05-31 --period-start 2026-05-01 --period-end 2026-05-31",
+    "  handrail-qbo smoke --tenant-id tenant_123 --api-key <redacted> --import-batch-id batch_123",
     "  HANDRAIL_QBO_SERVICE_ENV=staging HANDRAIL_QBO_PROVIDER_MODE=sandbox handrail-qbo status --tenant-id tenant_123",
-    "  handrail-qbo reconcile --tenant-id tenant_123 --api-key <redacted> --account-id acct_100 --start-date 2026-05-01 --end-date 2026-05-31 --ending-balance 1250.00",
     "  handrail-qbo status --tenant-id tenant_123 --api-key <redacted>",
     "  handrail-qbo token-status --tenant-id tenant_123 --api-key <redacted>",
     "",

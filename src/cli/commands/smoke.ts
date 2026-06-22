@@ -1,19 +1,13 @@
 import {
   listRequest,
-  optionalBooleanFlag,
   optionalFlag,
   optionalNumberFlag,
   withoutUndefined
 } from "./shared.js";
 import { withFutureErpConfigArtifact } from "../future-erp-config.js";
-import { HandrailQuickBooksConfigError, HandrailQuickBooksError } from "../../errors.js";
+import { HandrailQuickBooksError } from "../../errors.js";
 import type {
-  HandrailQuickBooksAccountingBasis,
-  HandrailQuickBooksAgingReportRequest,
-  HandrailQuickBooksAsOfReportRequest,
   HandrailQuickBooksConnectionStatusResponse,
-  HandrailQuickBooksFinancialStatementRequest,
-  HandrailQuickBooksGeneralLedgerRequest,
   HandrailQuickBooksImportBatchSummary,
   HandrailQuickBooksImportVolumeSummary,
   HandrailQuickBooksListResponse,
@@ -41,11 +35,11 @@ type CheckpointLike = HandrailQuickBooksSyncCheckpoint | HandrailQuickBooksSyncC
 const DEFAULT_SMOKE_LIMIT = 25;
 
 export const smokeCommand: CliCommandDefinition = {
-  description: "Print a redacted operator smoke summary for connection, import, checkpoint, normalized data, and reports.",
+  description: "Print a redacted operator smoke summary for connection, import, checkpoint, and synced objects.",
   name: "smoke",
   run: runSmokeCommand,
   usage:
-    "handrail-qbo smoke --tenant-id tenant_123 --api-key <redacted> --import-batch-id batch_123 --as-of 2026-05-31 --period-start 2026-05-01 --period-end 2026-05-31"
+    "handrail-qbo smoke --tenant-id tenant_123 --api-key <redacted> --import-batch-id batch_123"
 };
 
 async function runSmokeCommand(context: CliCommandContext) {
@@ -128,121 +122,11 @@ async function runSmokeCommand(context: CliCommandContext) {
       ledgerEntries: summarizeProbe(ledgerEntries, summarizeListCount)
     },
     checkpoint: checkpointValue ? summarizeCheckpoint(checkpointValue, context.config.tenantId) : undefined,
-    reports: shouldProbeReports(context.flags)
-      ? await summarizeReportAvailability(context)
-      : { skipped: true },
     futureErpConfig: futureErpConfigOutput.futureErpConfig,
     ...("localOverrideDiagnostics" in futureErpConfigOutput
       ? { localOverrideDiagnostics: futureErpConfigOutput.localOverrideDiagnostics }
       : {})
   };
-}
-
-async function summarizeReportAvailability(context: CliCommandContext) {
-  const requests = reportRequests(context.flags);
-
-  const [
-    trialBalance,
-    profitAndLoss,
-    balanceSheet,
-    cashFlow,
-    generalLedger,
-    accountsReceivableAging,
-    accountsPayableAging
-  ] = await Promise.all([
-    probe(() => context.client.reports.trialBalance(requests.trialBalance)),
-    probe(() => context.client.reports.profitAndLoss(requests.financialStatement)),
-    probe(() => context.client.reports.balanceSheet(requests.asOf)),
-    probe(() => context.client.reports.cashFlow(requests.financialStatement)),
-    probe(() => context.client.reports.generalLedger(requests.generalLedger)),
-    probe(() => context.client.reports.accountsReceivableAging(requests.aging)),
-    probe(() => context.client.reports.accountsPayableAging(requests.aging))
-  ]);
-
-  return {
-    trialBalance: summarizeProbe(trialBalance, summarizeReport),
-    profitAndLoss: summarizeProbe(profitAndLoss, summarizeReport),
-    balanceSheet: summarizeProbe(balanceSheet, summarizeReport),
-    cashFlow: summarizeProbe(cashFlow, summarizeReport),
-    generalLedger: summarizeProbe(generalLedger, summarizeReport),
-    accountsReceivableAging: summarizeProbe(accountsReceivableAging, summarizeReport),
-    accountsPayableAging: summarizeProbe(accountsPayableAging, summarizeReport)
-  };
-}
-
-function reportRequests(flags: ReadonlyMap<string, string | true>) {
-  const asOfDate = optionalFlag(flags, "as-of-date") ?? optionalFlag(flags, "as-of") ?? currentDate();
-  const period = {
-    endDate: optionalFlag(flags, "period-end") ?? optionalFlag(flags, "end-date") ?? asOfDate,
-    startDate: optionalFlag(flags, "period-start") ?? optionalFlag(flags, "start-date") ?? asOfDate
-  };
-  const accountingBasis = optionalBasis(flags);
-  const currencyCode = optionalFlag(flags, "currency");
-  const financialStatement = withoutUndefined({
-    accountingBasis,
-    currencyCode,
-    period
-  }) satisfies HandrailQuickBooksFinancialStatementRequest;
-  const asOf = withoutUndefined({
-    accountingBasis,
-    asOfDate,
-    currencyCode
-  }) satisfies HandrailQuickBooksAsOfReportRequest;
-  const aging = withoutUndefined({
-    ...asOf,
-    bucketDays: bucketDays(flags)
-  }) satisfies HandrailQuickBooksAgingReportRequest;
-  const generalLedger = withoutUndefined({
-    ...financialStatement,
-    accountId: optionalFlag(flags, "account-id"),
-    partyId: optionalFlag(flags, "party-id"),
-    transactionId: optionalFlag(flags, "transaction-id")
-  }) satisfies HandrailQuickBooksGeneralLedgerRequest;
-
-  return {
-    aging,
-    asOf,
-    financialStatement,
-    generalLedger,
-    trialBalance: asOf
-  };
-}
-
-function shouldProbeReports(flags: ReadonlyMap<string, string | true>) {
-  const skipReportProbes = optionalBooleanFlag(flags, "skip-report-probes");
-  if (skipReportProbes === true) {
-    return false;
-  }
-
-  const reportProbes = optionalBooleanFlag(flags, "report-probes");
-  return reportProbes !== false;
-}
-
-function optionalBasis(flags: ReadonlyMap<string, string | true>): HandrailQuickBooksAccountingBasis | undefined {
-  const value = optionalFlag(flags, "basis") ?? optionalFlag(flags, "accounting-basis");
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (value !== "accrual" && value !== "cash") {
-    throw new HandrailQuickBooksConfigError("--basis must be accrual or cash.");
-  }
-
-  return value;
-}
-
-function bucketDays(flags: ReadonlyMap<string, string | true>) {
-  const raw = optionalFlag(flags, "bucket-days");
-  if (!raw) {
-    return undefined;
-  }
-
-  const parsed = raw.split(",").map((value) => Number(value.trim()));
-  if (parsed.some((value) => !Number.isFinite(value) || value <= 0)) {
-    throw new HandrailQuickBooksConfigError("--bucket-days must be a comma-separated list of positive numbers.");
-  }
-
-  return parsed;
 }
 
 async function probe<T>(operation: () => Promise<T>): Promise<ProbeResult<T>> {
@@ -454,39 +338,4 @@ function summarizeListCount<T>(value: HandrailQuickBooksListResponse<T>) {
     hasMore: value.page?.hasMore,
     limit: value.page?.limit
   });
-}
-
-function summarizeReport(value: unknown) {
-  const report = objectRecord(value) ?? {};
-  const lines = arrayLength(report.lines);
-  const rows = arrayLength(report.rows);
-  const totals = objectRecord(report.totals);
-
-  return withoutUndefined({
-    asOfDate: stringValue(report.asOfDate),
-    generatedAt: stringValue(report.generatedAt),
-    lineCount: lines,
-    name: stringValue(report.name),
-    period: objectRecord(report.period),
-    rowCount: rows,
-    totalNames: totals ? Object.keys(totals).sort() : undefined
-  });
-}
-
-function objectRecord(value: unknown): Record<string, unknown> | undefined {
-  return typeof value === "object" && value !== null && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : undefined;
-}
-
-function arrayLength(value: unknown) {
-  return Array.isArray(value) ? value.length : undefined;
-}
-
-function stringValue(value: unknown) {
-  return typeof value === "string" ? value : undefined;
-}
-
-function currentDate() {
-  return new Date().toISOString().slice(0, 10);
 }

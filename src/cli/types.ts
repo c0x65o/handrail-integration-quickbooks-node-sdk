@@ -1,19 +1,10 @@
 import type {
   HandrailQuickBooksAccount,
-  HandrailQuickBooksAccountsPayableAgingReport,
-  HandrailQuickBooksAccountsReceivableAgingReport,
-  HandrailQuickBooksAgingReportRequest,
-  HandrailQuickBooksBalanceSheetReport,
-  HandrailQuickBooksBalanceSheetRequest,
-  HandrailQuickBooksCashFlowReport,
-  HandrailQuickBooksCashFlowRequest,
   HandrailQuickBooksCheckpointListRequest,
   HandrailQuickBooksClass,
   HandrailQuickBooksConnectUrlRequest,
   HandrailQuickBooksConnectUrlResponse,
   HandrailQuickBooksConnectionStatusResponse,
-  HandrailQuickBooksGeneralLedgerReport,
-  HandrailQuickBooksGeneralLedgerRequest,
   HandrailQuickBooksImportBatchListRequest,
   HandrailQuickBooksImportBatchSummary,
   HandrailQuickBooksItem,
@@ -22,20 +13,14 @@ import type {
   HandrailQuickBooksListResponse,
   HandrailQuickBooksLocation,
   HandrailQuickBooksParty,
-  HandrailQuickBooksProfitAndLossReport,
-  HandrailQuickBooksProfitAndLossRequest,
   HandrailQuickBooksProviderMode,
   HandrailQuickBooksRawImportStatus,
-  HandrailQuickBooksReconciliationRequest,
-  HandrailQuickBooksReconciliationResult,
   HandrailQuickBooksServiceEnv,
   HandrailQuickBooksStartSyncRequest,
   HandrailQuickBooksSyncCheckpoint,
   HandrailQuickBooksSyncJobSummary,
   HandrailQuickBooksTokenStatusResponse,
-  HandrailQuickBooksTransaction,
-  HandrailQuickBooksTrialBalanceRequest,
-  HandrailQuickBooksTrialBalanceReport
+  HandrailQuickBooksTransaction
 } from "../types.js";
 
 export interface CliOutput {
@@ -96,21 +81,6 @@ export interface CliQuickBooksClient {
   readonly rawImports: {
     list(request?: HandrailQuickBooksListRequest): Promise<HandrailQuickBooksListResponse<HandrailQuickBooksRawImportStatus>>;
     status(importBatchId: string): Promise<HandrailQuickBooksRawImportStatus>;
-  };
-  readonly reconciliation: {
-    run(
-      request: HandrailQuickBooksReconciliationRequest,
-      options?: { idempotencyKey?: string }
-    ): Promise<HandrailQuickBooksReconciliationResult>;
-  };
-  readonly reports: {
-    accountsPayableAging(request: HandrailQuickBooksAgingReportRequest): Promise<HandrailQuickBooksAccountsPayableAgingReport>;
-    accountsReceivableAging(request: HandrailQuickBooksAgingReportRequest): Promise<HandrailQuickBooksAccountsReceivableAgingReport>;
-    balanceSheet(request: HandrailQuickBooksBalanceSheetRequest): Promise<HandrailQuickBooksBalanceSheetReport>;
-    cashFlow(request: HandrailQuickBooksCashFlowRequest): Promise<HandrailQuickBooksCashFlowReport>;
-    generalLedger(request: HandrailQuickBooksGeneralLedgerRequest): Promise<HandrailQuickBooksGeneralLedgerReport>;
-    profitAndLoss(request: HandrailQuickBooksProfitAndLossRequest): Promise<HandrailQuickBooksProfitAndLossReport>;
-    trialBalance(request: HandrailQuickBooksTrialBalanceRequest): Promise<HandrailQuickBooksTrialBalanceReport>;
   };
   readonly syncJobs: {
     get(jobId: string): Promise<HandrailQuickBooksSyncJobSummary>;

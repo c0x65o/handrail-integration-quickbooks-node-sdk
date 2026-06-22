@@ -28,9 +28,10 @@ describe("handrail-qbo CLI", () => {
     expect(exitCode).toBe(0);
     expect(stdout.value).toContain("handrail-qbo <command> [flags]");
     expect(stdout.value).toContain("connect-url");
-    expect(stdout.value).toContain("report trial-balance");
     expect(stdout.value).toContain("smoke");
     expect(stdout.value).toContain("token-status");
+    expect(stdout.value).not.toContain("report trial-balance");
+    expect(stdout.value).not.toContain("reconcile");
     expect(stdout.value).toContain("HANDRAIL_QBO_PROVIDER_MODE");
     expect(stderr.value).toBe("");
   });
@@ -366,7 +367,7 @@ describe("handrail-qbo CLI", () => {
     expect(stderr.value).toBe("");
   });
 
-  it("prints a redacted smoke summary with import, normalized, checkpoint, and report availability evidence", async () => {
+  it("prints a redacted smoke summary with import, normalized, checkpoint, and synced object evidence", async () => {
     const client = createMockClient();
     const stdout = new StringWriter();
     const stderr = new StringWriter();
@@ -379,16 +380,6 @@ describe("handrail-qbo CLI", () => {
       contractJobId,
       "--checkpoint-id",
       contractCheckpointId,
-      "--as-of",
-      "2026-05-31",
-      "--period-start",
-      "2026-05-01",
-      "--period-end",
-      "2026-05-31",
-      "--basis",
-      "accrual",
-      "--currency",
-      "USD",
       "--limit",
       "7"
     ], {
@@ -412,28 +403,6 @@ describe("handrail-qbo CLI", () => {
     expect(client.parties.list).toHaveBeenCalledWith({ limit: 7 });
     expect(client.transactions.list).toHaveBeenCalledWith({ limit: 7 });
     expect(client.ledgerEntries.list).toHaveBeenCalledWith({ limit: 7 });
-    expect(client.reports.trialBalance).toHaveBeenCalledWith({
-      accountingBasis: "accrual",
-      asOfDate: "2026-05-31",
-      currencyCode: "USD"
-    });
-    expect(client.reports.profitAndLoss).toHaveBeenCalledWith({
-      accountingBasis: "accrual",
-      currencyCode: "USD",
-      period: {
-        endDate: "2026-05-31",
-        startDate: "2026-05-01"
-      }
-    });
-    expect(client.reports.balanceSheet).toHaveBeenCalledWith({
-      accountingBasis: "accrual",
-      asOfDate: "2026-05-31",
-      currencyCode: "USD"
-    });
-    expect(client.reports.cashFlow).toHaveBeenCalled();
-    expect(client.reports.generalLedger).toHaveBeenCalled();
-    expect(client.reports.accountsReceivableAging).toHaveBeenCalled();
-    expect(client.reports.accountsPayableAging).toHaveBeenCalled();
 
     const output = JSON.parse(stdout.value);
     expect(output).toMatchObject({
@@ -498,43 +467,6 @@ describe("handrail-qbo CLI", () => {
         syncMode: "full",
         syncPhase: "initial_load"
       },
-      reports: {
-        accountsPayableAging: {
-          available: true,
-          name: "accounts_payable_aging",
-          rowCount: 1
-        },
-        accountsReceivableAging: {
-          available: true,
-          name: "accounts_receivable_aging",
-          rowCount: 1
-        },
-        balanceSheet: {
-          available: true,
-          lineCount: 3,
-          name: "balance_sheet"
-        },
-        cashFlow: {
-          available: true,
-          lineCount: 1,
-          name: "cash_flow"
-        },
-        generalLedger: {
-          available: true,
-          name: "general_ledger",
-          rowCount: 1
-        },
-        profitAndLoss: {
-          available: true,
-          lineCount: 3,
-          name: "profit_and_loss"
-        },
-        trialBalance: {
-          available: true,
-          lineCount: 2,
-          name: "trial_balance"
-        }
-      },
       syncJob: {
         available: true,
         importBatchId: contractImportBatchId,
@@ -549,7 +481,7 @@ describe("handrail-qbo CLI", () => {
       },
       tenantId: contractTenantId
     });
-    expect(output.reports.trialBalance.totalNames).toBeUndefined();
+    expect(output).not.toHaveProperty("reports");
     expect(output.futureErpConfig).toMatchObject({
       artifact: "future-erp.quickbooks-runtime-config.redacted.v1",
       copyableEnv: {
@@ -618,69 +550,6 @@ describe("handrail-qbo CLI", () => {
       },
       {
         idempotencyKey: "sync-request-123"
-      }
-    );
-  });
-
-  it("parses trial-balance and reconcile command requests", async () => {
-    const client = createMockClient();
-    const stderr = new StringWriter();
-    const stdout = new StringWriter();
-
-    await runCli(
-      [
-        "report",
-        "trial-balance",
-        "--as-of",
-        "2026-05-31",
-        "--basis",
-        "cash",
-        "--currency",
-        "USD"
-      ],
-      {
-        createClient: () => client,
-        env: requiredEnv(),
-        stderr,
-        stdout
-      }
-    );
-    await runCli(
-      [
-        "reconcile",
-        "--account-id",
-        "acct_100",
-        "--start-date",
-        "2026-05-01",
-        "--end-date",
-        "2026-05-31",
-        "--ending-balance",
-        "1250.00"
-      ],
-      {
-        createClient: () => client,
-        env: requiredEnv(),
-        stderr,
-        stdout
-      }
-    );
-
-    expect(client.reports.trialBalance).toHaveBeenCalledWith({
-      accountingBasis: "cash",
-      asOfDate: "2026-05-31",
-      currencyCode: "USD"
-    });
-    expect(client.reconciliation.run).toHaveBeenCalledWith(
-      {
-        accountId: "acct_100",
-        endingBalance: "1250.00",
-        period: {
-          endDate: "2026-05-31",
-          startDate: "2026-05-01"
-        }
-      },
-      {
-        idempotencyKey: undefined
       }
     );
   });
@@ -814,18 +683,6 @@ function createMockClient(): CliQuickBooksClient {
         }
       }),
       status: vi.fn().mockResolvedValue(contractResponses.rawImportStatus)
-    },
-    reconciliation: {
-      run: vi.fn().mockResolvedValue(contractResponses.reconciliation)
-    },
-    reports: {
-      accountsPayableAging: vi.fn().mockResolvedValue(contractResponses.accountsPayableAging),
-      accountsReceivableAging: vi.fn().mockResolvedValue(contractResponses.accountsReceivableAging),
-      balanceSheet: vi.fn().mockResolvedValue(contractResponses.balanceSheet),
-      cashFlow: vi.fn().mockResolvedValue(contractResponses.cashFlow),
-      generalLedger: vi.fn().mockResolvedValue(contractResponses.generalLedger),
-      profitAndLoss: vi.fn().mockResolvedValue(contractResponses.profitAndLoss),
-      trialBalance: vi.fn().mockResolvedValue(contractResponses.trialBalance)
     },
     syncJobs: {
       get: vi.fn().mockResolvedValue(contractResponses.syncJob),

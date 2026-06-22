@@ -9,23 +9,12 @@ import {
   type HandrailQuickBooksFutureErpTenantMapResolveOptions,
   HandrailQuickBooksAccount,
   HandrailQuickBooksAccountListResponse,
-  HandrailQuickBooksAccountsPayableAgingReport,
-  HandrailQuickBooksAccountsReceivableAgingReport,
-  HandrailQuickBooksAgingReportRequest,
   HandrailQuickBooksAuditReference,
-  HandrailQuickBooksBalanceSheetReport,
-  HandrailQuickBooksBalanceSheetRequest,
-  HandrailQuickBooksCashFlowReport,
-  HandrailQuickBooksCashFlowRequest,
   HandrailQuickBooksClass,
   HandrailQuickBooksClassListResponse,
   HandrailQuickBooksConnectionStatus,
   HandrailQuickBooksConnectionStatusResponse,
   HandrailQuickBooksDeltaSyncCounts,
-  HandrailQuickBooksDrilldownRequest,
-  HandrailQuickBooksDrilldownResult,
-  HandrailQuickBooksGeneralLedgerReport,
-  HandrailQuickBooksGeneralLedgerRequest,
   HandrailQuickBooksHealthResponse,
   HandrailQuickBooksImportBatchListResponse,
   HandrailQuickBooksImportBatchSummary,
@@ -43,19 +32,10 @@ import {
   HandrailQuickBooksPageInfo,
   HandrailQuickBooksParty,
   HandrailQuickBooksPartyListResponse,
-  HandrailQuickBooksProfitAndLossReport,
-  HandrailQuickBooksProfitAndLossRequest,
   HandrailQuickBooksProviderEnvironment,
   HandrailQuickBooksProviderMode,
   HandrailQuickBooksRawImportStatus,
   HandrailQuickBooksRawImportStatusListResponse,
-  HandrailQuickBooksReportDrilldownReference,
-  HandrailQuickBooksReportLine,
-  HandrailQuickBooksReportName,
-  HandrailQuickBooksReportRequest,
-  HandrailQuickBooksReportResponse,
-  HandrailQuickBooksReportSnapshotMetadata,
-  HandrailQuickBooksReportTotal,
   HandrailQuickBooksReportedProviderMode,
   HandrailQuickBooksRequestOptions,
   HandrailQuickBooksRetryState,
@@ -68,11 +48,7 @@ import {
   HandrailQuickBooksSyncJobSummary,
   HandrailQuickBooksTokenStatusResponse,
   HandrailQuickBooksTransaction,
-  HandrailQuickBooksTransactionListResponse,
-  HandrailQuickBooksTrialBalanceLine,
-  HandrailQuickBooksTrialBalanceReport,
-  HandrailQuickBooksTrialBalanceRequest,
-  NormalizedQuickBooksFullSyncResponseEnvelope,
+  HandrailQuickBooksTransactionListResponse,  NormalizedQuickBooksFullSyncResponseEnvelope,
   NormalizedQuickBooksIncrementalSyncResponseEnvelope,
   ListAccountsRequest,
   ListClassesRequest,
@@ -186,30 +162,6 @@ const providerEnvironment: HandrailQuickBooksProviderEnvironment = "sandbox";
 const providerMode: HandrailQuickBooksProviderMode = "sandbox";
 const reportedProviderMode: HandrailQuickBooksReportedProviderMode = "unavailable";
 const connectionStatus: HandrailQuickBooksConnectionStatus = "connected";
-const reportName: HandrailQuickBooksReportName = "profit_and_loss";
-const drilldownReference: HandrailQuickBooksReportDrilldownReference = {
-  drilldownId: "drilldown_report_line_income",
-  type: "report_line"
-};
-const reportLine: HandrailQuickBooksReportLine = {
-  amount: "100.00",
-  drilldown: drilldownReference,
-  id: "line_income",
-  label: "Income",
-  lineType: "detail"
-};
-const reportTotal: HandrailQuickBooksReportTotal = {
-  amount: "100.00",
-  drilldown: drilldownReference,
-  label: "Net income"
-};
-const snapshotMetadata: HandrailQuickBooksReportSnapshotMetadata = {
-  checkpointRefs: ["checkpoint://quickbooks/tenant_123/checkpoint_123"],
-  realmId: "realm_123",
-  reportSnapshotId: "snapshot_123",
-  reportSnapshotRef: "report://quickbooks/tenant_123/profit-and-loss/snapshot_123",
-  sourceRefs: ["raw://batch_123/reports/profit-and-loss/2026-05"]
-};
 const checkpointMetadata: HandrailQuickBooksSyncCheckpointMetadata = {
   audit,
   checkpointId: "checkpoint_123",
@@ -399,60 +351,6 @@ const rawImportList: HandrailQuickBooksRawImportStatusListResponse = {
   page: pageInfo
 };
 
-const trialBalanceRequest: HandrailQuickBooksTrialBalanceRequest = { asOfDate: "2026-05-31" };
-const profitAndLossRequest: HandrailQuickBooksProfitAndLossRequest = {
-  period: { endDate: "2026-05-31", startDate: "2026-05-01" }
-};
-const balanceSheetRequest: HandrailQuickBooksBalanceSheetRequest = { asOfDate: "2026-05-31" };
-const cashFlowRequest: HandrailQuickBooksCashFlowRequest = profitAndLossRequest;
-const generalLedgerRequest: HandrailQuickBooksGeneralLedgerRequest = {
-  ...profitAndLossRequest,
-  accountId: "account_100"
-};
-const agingRequest: HandrailQuickBooksAgingReportRequest = {
-  asOfDate: "2026-05-31",
-  bucketDays: [30, 60, 90]
-};
-
-const trialBalanceLine: HandrailQuickBooksTrialBalanceLine = {
-  accountId: "account_100",
-  accountName: "Checking",
-  credit: "0.00",
-  debit: "100.00"
-};
-const trialBalanceReport: HandrailQuickBooksTrialBalanceReport = {
-  ...snapshotMetadata,
-  generatedAt: "2026-05-31T00:00:00.000Z",
-  lines: [trialBalanceLine],
-  name: "trial_balance",
-  period: { endDate: "2026-05-31", startDate: "2026-05-31" },
-  tenantId: "tenant_123"
-};
-declare const profitAndLossReport: HandrailQuickBooksProfitAndLossReport;
-declare const balanceSheetReport: HandrailQuickBooksBalanceSheetReport;
-declare const cashFlowReport: HandrailQuickBooksCashFlowReport;
-declare const generalLedgerReport: HandrailQuickBooksGeneralLedgerReport;
-declare const arAgingReport: HandrailQuickBooksAccountsReceivableAgingReport;
-declare const apAgingReport: HandrailQuickBooksAccountsPayableAgingReport;
-
-const reportRequests: readonly HandrailQuickBooksReportRequest[] = [
-  trialBalanceRequest,
-  profitAndLossRequest,
-  balanceSheetRequest,
-  cashFlowRequest,
-  generalLedgerRequest,
-  agingRequest
-];
-const reportResponses: readonly HandrailQuickBooksReportResponse[] = [
-  trialBalanceReport,
-  profitAndLossReport,
-  balanceSheetReport,
-  cashFlowReport,
-  generalLedgerReport,
-  arAgingReport,
-  apAgingReport
-];
-
 const connection: HandrailQuickBooksConnectionStatusResponse = {
   providerEnvironment,
   providerMode,
@@ -468,25 +366,13 @@ const tokenStatus: HandrailQuickBooksTokenStatusResponse = {
   status: "healthy",
   tenantId: "tenant_123"
 };
-const drilldownRequest: HandrailQuickBooksDrilldownRequest = {
-  id: drilldownReference.drilldownId,
-  type: drilldownReference.type
-};
-const drilldownResult: HandrailQuickBooksDrilldownResult = {
-  ...snapshotMetadata,
-  id: drilldownRequest.id,
-  relatedLedgerEntries: [ledgerEntry],
-  relatedReportLines: [reportLine],
-  reportName,
-  type: drilldownRequest.type
-};
 const syncRequest: HandrailQuickBooksStartSyncRequest = {
   entities: ["accounts", "parties", "transactions", "ledger_entries"],
   mode: "incremental",
   since: "2026-05-01T00:00:00.000Z"
 };
 const requestOptions: HandrailQuickBooksRequestOptions = {
-  idempotencyKey: "future-erp-reconcile",
+  idempotencyKey: "future-erp-sync",
   method: "POST"
 };
 
@@ -510,12 +396,9 @@ void [
   checkpointList,
   importBatchList,
   rawImportList,
-  reportRequests,
-  reportResponses,
   connection,
   health,
   tokenStatus,
-  drilldownResult,
   syncRequest,
   fullSyncEnvelope,
   incrementalSyncEnvelope,
@@ -525,5 +408,4 @@ void [
   futureErpConfig,
   resolvedFutureErpTenantId,
   reportedProviderMode,
-  reportTotal
 ];
