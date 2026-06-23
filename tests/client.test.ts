@@ -6,6 +6,7 @@ import {
   HandrailQuickBooksConfigError,
   HandrailQuickBooksError,
   type HandrailQuickBooksFetch,
+  type HandrailQuickBooksNormalizedCompletenessStatus,
   type NormalizedQuickBooksFullSyncResponseEnvelope,
   type NormalizedQuickBooksIncrementalSyncResponseEnvelope
 } from "../src/index.js";
@@ -83,7 +84,9 @@ describe("HandrailQuickBooksClient", () => {
       contractResponses.checkpoint,
       contractResponses.checkpoints,
       contractResponses.ledgerEntries,
-      contractResponses.ledgerEntries
+      contractResponses.ledgerEntries,
+      contractResponses.transactionLines,
+      contractResponses.transactionLines
     ]);
     const client = new HandrailQuickBooksClient({
       apiKey: contractApiKey,
@@ -136,6 +139,16 @@ describe("HandrailQuickBooksClient", () => {
       limit: 50
     });
     const ledgerEntries = await client.ledgerEntries.search(contractRequests.ledgerSearch);
+    const transactionLineList = await client.transactionLines.list({
+      limit: 50,
+      transactionId: "700"
+    });
+    const transactionLineSearch = await client.transactionLines.search({
+      accountId: "100",
+      from: "2026-05-01",
+      to: "2026-05-31",
+      transactionType: "payment"
+    });
 
     expect(health).toEqual(contractResponses.health);
     expect(connectionStatus).toEqual(contractResponses.connectionStatus);
@@ -242,7 +255,16 @@ describe("HandrailQuickBooksClient", () => {
         value: "300"
       }
     });
-    expect(requests).toHaveLength(18);
+    expect(transactionLineList).toEqual(contractResponses.transactionLines);
+    expect(transactionLineSearch).toEqual(contractResponses.transactionLines);
+    expect(transactionLineList.data[0]).toMatchObject({
+      lineId: "1",
+      lineIndex: 0,
+      lineOrder: 1,
+      transactionId: "700",
+      transactionType: "payment"
+    });
+    expect(requests).toHaveLength(20);
     expect(requestUrl(requests[0])).toBe(
       `${contractBaseUrl}/.well-known/healthz`
     );
@@ -349,6 +371,16 @@ describe("HandrailQuickBooksClient", () => {
     expect(requests[17].init?.method).toBe("POST");
     expect(JSON.parse(String(requests[17].init?.body))).toEqual(contractRequests.ledgerSearch);
 
+    expect(requestUrl(requests[18])).toBe(
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/transaction-lines?limit=50&transactionId=700`
+    );
+    expect(requests[18].init?.method).toBe("GET");
+
+    expect(requestUrl(requests[19])).toBe(
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/transaction-lines?accountId=100&from=2026-05-01&to=2026-05-31&transactionType=payment`
+    );
+    expect(requests[19].init?.method).toBe("GET");
+
     const headers = new Headers(requests[1].init?.headers);
     expect(headers.get("authorization")).toBe(`Bearer ${contractApiKey}`);
     expect(headers.get("x-handrail-tenant-id")).toBe(contractTenantId);
@@ -366,7 +398,9 @@ describe("HandrailQuickBooksClient", () => {
       checkpoint,
       checkpoints,
       ledgerList,
-      ledgerEntries
+      ledgerEntries,
+      transactionLineList,
+      transactionLineSearch
     ])).not.toMatch(unsafeProviderPayloadPattern);
   });
 
@@ -380,6 +414,7 @@ describe("HandrailQuickBooksClient", () => {
       { data: accountingFixtures.accounts, page },
       { data: accountingFixtures.parties, page },
       { data: accountingFixtures.transactions, page },
+      { data: accountingFixtures.transactionLines, page },
       { data: accountingFixtures.ledgerEntries, page },
       { data: [contractResponses.syncJob], page },
       { data: [contractResponses.rawImportStatus], page },
@@ -397,6 +432,7 @@ describe("HandrailQuickBooksClient", () => {
       await client.accounts.list({ cursor: "cursor_in_accounts", limit: 7 }),
       await client.parties.list({ cursor: "cursor_in_parties", limit: 7 }),
       await client.transactions.list({ cursor: "cursor_in_transactions", limit: 7 }),
+      await client.transactionLines.list({ cursor: "cursor_in_transaction_lines", limit: 7 }),
       await client.ledgerEntries.list({ cursor: "cursor_in_ledger", limit: 7 }),
       await client.syncJobs.list({ cursor: "cursor_in_sync_jobs", limit: 7 }),
       await client.rawImports.list({ cursor: "cursor_in_raw_imports", limit: 7 }),
@@ -405,6 +441,7 @@ describe("HandrailQuickBooksClient", () => {
     ];
 
     expect(responses.map((response) => response.page)).toEqual([
+      page,
       page,
       page,
       page,
@@ -422,12 +459,14 @@ describe("HandrailQuickBooksClient", () => {
       "7",
       "7",
       "7",
+      "7",
       "7"
     ]);
     expect(requests.map((request) => new URL(requestUrl(request)).searchParams.get("cursor"))).toEqual([
       "cursor_in_accounts",
       "cursor_in_parties",
       "cursor_in_transactions",
+      "cursor_in_transaction_lines",
       "cursor_in_ledger",
       "cursor_in_sync_jobs",
       "cursor_in_raw_imports",
@@ -498,6 +537,23 @@ describe("HandrailQuickBooksClient", () => {
     expect(JSON.stringify([items, classes, locations])).not.toMatch(unsafeProviderPayloadPattern);
   });
 
+  it("gets transaction lines by id", async () => {
+    const transactionLine = accountingFixtures.transactionLines[0];
+    const { fetch, requests } = mockFetch([transactionLine]);
+    const client = new HandrailQuickBooksClient({
+      apiKey: contractApiKey,
+      baseUrl: contractBaseUrl,
+      fetch,
+      tenantId: contractTenantId
+    });
+
+    await expect(client.transactionLines.get(transactionLine.id)).resolves.toEqual(transactionLine);
+    expect(requestUrl(requests[0])).toBe(
+      `${contractBaseUrl}/v1/tenants/${contractTenantId}/accounting/transaction-lines/${transactionLine.id}`
+    );
+    expect(requests[0].init?.method).toBe("GET");
+  });
+
   it("pins example response contracts and excludes provider payload leakage", () => {
     const contractsDir = new URL("../examples/contracts/", import.meta.url);
     const contractFiles = readdirSync(contractsDir)
@@ -521,6 +577,7 @@ describe("HandrailQuickBooksClient", () => {
       "parties.response.json",
       "raw-import-status.response.json",
       "token-status.response.json",
+      "transaction-lines.response.json",
       "transactions.response.json"
     ]);
 
@@ -612,14 +669,43 @@ describe("HandrailQuickBooksClient", () => {
       syncPhase: "initial_load",
       normalizedResourceCounts: {
         accounts: 3,
+        classes: 1,
+        items: 1,
+        ledger_entries: 4,
+        locations: 1,
         parties: 2,
-        transactions: 3
+        transactions: 3,
+        transaction_lines: 2
       },
       normalizedResources: {
         accounts: [
           expect.objectContaining({
             id: "accounting_account_100",
             sourceObject: "Account"
+          })
+        ],
+        classes: [
+          expect.objectContaining({
+            id: "accounting_class_810",
+            sourceObject: "Class"
+          })
+        ],
+        items: [
+          expect.objectContaining({
+            id: "accounting_item_700",
+            sourceObject: "Item"
+          })
+        ],
+        ledger_entries: [
+          expect.objectContaining({
+            sourceObject: "Payment",
+            transactionId: "700"
+          })
+        ],
+        locations: [
+          expect.objectContaining({
+            id: "accounting_location_department_910",
+            sourceObject: "Department"
           })
         ],
         parties: [
@@ -633,7 +719,48 @@ describe("HandrailQuickBooksClient", () => {
             sourceObject: "Payment",
             transactionType: "payment"
           })
+        ],
+        transaction_lines: [
+          expect.objectContaining({
+            sourceObject: "Payment",
+            transactionId: "700"
+          })
         ]
+      },
+      normalizedCompleteness: {
+        accounts: expect.objectContaining({
+          complete: true,
+          importBatchId: contractImportBatchId,
+          normalizedRecordCount: 3,
+          resourceFamily: "accounts",
+          sourceObjectCount: 3,
+          status: "complete",
+          syncMode: "full",
+          syncPhase: "initial_load"
+        }),
+        ledger_entries: expect.objectContaining({
+          complete: true,
+          importBatchId: contractImportBatchId,
+          normalizedRecordCount: 4,
+          resourceFamily: "ledger_entries",
+          status: "complete",
+          syncMode: "full",
+          syncPhase: "initial_load"
+        }),
+        transactions: expect.objectContaining({
+          complete: false,
+          importBatchId: contractImportBatchId,
+          reason: "provider_paging_Bill_incomplete",
+          resourceFamily: "transactions",
+          status: "incomplete"
+        }),
+        transaction_lines: expect.objectContaining({
+          complete: false,
+          importBatchId: contractImportBatchId,
+          reason: "missing_object_count_Purchase",
+          resourceFamily: "transaction_lines",
+          status: "unknown"
+        })
       },
       checkpoint: {
         syncMode: "full"
@@ -712,7 +839,15 @@ describe("HandrailQuickBooksClient", () => {
 
     const fullEnvelope: NormalizedQuickBooksFullSyncResponseEnvelope = await client.fullSync(
       {
-        entities: ["accounts", "parties", "transactions"],
+        entities: [
+          "accounts",
+          "items",
+          "classes",
+          "locations",
+          "parties",
+          "transactions",
+          "ledger_entries"
+        ],
         importBatchId: contractImportBatchId
       },
       {
@@ -745,14 +880,43 @@ describe("HandrailQuickBooksClient", () => {
       },
       normalizedResourceCounts: {
         accounts: 3,
+        classes: 1,
+        items: 1,
+        ledger_entries: 4,
+        locations: 1,
         parties: 2,
-        transactions: 3
+        transactions: 3,
+        transaction_lines: 2
       },
       normalizedResources: {
         accounts: expect.arrayContaining([
           expect.objectContaining({
             id: "accounting_account_100",
             sourceObject: "Account"
+          })
+        ]),
+        classes: expect.arrayContaining([
+          expect.objectContaining({
+            id: "accounting_class_810",
+            sourceObject: "Class"
+          })
+        ]),
+        items: expect.arrayContaining([
+          expect.objectContaining({
+            id: "accounting_item_700",
+            sourceObject: "Item"
+          })
+        ]),
+        ledger_entries: expect.arrayContaining([
+          expect.objectContaining({
+            sourceObject: "Payment",
+            transactionId: "700"
+          })
+        ]),
+        locations: expect.arrayContaining([
+          expect.objectContaining({
+            id: "accounting_location_department_910",
+            sourceObject: "Department"
           })
         ]),
         parties: expect.arrayContaining([
@@ -766,12 +930,115 @@ describe("HandrailQuickBooksClient", () => {
             sourceObject: "Payment",
             transactionType: "payment"
           })
+        ]),
+        transaction_lines: expect.arrayContaining([
+          expect.objectContaining({
+            sourceObject: "Payment",
+            transactionId: "700"
+          })
         ])
       }
     });
+    expect(Object.keys(fullEnvelope.normalizedResources ?? {}).sort()).toEqual([
+      "accounts",
+      "classes",
+      "items",
+      "ledger_entries",
+      "locations",
+      "parties",
+      "transaction_lines",
+      "transactions"
+    ]);
     expect(fullEnvelope.syncJob).toEqual(contractResponses.fullSyncJob);
     expect(fullEnvelope.importBatch).toEqual(contractResponses.importBatch);
     expect(fullEnvelope.checkpoint?.syncMode).toBe("full");
+    expect(fullEnvelope.normalizedCompleteness).toMatchObject({
+      accounts: {
+        complete: true,
+        importBatchId: contractImportBatchId,
+        normalizedRecordCount: 3,
+        providerPagingEvidenceRefs: expect.arrayContaining([
+          "provider://quickbooks/batch_contract_2026_05/Account/pages/1"
+        ]),
+        resourceFamily: "accounts",
+        sourceObjectCount: 3,
+        status: "complete",
+        syncMode: "full",
+        syncPhase: "initial_load"
+      },
+      ledger_entries: {
+        complete: true,
+        importBatchId: contractImportBatchId,
+        normalizedRecordCount: 4,
+        resourceFamily: "ledger_entries",
+        status: "complete",
+        syncMode: "full",
+        syncPhase: "initial_load"
+      },
+      transaction_lines: {
+        complete: false,
+        evidence: {
+          missingObjectTypes: ["Purchase"],
+          providerPagingEvidence: expect.arrayContaining([
+            expect.objectContaining({
+              objectType: "Payment",
+              provider: "intuit",
+              sourceOperation: "query",
+              status: "completed"
+            })
+          ])
+        },
+        importBatchId: contractImportBatchId,
+        normalizedRecordCount: 0,
+        reason: "missing_object_count_Purchase",
+        resourceFamily: "transaction_lines",
+        status: "unknown",
+        syncMode: "full",
+        syncPhase: "initial_load"
+      },
+      transactions: {
+        complete: false,
+        evidence: {
+          incompleteObjectTypes: ["Bill"]
+        },
+        importBatchId: contractImportBatchId,
+        normalizedRecordCount: 3,
+        reason: "provider_paging_Bill_incomplete",
+        resourceFamily: "transactions",
+        status: "incomplete",
+        syncMode: "full",
+        syncPhase: "initial_load"
+      }
+    });
+    expect(fullEnvelope.normalizedCompleteness?.accounts?.evidence).toMatchObject({
+      batchStatus: "succeeded",
+      objectCounts: {
+        Account: 3
+      },
+      providerPagingEvidence: expect.arrayContaining([
+        expect.objectContaining({
+          completed: true,
+          fetchedObjectCount: 3,
+          objectType: "Account",
+          provider: "intuit",
+          providerRequestRef: "provider://quickbooks/batch_contract_2026_05/Account/pages/1",
+          sourceOperation: "query",
+          status: "completed"
+        })
+      ])
+    });
+    expect(fullEnvelope.normalizedCompleteness?.transactions?.providerPagingEvidenceRefs).toEqual(
+      expect.arrayContaining([
+        "provider://quickbooks/batch_contract_2026_05/Bill/pages/1",
+        "provider://quickbooks/batch_contract_2026_05/Payment/pages/1"
+      ])
+    );
+    expect(fullEnvelope.normalizedCompleteness?.transaction_lines?.auditRefs).toContain(
+      `raw://${contractImportBatchId}/sync-jobs/${contractJobId}`
+    );
+    expect(fullEnvelope.syncJob.normalizedCompleteness).toBe(fullEnvelope.normalizedCompleteness);
+    expect(fullEnvelope.importBatch?.normalizedCompleteness).toEqual(fullEnvelope.normalizedCompleteness);
+    expect(fullEnvelope.checkpoint?.normalizedCompleteness).toEqual(fullEnvelope.normalizedCompleteness);
 
     expect(incrementalEnvelope).toMatchObject({
       contractId: "handrail.quickbooks.normalized-sync-envelope.v1",
@@ -810,6 +1077,36 @@ describe("HandrailQuickBooksClient", () => {
     expect(incrementalEnvelope.syncJob).toEqual(contractResponses.syncJob);
     expect(incrementalEnvelope.importBatch).toEqual(contractResponses.importBatch);
     expect(incrementalEnvelope.checkpoint?.syncMode).toBe("incremental");
+    expect(incrementalEnvelope.normalizedCompleteness).toEqual(
+      contractResponses.syncJob.normalizedCompleteness
+    );
+    expect(incrementalEnvelope.normalizedCompleteness?.accounts?.evidence).toMatchObject({
+      batchStatus: "succeeded",
+      objectCounts: {
+        Account: 3
+      },
+      providerPagingEvidence: expect.arrayContaining([
+        expect.objectContaining({
+          providerRequestRef: "provider://quickbooks/batch_contract_2026_05/Account/pages/1"
+        })
+      ])
+    });
+    expect(incrementalEnvelope.normalizedCompleteness?.ledger_entries?.auditRefs).toContain(
+      `raw://${contractImportBatchId}/sync-jobs/${contractJobId}`
+    );
+    const incrementalCompletenessStatuses: readonly HandrailQuickBooksNormalizedCompletenessStatus[] =
+      [
+        incrementalEnvelope.normalizedCompleteness?.accounts?.status ?? "unknown",
+        incrementalEnvelope.normalizedCompleteness?.transactions?.status ?? "unknown",
+        incrementalEnvelope.normalizedCompleteness?.transaction_lines?.status ?? "unknown",
+        incrementalEnvelope.normalizedCompleteness?.ledger_entries?.status ?? "unknown"
+      ];
+    expect(incrementalCompletenessStatuses).toEqual([
+      "complete",
+      "incomplete",
+      "unknown",
+      "complete"
+    ]);
     expect(JSON.stringify([fullEnvelope, incrementalEnvelope])).not.toMatch(unsafeProviderPayloadPattern);
 
     expect(requests).toHaveLength(2);
@@ -820,7 +1117,15 @@ describe("HandrailQuickBooksClient", () => {
       "full-sync-contract-idempotency-key"
     );
     expect(JSON.parse(String(requests[0].init?.body))).toEqual({
-      entities: ["accounts", "parties", "transactions"],
+      entities: [
+        "accounts",
+        "items",
+        "classes",
+        "locations",
+        "parties",
+        "transactions",
+        "ledger_entries"
+      ],
       importBatchId: contractImportBatchId,
       mode: "full"
     });

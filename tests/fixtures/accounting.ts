@@ -12,14 +12,17 @@ import type {
   HandrailQuickBooksLedgerSearchRequest,
   HandrailQuickBooksListResponse,
   HandrailQuickBooksLocation,
+  HandrailQuickBooksNormalizedCompletenessMap,
   HandrailQuickBooksParty,
+  HandrailQuickBooksProviderPagingEvidence,
   HandrailQuickBooksRawImportStatus,
   HandrailQuickBooksStartSyncRequest,
   HandrailQuickBooksSyncCheckpoint,
   HandrailQuickBooksSyncCheckpointMetadata,
   HandrailQuickBooksSyncJobSummary,
   HandrailQuickBooksTokenStatusResponse,
-  HandrailQuickBooksTransaction
+  HandrailQuickBooksTransaction,
+  HandrailQuickBooksTransactionLine
 } from "../../src/index.js";
 
 export const contractTenantId = "tenant_contract_123";
@@ -477,7 +480,83 @@ export const accountingFixtures = {
       transactionDate: "2026-05-19",
       transactionType: "deposit"
     }
-  ] satisfies readonly HandrailQuickBooksTransaction[]
+  ] satisfies readonly HandrailQuickBooksTransaction[],
+  transactionLines: [
+    {
+      ...providerMetadata,
+      account: {
+        name: "Operating Cash",
+        value: "100"
+      },
+      amount: 1250,
+      audit: {
+        importBatchId: contractImportBatchId,
+        jobId: contractJobId,
+        realmId: "realm_demo_12345",
+        sourcePayloadRef: `raw://${contractImportBatchId}`
+      },
+      classRef: {
+        name: "Operations",
+        value: "810"
+      },
+      department: {
+        name: "Main Office",
+        value: "910"
+      },
+      description: "Customer payment deposit",
+      detailType: "DepositLineDetail",
+      documentNumber: "PMT-700",
+      id: "accounting_transaction_line_payment_700_1",
+      item: {
+        name: "Consulting Services",
+        value: "700"
+      },
+      lineId: "1",
+      lineIndex: 0,
+      lineOrder: 1,
+      party: {
+        name: "Acme Customer",
+        value: "300"
+      },
+      sourceObject: "Payment",
+      sourceObjectId: "700:1",
+      sourceUpdatedAt: "2026-06-15T19:25:00.000Z",
+      transactionDate: "2026-05-15",
+      transactionId: "700",
+      transactionType: "payment"
+    },
+    {
+      ...providerMetadata,
+      account: {
+        name: "Software Expense",
+        value: "610"
+      },
+      amount: 150,
+      audit: {
+        importBatchId: contractImportBatchId,
+        jobId: contractJobId,
+        realmId: "realm_demo_12345",
+        sourcePayloadRef: `raw://${contractImportBatchId}`
+      },
+      description: "Sandbox vendor services",
+      detailType: "AccountBasedExpenseLineDetail",
+      documentNumber: "BILL-920",
+      id: "accounting_transaction_line_bill_920_1",
+      lineId: "1",
+      lineIndex: 0,
+      lineOrder: 1,
+      party: {
+        name: "Demo Vendor",
+        value: "500"
+      },
+      sourceObject: "Bill",
+      sourceObjectId: "920:1",
+      sourceUpdatedAt: "2026-06-15T19:25:15.000Z",
+      transactionDate: "2026-05-17",
+      transactionId: "920",
+      transactionType: "bill"
+    }
+  ] satisfies readonly HandrailQuickBooksTransactionLine[]
 };
 
 export const contractRequests = {
@@ -529,8 +608,13 @@ const incrementalImportVolume = {
 const initialLoadImportVolume = {
   entityCounts: {
     accounts: 3,
+    classes: 1,
+    items: 1,
+    ledger_entries: 4,
+    locations: 1,
     parties: 2,
-    transactions: 3
+    transactions: 3,
+    transaction_lines: 2
   },
   errorCount: 0,
   objectCount: 8,
@@ -553,6 +637,215 @@ const initialLoadImportVolume = {
   warningCount: 0
 } satisfies HandrailQuickBooksImportVolumeSummary;
 
+const providerPagingEvidence = [
+  {
+    capturedAt: "2026-06-15T19:31:00.000Z",
+    completed: true,
+    entity: "accounts",
+    fetchedObjectCount: 3,
+    importBatchId: contractImportBatchId,
+    jobId: contractJobId,
+    maxResults: 100,
+    objectType: "Account",
+    pageCount: 1,
+    pageSize: 100,
+    provider: "intuit",
+    providerRequestRef: `provider://quickbooks/${contractImportBatchId}/Account/pages/1`,
+    source: "quickbooks_accounting_api",
+    sourceOperation: "query",
+    sourcePayloadRef: `raw://${contractImportBatchId}/objects/Account`,
+    startPosition: 1,
+    status: "completed",
+    syncJobRef: `raw://${contractImportBatchId}/sync-jobs/${contractJobId}`
+  },
+  {
+    capturedAt: "2026-06-15T19:32:00.000Z",
+    completed: false,
+    entity: "transactions",
+    fetchedObjectCount: 2,
+    importBatchId: contractImportBatchId,
+    jobId: contractJobId,
+    maxResults: 100,
+    objectType: "Bill",
+    pageCount: 1,
+    pageSize: 100,
+    provider: "intuit",
+    providerRequestRef: `provider://quickbooks/${contractImportBatchId}/Bill/pages/1`,
+    source: "quickbooks_accounting_api",
+    sourceOperation: "query",
+    sourcePayloadRef: `raw://${contractImportBatchId}/objects/Bill`,
+    startPosition: 1,
+    status: "incomplete",
+    syncJobRef: `raw://${contractImportBatchId}/sync-jobs/${contractJobId}`
+  },
+  {
+    capturedAt: "2026-06-15T19:33:00.000Z",
+    completed: true,
+    entity: "transactions",
+    fetchedObjectCount: 3,
+    importBatchId: contractImportBatchId,
+    jobId: contractJobId,
+    maxResults: 100,
+    objectType: "Payment",
+    pageCount: 1,
+    pageSize: 100,
+    provider: "intuit",
+    providerRequestRef: `provider://quickbooks/${contractImportBatchId}/Payment/pages/1`,
+    source: "quickbooks_accounting_api",
+    sourceOperation: "query",
+    sourcePayloadRef: `raw://${contractImportBatchId}/objects/Payment`,
+    startPosition: 1,
+    status: "completed",
+    syncJobRef: `raw://${contractImportBatchId}/sync-jobs/${contractJobId}`
+  }
+] satisfies readonly HandrailQuickBooksProviderPagingEvidence[];
+
+const completenessAuditRefs = [
+  `raw://${contractImportBatchId}`,
+  `raw://${contractImportBatchId}/sync-jobs/${contractJobId}`
+];
+
+const normalizedCompleteness = {
+  accounts: {
+    auditRefs: completenessAuditRefs,
+    checkpointRefs: [contractCheckpointRef],
+    complete: true,
+    evidence: {
+      batchStatus: "succeeded",
+      errorCount: 0,
+      objectCounts: {
+        Account: 3
+      },
+      providerPagingEvidence: [providerPagingEvidence[0]],
+      warningCount: 0
+    },
+    importBatchId: contractImportBatchId,
+    normalizedRecordCount: 3,
+    providerPagingEvidenceRefs: [providerPagingEvidence[0].providerRequestRef],
+    resourceFamily: "accounts",
+    sourceEntity: "accounts",
+    sourceObjectCount: 3,
+    sourceObjectTypes: ["Account"],
+    status: "complete",
+    syncMode: "incremental",
+    syncPhase: "delta_sync"
+  },
+  ledger_entries: {
+    auditRefs: completenessAuditRefs,
+    checkpointRefs: [contractCheckpointRef],
+    complete: true,
+    evidence: {
+      batchStatus: "succeeded",
+      errorCount: 0,
+      objectCounts: {
+        Bill: 1,
+        Deposit: 1,
+        Payment: 1
+      },
+      providerPagingEvidence: [providerPagingEvidence[2]],
+      warningCount: 0
+    },
+    importBatchId: contractImportBatchId,
+    normalizedRecordCount: 4,
+    providerPagingEvidenceRefs: [providerPagingEvidence[2].providerRequestRef],
+    resourceFamily: "ledger_entries",
+    sourceEntity: "transactions",
+    sourceObjectCount: 3,
+    sourceObjectTypes: ["Bill", "Deposit", "Payment"],
+    status: "complete",
+    syncMode: "incremental",
+    syncPhase: "delta_sync"
+  },
+  transactions: {
+    auditRefs: completenessAuditRefs,
+    checkpointRefs: [contractCheckpointRef],
+    complete: false,
+    evidence: {
+      batchStatus: "succeeded",
+      errorCount: 0,
+      incompleteObjectTypes: ["Bill"],
+      objectCounts: {
+        Bill: 1,
+        Deposit: 1,
+        Payment: 1
+      },
+      providerPagingEvidence: [providerPagingEvidence[1], providerPagingEvidence[2]],
+      warningCount: 0
+    },
+    importBatchId: contractImportBatchId,
+    normalizedRecordCount: 3,
+    providerPagingEvidenceRefs: [
+      providerPagingEvidence[1].providerRequestRef,
+      providerPagingEvidence[2].providerRequestRef
+    ],
+    reason: "provider_paging_Bill_incomplete",
+    resourceFamily: "transactions",
+    sourceEntity: "transactions",
+    sourceObjectCount: 3,
+    sourceObjectTypes: ["Bill", "Deposit", "Payment"],
+    status: "incomplete",
+    syncMode: "incremental",
+    syncPhase: "delta_sync"
+  },
+  transaction_lines: {
+    auditRefs: completenessAuditRefs,
+    checkpointRefs: [contractCheckpointRef],
+    complete: false,
+    evidence: {
+      batchStatus: "succeeded",
+      errorCount: 0,
+      missingObjectTypes: ["Purchase"],
+      objectCounts: {
+        Bill: 1,
+        Deposit: 1,
+        Payment: 1
+      },
+      providerPagingEvidence: [providerPagingEvidence[1], providerPagingEvidence[2]],
+      warningCount: 0
+    },
+    importBatchId: contractImportBatchId,
+    normalizedRecordCount: 0,
+    providerPagingEvidenceRefs: [
+      providerPagingEvidence[1].providerRequestRef,
+      providerPagingEvidence[2].providerRequestRef
+    ],
+    reason: "missing_object_count_Purchase",
+    resourceFamily: "transaction_lines",
+    sourceEntity: "transactions",
+    sourceObjectTypes: ["Bill", "Deposit", "Payment", "Purchase"],
+    status: "unknown",
+    syncMode: "incremental",
+    syncPhase: "delta_sync"
+  }
+} satisfies HandrailQuickBooksNormalizedCompletenessMap;
+
+const initialLoadNormalizedCompleteness = {
+  accounts: {
+    ...normalizedCompleteness.accounts,
+    checkpointRefs: [contractInitialLoadCheckpointRef],
+    syncMode: "full",
+    syncPhase: "initial_load"
+  },
+  ledger_entries: {
+    ...normalizedCompleteness.ledger_entries,
+    checkpointRefs: [contractInitialLoadCheckpointRef],
+    syncMode: "full",
+    syncPhase: "initial_load"
+  },
+  transactions: {
+    ...normalizedCompleteness.transactions,
+    checkpointRefs: [contractInitialLoadCheckpointRef],
+    syncMode: "full",
+    syncPhase: "initial_load"
+  },
+  transaction_lines: {
+    ...normalizedCompleteness.transaction_lines,
+    checkpointRefs: [contractInitialLoadCheckpointRef],
+    syncMode: "full",
+    syncPhase: "initial_load"
+  }
+} satisfies HandrailQuickBooksNormalizedCompletenessMap;
+
 const incrementalCheckpointMetadata = {
   audit: {
     checkpointId: contractCheckpointId,
@@ -574,6 +867,7 @@ const incrementalCheckpointMetadata = {
   entity: "accounts",
   importBatchId: contractImportBatchId,
   jobIds: [contractJobId],
+  normalizedCompleteness,
   objectType: "Account",
   providerUpdatedAtWatermark: "2026-06-15T19:25:00.000Z",
   startedAt: "2026-06-15T19:30:00.000Z",
@@ -608,6 +902,7 @@ const initialLoadCheckpointMetadata = {
   entity: "accounts",
   importBatchId: contractImportBatchId,
   jobIds: [contractJobId],
+  normalizedCompleteness: initialLoadNormalizedCompleteness,
   objectType: "Account",
   providerUpdatedAtWatermark: "2026-06-15T19:25:00.000Z",
   startedAt: "2026-06-15T19:30:00.000Z",
@@ -655,6 +950,7 @@ export const contractResponses = {
     entity: "accounts",
     importBatchId: contractImportBatchId,
     jobIds: [contractJobId],
+    normalizedCompleteness,
     objectType: "Account",
     providerUpdatedAtWatermark: "2026-06-15T19:25:00.000Z",
     realmId: "realm_demo_12345",
@@ -720,9 +1016,13 @@ export const contractResponses = {
     deltaCounts,
     entityCounts: {
       accounts: 3,
+      classes: 1,
+      items: 1,
       ledger_entries: 4,
+      locations: 1,
       parties: 2,
-      transactions: 3
+      transactions: 3,
+      transaction_lines: 2
     },
     errorCount: 0,
     importBatchId: contractImportBatchId,
@@ -742,6 +1042,7 @@ export const contractResponses = {
       BillPayment: 0,
       VendorCredit: 0
     },
+    normalizedCompleteness: initialLoadNormalizedCompleteness,
     realmId: "realm_demo_12345",
     startedAt: "2026-06-15T19:30:00.000Z",
     status: "succeeded",
@@ -772,6 +1073,13 @@ export const contractResponses = {
       limit: 50
     }
   } satisfies HandrailQuickBooksListResponse<HandrailQuickBooksLedgerEntry>,
+  transactionLines: {
+    data: accountingFixtures.transactionLines,
+    page: {
+      hasMore: false,
+      limit: 50
+    }
+  } satisfies HandrailQuickBooksListResponse<HandrailQuickBooksTransactionLine>,
   locations: {
     data: accountingFixtures.locations,
     page: {
@@ -805,6 +1113,7 @@ export const contractResponses = {
     errorCount: 0,
     importBatchId: contractImportBatchId,
     importVolume: initialLoadImportVolume,
+    normalizedCompleteness: initialLoadNormalizedCompleteness,
     objectCount: 8,
     objectType: "Account",
     startedAt: "2026-06-15T19:30:00.000Z",
@@ -836,8 +1145,14 @@ export const contractResponses = {
     importBatchId: contractImportBatchId,
     importVolume: initialLoadImportVolume,
     jobId: contractJobId,
+    normalizedCompleteness: initialLoadNormalizedCompleteness,
     normalizedResources: {
       accounts: accountingFixtures.accounts,
+      classes: accountingFixtures.classes,
+      items: accountingFixtures.items,
+      ledger_entries: accountingFixtures.ledgerEntries,
+      locations: accountingFixtures.locations,
+      transaction_lines: accountingFixtures.transactionLines,
       parties: accountingFixtures.parties,
       transactions: accountingFixtures.transactions
     },
@@ -864,10 +1179,15 @@ export const contractResponses = {
     importBatchId: contractImportBatchId,
     importVolume: incrementalImportVolume,
     jobId: contractJobId,
+    normalizedCompleteness,
     normalizedResources: {
       accounts: accountingFixtures.accounts,
+      classes: accountingFixtures.classes,
+      items: accountingFixtures.items,
       ledger_entries: accountingFixtures.ledgerEntries,
+      locations: accountingFixtures.locations,
       parties: accountingFixtures.parties,
+      transaction_lines: accountingFixtures.transactionLines,
       transactions: accountingFixtures.transactions
     },
     objectCount: 3,

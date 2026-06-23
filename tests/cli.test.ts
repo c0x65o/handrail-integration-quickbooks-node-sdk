@@ -402,6 +402,7 @@ describe("handrail-qbo CLI", () => {
     expect(client.accounts.list).toHaveBeenCalledWith({ limit: 7 });
     expect(client.parties.list).toHaveBeenCalledWith({ limit: 7 });
     expect(client.transactions.list).toHaveBeenCalledWith({ limit: 7 });
+    expect(client.transactionLines.list).toHaveBeenCalledWith({ limit: 7 });
     expect(client.ledgerEntries.list).toHaveBeenCalledWith({ limit: 7 });
 
     const output = JSON.parse(stdout.value);
@@ -458,6 +459,64 @@ describe("handrail-qbo CLI", () => {
         transactions: {
           available: true,
           count: 3
+        },
+        transactionLines: {
+          available: true,
+          count: 2
+        }
+      },
+      normalizedCompleteness: {
+        accounts: {
+          available: true,
+          complete: true,
+          importBatchId: contractImportBatchId,
+          normalizedRecordCount: 3,
+          providerPagingEvidenceRefCount: 1,
+          resourceFamily: "accounts",
+          sourceObjectCount: 3,
+          sourceObjectTypes: ["Account"],
+          status: "complete",
+          syncMode: "incremental",
+          syncPhase: "delta_sync"
+        },
+        ledger_entries: {
+          available: true,
+          complete: true,
+          evidence: {
+            objectCounts: {
+              Bill: 1,
+              Deposit: 1,
+              Payment: 1
+            },
+            providerPagingEvidenceCount: 1
+          },
+          normalizedRecordCount: 4,
+          resourceFamily: "ledger_entries",
+          status: "complete"
+        },
+        transactions: {
+          available: true,
+          complete: false,
+          evidence: {
+            incompleteObjectTypes: ["Bill"],
+            providerPagingEvidenceCount: 2
+          },
+          normalizedRecordCount: 3,
+          reason: "provider_paging_Bill_incomplete",
+          resourceFamily: "transactions",
+          status: "incomplete"
+        },
+        transaction_lines: {
+          available: true,
+          complete: false,
+          evidence: {
+            missingObjectTypes: ["Purchase"],
+            providerPagingEvidenceCount: 2
+          },
+          normalizedRecordCount: 0,
+          reason: "missing_object_count_Purchase",
+          resourceFamily: "transaction_lines",
+          status: "unknown"
         }
       },
       rawImport: {
@@ -668,6 +727,9 @@ function createMockClient(): CliQuickBooksClient {
     },
     ledgerEntries: {
       list: vi.fn().mockResolvedValue(contractResponses.ledgerEntries)
+    },
+    transactionLines: {
+      list: vi.fn().mockResolvedValue(contractResponses.transactionLines)
     },
     locations: {
       list: vi.fn().mockResolvedValue(contractResponses.locations)

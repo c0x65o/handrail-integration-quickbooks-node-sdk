@@ -86,6 +86,7 @@ function toNormalizedQuickBooksSyncResponseEnvelopeBase(syncJob: HandrailQuickBo
     importBatchId: syncJob.importBatchId,
     importVolume: syncJob.importVolume,
     jobId: syncJob.jobId,
+    ...(syncJob.normalizedCompleteness ? { normalizedCompleteness: syncJob.normalizedCompleteness } : {}),
     normalizedResourceCounts: syncJob.batch?.entityCounts ?? syncJob.importVolume.entityCounts,
     normalizedResources: syncJob.normalizedResources,
     status: syncJob.status,

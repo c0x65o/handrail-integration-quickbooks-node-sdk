@@ -135,6 +135,10 @@ export type HandrailQuickBooksRawImportEntity =
   | "locations"
   | "ledger_entries";
 
+export type HandrailQuickBooksNormalizedResourceFamilyName =
+  | HandrailQuickBooksRawImportEntity
+  | "transaction_lines";
+
 export type HandrailQuickBooksRawImportObjectType =
   | "Account"
   | "Bill"
@@ -237,6 +241,79 @@ export interface HandrailQuickBooksRetryState {
   readonly retryReason: HandrailQuickBooksRetryReason;
 }
 
+export type HandrailQuickBooksProviderPagingEvidenceStatus =
+  | "completed"
+  | "failed"
+  | "incomplete";
+
+export interface HandrailQuickBooksProviderPagingEvidence {
+  readonly provider: "intuit";
+  readonly source: "quickbooks_accounting_api";
+  readonly sourceOperation: "query";
+  readonly entity: HandrailQuickBooksRawImportEntity;
+  readonly objectType: HandrailQuickBooksRawImportObjectType;
+  readonly providerRequestRef: string;
+  readonly importBatchId: string;
+  readonly jobId: string;
+  readonly syncJobRef: string;
+  readonly sourcePayloadRef?: string;
+  readonly startPosition: number;
+  readonly pageSize: number;
+  readonly pageCount: number;
+  readonly fetchedObjectCount: number;
+  readonly maxResults: number;
+  readonly completed: boolean;
+  readonly status: HandrailQuickBooksProviderPagingEvidenceStatus;
+  readonly capturedAt: string;
+}
+
+export type HandrailQuickBooksNormalizedCompletenessResourceFamily =
+  | "accounts"
+  | "ledger_entries"
+  | "transactions"
+  | "transaction_lines";
+
+export type HandrailQuickBooksNormalizedCompletenessStatus =
+  | "complete"
+  | "incomplete"
+  | "unknown";
+
+export interface HandrailQuickBooksNormalizedCompletenessEvidence {
+  readonly batchStatus?: HandrailQuickBooksImportBatchStatus;
+  readonly checkpointStatus?: HandrailQuickBooksSyncCheckpointStatus;
+  readonly errorCount?: number;
+  readonly warningCount?: number;
+  readonly missingObjectTypes?: readonly HandrailQuickBooksRawImportObjectType[];
+  readonly incompleteObjectTypes?: readonly HandrailQuickBooksRawImportObjectType[];
+  readonly objectCounts: Partial<Record<HandrailQuickBooksRawImportObjectType, number>>;
+  readonly providerPagingEvidence: readonly HandrailQuickBooksProviderPagingEvidence[];
+}
+
+export interface HandrailQuickBooksNormalizedResourceCompleteness {
+  readonly resourceFamily: HandrailQuickBooksNormalizedCompletenessResourceFamily;
+  readonly complete: boolean;
+  readonly status: HandrailQuickBooksNormalizedCompletenessStatus;
+  readonly importBatchId?: string;
+  readonly syncMode?: HandrailQuickBooksSyncCheckpointMode;
+  readonly syncPhase?: HandrailQuickBooksSyncPhase;
+  readonly checkpointRefs?: readonly string[];
+  readonly sourceEntity: HandrailQuickBooksRawImportEntity;
+  readonly sourceObjectTypes: readonly HandrailQuickBooksRawImportObjectType[];
+  readonly sourceObjectCount?: number;
+  readonly normalizedRecordCount: number;
+  readonly providerPagingEvidenceRefs: readonly string[];
+  readonly auditRefs: readonly string[];
+  readonly reason?: string;
+  readonly evidence: HandrailQuickBooksNormalizedCompletenessEvidence;
+}
+
+export type HandrailQuickBooksNormalizedCompletenessMap = Partial<
+  Record<
+    HandrailQuickBooksNormalizedCompletenessResourceFamily,
+    HandrailQuickBooksNormalizedResourceCompleteness
+  >
+>;
+
 export interface HandrailQuickBooksSyncJobSummary {
   readonly tenantId: string;
   readonly jobId: string;
@@ -251,6 +328,7 @@ export interface HandrailQuickBooksSyncJobSummary {
   readonly deltaCounts: HandrailQuickBooksDeltaSyncCounts;
   readonly checkpoint?: HandrailQuickBooksSyncCheckpointMetadata;
   readonly normalizedResources?: HandrailQuickBooksNormalizedResourceMap;
+  readonly normalizedCompleteness?: HandrailQuickBooksNormalizedCompletenessMap;
   readonly objectCount: number;
   readonly objectType: HandrailQuickBooksRawImportObjectType;
   readonly startedAt: string;
@@ -285,8 +363,9 @@ export interface NormalizedQuickBooksSyncResponseEnvelopeBase {
   readonly status: HandrailQuickBooksSyncJobStatus;
   readonly deltaCounts: HandrailQuickBooksDeltaSyncCounts;
   readonly importVolume: HandrailQuickBooksImportVolumeSummary;
-  readonly normalizedResourceCounts: Partial<Record<HandrailQuickBooksRawImportEntity, number>>;
+  readonly normalizedResourceCounts: Partial<Record<HandrailQuickBooksNormalizedResourceFamilyName, number>>;
   readonly normalizedResources?: HandrailQuickBooksNormalizedResourceMap;
+  readonly normalizedCompleteness?: HandrailQuickBooksNormalizedCompletenessMap;
   readonly syncJob: HandrailQuickBooksSyncJobSummary;
   readonly importBatch?: HandrailQuickBooksImportBatchSummary;
   readonly checkpoint?: HandrailQuickBooksSyncCheckpointMetadata;
@@ -332,7 +411,7 @@ export type HandrailQuickBooksSyncCheckpointStatus = "running" | "succeeded" | "
 export interface HandrailQuickBooksImportVolumeSummary {
   readonly objectCount: number;
   readonly objectCounts: Partial<Record<HandrailQuickBooksRawImportObjectType, number>>;
-  readonly entityCounts: Partial<Record<HandrailQuickBooksRawImportEntity, number>>;
+  readonly entityCounts: Partial<Record<HandrailQuickBooksNormalizedResourceFamilyName, number>>;
   readonly totalObjectCount: number;
   readonly errorCount: number;
   readonly warningCount: number;
@@ -353,6 +432,7 @@ export interface HandrailQuickBooksSyncCheckpointMetadata {
   readonly startedAt: string;
   readonly completedAt?: string;
   readonly status: HandrailQuickBooksSyncCheckpointStatus;
+  readonly normalizedCompleteness?: HandrailQuickBooksNormalizedCompletenessMap;
   readonly audit: HandrailQuickBooksAuditReference;
 }
 
@@ -373,6 +453,7 @@ export interface HandrailQuickBooksImportBatchSummary {
   readonly deltaCounts: HandrailQuickBooksDeltaSyncCounts;
   readonly errorCount: number;
   readonly warningCount: number;
+  readonly normalizedCompleteness?: HandrailQuickBooksNormalizedCompletenessMap;
   readonly audit: HandrailQuickBooksAuditReference;
 }
 
@@ -394,6 +475,7 @@ export interface HandrailQuickBooksSyncCheckpoint {
   readonly startedAt: string;
   readonly completedAt?: string;
   readonly status: HandrailQuickBooksSyncCheckpointStatus;
+  readonly normalizedCompleteness?: HandrailQuickBooksNormalizedCompletenessMap;
   readonly audit: HandrailQuickBooksAuditReference;
 }
 
@@ -423,6 +505,7 @@ export interface HandrailQuickBooksRawImportStatus {
   readonly status: "queued" | "importing" | "normalizing" | "completed" | "failed";
   readonly retry?: HandrailQuickBooksRetryState;
   readonly warningCount: number;
+  readonly normalizedCompleteness?: HandrailQuickBooksNormalizedCompletenessMap;
   readonly audit: HandrailQuickBooksAuditReference;
 }
 
@@ -574,6 +657,26 @@ export interface HandrailQuickBooksTransaction extends HandrailQuickBooksProvide
   readonly balance?: number;
 }
 
+export interface HandrailQuickBooksTransactionLine extends HandrailQuickBooksProviderMetadata {
+  readonly id: string;
+  readonly sourceObject: HandrailQuickBooksTransactionSourceObject;
+  readonly transactionType: HandrailQuickBooksTransactionType;
+  readonly transactionId: string;
+  readonly lineId: string;
+  readonly lineIndex: number;
+  readonly lineOrder: number;
+  readonly transactionDate?: string;
+  readonly documentNumber?: string;
+  readonly amount?: number;
+  readonly description?: string;
+  readonly detailType?: string;
+  readonly party?: HandrailQuickBooksAccountingReference;
+  readonly account?: HandrailQuickBooksAccountingReference;
+  readonly item?: HandrailQuickBooksAccountingReference;
+  readonly classRef?: HandrailQuickBooksAccountingReference;
+  readonly department?: HandrailQuickBooksAccountingReference;
+}
+
 export type HandrailQuickBooksLedgerPostingType = "Debit" | "Credit";
 
 export interface HandrailQuickBooksLedgerEntry extends HandrailQuickBooksProviderMetadata {
@@ -623,6 +726,15 @@ export type HandrailQuickBooksPartyListResponse =
 export type HandrailQuickBooksTransactionListResponse =
   HandrailQuickBooksListResponse<HandrailQuickBooksTransaction>;
 
+export type HandrailQuickBooksTransactionLineListResponse =
+  HandrailQuickBooksListResponse<HandrailQuickBooksTransactionLine>;
+
+export type HandrailQuickBooksTransactionLineSearchResponse =
+  HandrailQuickBooksTransactionLineListResponse;
+
+export type HandrailQuickBooksTransactionLineGetResponse =
+  HandrailQuickBooksTransactionLine;
+
 export type HandrailQuickBooksLedgerEntryListResponse =
   HandrailQuickBooksListResponse<HandrailQuickBooksLedgerEntry>;
 
@@ -645,7 +757,8 @@ export type HandrailQuickBooksNormalizedResource =
   | HandrailQuickBooksLedgerEntry
   | HandrailQuickBooksLocation
   | HandrailQuickBooksParty
-  | HandrailQuickBooksTransaction;
+  | HandrailQuickBooksTransaction
+  | HandrailQuickBooksTransactionLine;
 
 export interface HandrailQuickBooksNormalizedResourceMap {
   readonly accounts?: readonly HandrailQuickBooksAccount[];
@@ -655,4 +768,5 @@ export interface HandrailQuickBooksNormalizedResourceMap {
   readonly locations?: readonly HandrailQuickBooksLocation[];
   readonly parties?: readonly HandrailQuickBooksParty[];
   readonly transactions?: readonly HandrailQuickBooksTransaction[];
+  readonly transaction_lines?: readonly HandrailQuickBooksTransactionLine[];
 }

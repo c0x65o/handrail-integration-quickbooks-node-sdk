@@ -11,6 +11,9 @@ import type {
   HandrailQuickBooksImportBatchSummary,
   HandrailQuickBooksImportVolumeSummary,
   HandrailQuickBooksListResponse,
+  HandrailQuickBooksNormalizedCompletenessMap,
+  HandrailQuickBooksNormalizedCompletenessResourceFamily,
+  HandrailQuickBooksNormalizedResourceCompleteness,
   HandrailQuickBooksRawImportStatus,
   HandrailQuickBooksSyncCheckpoint,
   HandrailQuickBooksSyncCheckpointMetadata,
@@ -33,6 +36,12 @@ interface SafeProbeError {
 type CheckpointLike = HandrailQuickBooksSyncCheckpoint | HandrailQuickBooksSyncCheckpointMetadata;
 
 const DEFAULT_SMOKE_LIMIT = 25;
+const COMPLETENESS_RESOURCE_FAMILIES = [
+  "accounts",
+  "transactions",
+  "transaction_lines",
+  "ledger_entries"
+] as const satisfies readonly HandrailQuickBooksNormalizedCompletenessResourceFamily[];
 
 export const smokeCommand: CliCommandDefinition = {
   description: "Print a redacted operator smoke summary for connection, import, checkpoint, and synced objects.",
@@ -66,6 +75,7 @@ async function runSmokeCommand(context: CliCommandContext) {
     locations,
     parties,
     transactions,
+    transactionLines,
     ledgerEntries
   ] = await Promise.all([
     probe(() => context.client.connections.status()),
@@ -88,6 +98,7 @@ async function runSmokeCommand(context: CliCommandContext) {
     probe(() => context.client.locations.list(commonListRequest)),
     probe(() => context.client.parties.list(commonListRequest)),
     probe(() => context.client.transactions.list(commonListRequest)),
+    probe(() => context.client.transactionLines.list(commonListRequest)),
     probe(() => context.client.ledgerEntries.list(commonListRequest))
   ]);
 
@@ -119,8 +130,15 @@ async function runSmokeCommand(context: CliCommandContext) {
       locations: summarizeProbe(locations, summarizeListCount),
       parties: summarizeProbe(parties, summarizeListCount),
       transactions: summarizeProbe(transactions, summarizeListCount),
+      transactionLines: summarizeProbe(transactionLines, summarizeListCount),
       ledgerEntries: summarizeProbe(ledgerEntries, summarizeListCount)
     },
+    normalizedCompleteness: summarizeNormalizedCompleteness(
+      syncJobValue?.normalizedCompleteness ??
+        importBatchValue?.normalizedCompleteness ??
+        checkpointValue?.normalizedCompleteness ??
+        rawImportValue?.normalizedCompleteness
+    ),
     checkpoint: checkpointValue ? summarizeCheckpoint(checkpointValue, context.config.tenantId) : undefined,
     futureErpConfig: futureErpConfigOutput.futureErpConfig,
     ...("localOverrideDiagnostics" in futureErpConfigOutput
@@ -337,5 +355,62 @@ function summarizeListCount<T>(value: HandrailQuickBooksListResponse<T>) {
     cursor: value.page?.cursor,
     hasMore: value.page?.hasMore,
     limit: value.page?.limit
+  });
+}
+
+function summarizeNormalizedCompleteness(
+  value: HandrailQuickBooksNormalizedCompletenessMap | undefined
+) {
+  if (!value) {
+    return undefined;
+  }
+
+  return Object.fromEntries(
+    COMPLETENESS_RESOURCE_FAMILIES.map((resourceFamily) => [
+      resourceFamily,
+      summarizeResourceCompleteness(value[resourceFamily], resourceFamily)
+    ])
+  );
+}
+
+function summarizeResourceCompleteness(
+  value: HandrailQuickBooksNormalizedResourceCompleteness | undefined,
+  resourceFamily: HandrailQuickBooksNormalizedCompletenessResourceFamily
+) {
+  if (!value) {
+    return {
+      available: false,
+      complete: false,
+      resourceFamily,
+      status: "unknown"
+    };
+  }
+
+  return withoutUndefined({
+    auditRefCount: value.auditRefs.length,
+    available: true,
+    checkpointRefCount: value.checkpointRefs?.length,
+    complete: value.complete,
+    evidence: withoutUndefined({
+      batchStatus: value.evidence.batchStatus,
+      checkpointStatus: value.evidence.checkpointStatus,
+      errorCount: value.evidence.errorCount,
+      incompleteObjectTypes: value.evidence.incompleteObjectTypes,
+      missingObjectTypes: value.evidence.missingObjectTypes,
+      objectCounts: value.evidence.objectCounts,
+      providerPagingEvidenceCount: value.evidence.providerPagingEvidence.length,
+      warningCount: value.evidence.warningCount
+    }),
+    importBatchId: value.importBatchId,
+    normalizedRecordCount: value.normalizedRecordCount,
+    providerPagingEvidenceRefCount: value.providerPagingEvidenceRefs.length,
+    reason: value.reason,
+    resourceFamily: value.resourceFamily,
+    sourceEntity: value.sourceEntity,
+    sourceObjectCount: value.sourceObjectCount,
+    sourceObjectTypes: value.sourceObjectTypes,
+    status: value.status,
+    syncMode: value.syncMode,
+    syncPhase: value.syncPhase
   });
 }

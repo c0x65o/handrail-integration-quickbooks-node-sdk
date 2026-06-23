@@ -20,7 +20,8 @@ import type {
   HandrailQuickBooksSyncCheckpoint,
   HandrailQuickBooksSyncJobSummary,
   HandrailQuickBooksTokenStatusResponse,
-  HandrailQuickBooksTransaction
+  HandrailQuickBooksTransaction,
+  HandrailQuickBooksTransactionLine
 } from "../types.js";
 
 export interface CliOutput {
@@ -92,6 +93,9 @@ export interface CliQuickBooksClient {
   };
   readonly transactions: {
     list(request?: HandrailQuickBooksListRequest): Promise<HandrailQuickBooksListResponse<HandrailQuickBooksTransaction>>;
+  };
+  readonly transactionLines: {
+    list(request?: HandrailQuickBooksListRequest): Promise<HandrailQuickBooksListResponse<HandrailQuickBooksTransactionLine>>;
   };
 }
 

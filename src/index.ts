@@ -37,6 +37,7 @@ export {
   toNormalizedQuickBooksFullSyncResponseEnvelope,
   toNormalizedQuickBooksIncrementalSyncResponseEnvelope
 } from "./resources/sync-jobs.js";
+export { TransactionLinesResource } from "./resources/transaction-lines.js";
 export { TransactionsResource } from "./resources/transactions.js";
 export type { ListAccountsRequest } from "./resources/accounts.js";
 export type { HandrailQuickBooksCheckpointListRequest } from "./types.js";
@@ -44,6 +45,11 @@ export type { ListClassesRequest } from "./resources/classes.js";
 export type { ListItemsRequest } from "./resources/items.js";
 export type { ListLocationsRequest } from "./resources/locations.js";
 export type { ListPartiesRequest } from "./resources/parties.js";
+export type {
+  HandrailQuickBooksTransactionLineRequest,
+  ListTransactionLinesRequest,
+  SearchTransactionLinesRequest
+} from "./resources/transaction-lines.js";
 export type { ListTransactionsRequest } from "./resources/transactions.js";
 export type { HandrailQuickBooksSyncOptions } from "./resources/sync-jobs.js";
 export type {
@@ -90,7 +96,13 @@ export type {
   HandrailQuickBooksListResponse,
   HandrailQuickBooksLocation,
   HandrailQuickBooksLocationListResponse,
+  HandrailQuickBooksNormalizedCompletenessEvidence,
+  HandrailQuickBooksNormalizedCompletenessMap,
+  HandrailQuickBooksNormalizedCompletenessResourceFamily,
+  HandrailQuickBooksNormalizedCompletenessStatus,
   HandrailQuickBooksNormalizedResource,
+  HandrailQuickBooksNormalizedResourceCompleteness,
+  HandrailQuickBooksNormalizedResourceFamilyName,
   HandrailQuickBooksNormalizedResourceMap,
   HandrailQuickBooksPageInfo,
   HandrailQuickBooksParty,
@@ -99,6 +111,8 @@ export type {
   HandrailQuickBooksProviderMetadata,
   HandrailQuickBooksProviderEnvironment,
   HandrailQuickBooksProviderMode,
+  HandrailQuickBooksProviderPagingEvidence,
+  HandrailQuickBooksProviderPagingEvidenceStatus,
   HandrailQuickBooksProviderProfileMetadata,
   HandrailQuickBooksProviderProfileStatus,
   HandrailQuickBooksQueryValue,
@@ -125,6 +139,10 @@ export type {
   HandrailQuickBooksSyncJobStatus,
   HandrailQuickBooksSyncJobSummary,
   HandrailQuickBooksTransaction,
+  HandrailQuickBooksTransactionLine,
+  HandrailQuickBooksTransactionLineGetResponse,
+  HandrailQuickBooksTransactionLineListResponse,
+  HandrailQuickBooksTransactionLineSearchResponse,
   HandrailQuickBooksTransactionListResponse,
   HandrailQuickBooksTransactionSourceObject,
   HandrailQuickBooksTransactionType,

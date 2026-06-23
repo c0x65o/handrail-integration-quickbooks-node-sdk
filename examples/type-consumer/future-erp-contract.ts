@@ -27,13 +27,18 @@ import {
   HandrailQuickBooksListResponse,
   HandrailQuickBooksLocation,
   HandrailQuickBooksLocationListResponse,
+  HandrailQuickBooksNormalizedCompletenessMap,
+  HandrailQuickBooksNormalizedCompletenessResourceFamily,
+  HandrailQuickBooksNormalizedCompletenessStatus,
   HandrailQuickBooksNormalizedResource,
+  HandrailQuickBooksNormalizedResourceCompleteness,
   HandrailQuickBooksNormalizedResourceMap,
   HandrailQuickBooksPageInfo,
   HandrailQuickBooksParty,
   HandrailQuickBooksPartyListResponse,
   HandrailQuickBooksProviderEnvironment,
   HandrailQuickBooksProviderMode,
+  HandrailQuickBooksProviderPagingEvidence,
   HandrailQuickBooksRawImportStatus,
   HandrailQuickBooksRawImportStatusListResponse,
   HandrailQuickBooksReportedProviderMode,
@@ -48,13 +53,20 @@ import {
   HandrailQuickBooksSyncJobSummary,
   HandrailQuickBooksTokenStatusResponse,
   HandrailQuickBooksTransaction,
-  HandrailQuickBooksTransactionListResponse,  NormalizedQuickBooksFullSyncResponseEnvelope,
+  HandrailQuickBooksTransactionLine,
+  HandrailQuickBooksTransactionLineGetResponse,
+  HandrailQuickBooksTransactionLineListResponse,
+  HandrailQuickBooksTransactionLineSearchResponse,
+  HandrailQuickBooksTransactionListResponse,
+  NormalizedQuickBooksFullSyncResponseEnvelope,
   NormalizedQuickBooksIncrementalSyncResponseEnvelope,
   ListAccountsRequest,
   ListClassesRequest,
   ListItemsRequest,
   ListLocationsRequest,
   ListPartiesRequest,
+  ListTransactionLinesRequest,
+  SearchTransactionLinesRequest,
   ListTransactionsRequest
 } from "@handrail/quickbooks-node-sdk";
 
@@ -126,6 +138,18 @@ const classRequest: ListClassesRequest = { active: true, ...listRequest };
 const locationRequest: ListLocationsRequest = { active: true, ...listRequest };
 const partyRequest: ListPartiesRequest = { partyType: "customer", ...listRequest };
 const transactionRequest: ListTransactionsRequest = { transactionType: "payment", ...listRequest };
+const transactionLineRequest: ListTransactionLinesRequest = {
+  accountId: "account_100",
+  transactionId: "transaction_700",
+  transactionType: "payment",
+  ...listRequest
+};
+const transactionLineSearchRequest: SearchTransactionLinesRequest = {
+  from: "2026-05-01",
+  partyId: "party_300",
+  to: "2026-05-31",
+  ...transactionLineRequest
+};
 const ledgerSearchRequest: HandrailQuickBooksLedgerSearchRequest = {
   accountId: "account_100",
   from: "2026-05-01",
@@ -162,6 +186,98 @@ const providerEnvironment: HandrailQuickBooksProviderEnvironment = "sandbox";
 const providerMode: HandrailQuickBooksProviderMode = "sandbox";
 const reportedProviderMode: HandrailQuickBooksReportedProviderMode = "unavailable";
 const connectionStatus: HandrailQuickBooksConnectionStatus = "connected";
+const completenessFamily: HandrailQuickBooksNormalizedCompletenessResourceFamily =
+  "transaction_lines";
+const completenessStatus: HandrailQuickBooksNormalizedCompletenessStatus = "unknown";
+const providerPagingEvidence: HandrailQuickBooksProviderPagingEvidence = {
+  capturedAt: "2026-05-31T00:01:00.000Z",
+  completed: true,
+  entity: "transactions",
+  fetchedObjectCount: 2,
+  importBatchId: "batch_123",
+  jobId: "job_123",
+  maxResults: 100,
+  objectType: "Payment",
+  pageCount: 1,
+  pageSize: 100,
+  provider: "intuit",
+  providerRequestRef: "provider://quickbooks/batch_123/Payment/pages/1",
+  source: "quickbooks_accounting_api",
+  sourceOperation: "query",
+  sourcePayloadRef: "raw://batch_123/objects/Payment",
+  startPosition: 1,
+  status: "completed",
+  syncJobRef: "sync-job://quickbooks/tenant_123/job_123"
+};
+const accountCompleteness: HandrailQuickBooksNormalizedResourceCompleteness = {
+  auditRefs: ["raw://batch_123", "sync-job://quickbooks/tenant_123/job_123"],
+  checkpointRefs: ["checkpoint://quickbooks/tenant_123/checkpoint_123"],
+  complete: true,
+  evidence: {
+    batchStatus: "succeeded",
+    checkpointStatus: "succeeded",
+    errorCount: 0,
+    objectCounts: { Account: 2 },
+    providerPagingEvidence: [providerPagingEvidence],
+    warningCount: 0
+  },
+  importBatchId: "batch_123",
+  normalizedRecordCount: 2,
+  providerPagingEvidenceRefs: [providerPagingEvidence.providerRequestRef],
+  resourceFamily: "accounts",
+  sourceEntity: "accounts",
+  sourceObjectCount: 2,
+  sourceObjectTypes: ["Account"],
+  status: "complete",
+  syncMode: "incremental",
+  syncPhase: "delta_sync"
+};
+const normalizedCompleteness: HandrailQuickBooksNormalizedCompletenessMap = {
+  accounts: accountCompleteness,
+  ledger_entries: {
+    ...accountCompleteness,
+    evidence: {
+      ...accountCompleteness.evidence,
+      objectCounts: { Bill: 1, Payment: 1 }
+    },
+    normalizedRecordCount: 4,
+    providerPagingEvidenceRefs: [providerPagingEvidence.providerRequestRef],
+    resourceFamily: "ledger_entries",
+    sourceEntity: "transactions",
+    sourceObjectCount: 2,
+    sourceObjectTypes: ["Bill", "Payment"],
+    status: "complete"
+  },
+  transactions: {
+    ...accountCompleteness,
+    complete: false,
+    evidence: {
+      ...accountCompleteness.evidence,
+      incompleteObjectTypes: ["Bill"],
+      objectCounts: { Bill: 1, Payment: 1 }
+    },
+    normalizedRecordCount: 2,
+    reason: "provider_paging_Bill_incomplete",
+    resourceFamily: "transactions",
+    sourceEntity: "transactions",
+    sourceObjectCount: 2,
+    sourceObjectTypes: ["Bill", "Payment"],
+    status: "incomplete"
+  },
+  transaction_lines: {
+    ...accountCompleteness,
+    complete: false,
+    evidence: {
+      ...accountCompleteness.evidence,
+      missingObjectTypes: ["Purchase"]
+    },
+    reason: "missing_object_count_Purchase",
+    resourceFamily: completenessFamily,
+    sourceEntity: "transactions",
+    sourceObjectTypes: ["Payment", "Purchase"],
+    status: completenessStatus
+  }
+};
 const checkpointMetadata: HandrailQuickBooksSyncCheckpointMetadata = {
   audit,
   checkpointId: "checkpoint_123",
@@ -174,6 +290,7 @@ const checkpointMetadata: HandrailQuickBooksSyncCheckpointMetadata = {
   objectType: "Account",
   startedAt: "2026-05-31T00:00:00.000Z",
   status: "succeeded",
+  normalizedCompleteness,
   syncJobRefs: ["sync-job://quickbooks/tenant_123/job_123"],
   syncMode: "incremental"
 };
@@ -193,6 +310,7 @@ const importBatch: HandrailQuickBooksImportBatchSummary = {
   errorCount: 0,
   importBatchId: "batch_123",
   jobIds: ["job_123"],
+  normalizedCompleteness,
   objectCounts: { Account: 2 },
   realmId: "realm_123",
   startedAt: "2026-05-31T00:00:00.000Z",
@@ -202,6 +320,37 @@ const importBatch: HandrailQuickBooksImportBatchSummary = {
   totalObjectCount: 2,
   warningCount: 0
 };
+
+declare const account: HandrailQuickBooksAccount;
+declare const item: HandrailQuickBooksItem;
+declare const classObject: HandrailQuickBooksClass;
+declare const location: HandrailQuickBooksLocation;
+declare const party: HandrailQuickBooksParty;
+declare const transaction: HandrailQuickBooksTransaction;
+declare const transactionLine: HandrailQuickBooksTransactionLine;
+declare const ledgerEntry: HandrailQuickBooksLedgerEntry;
+
+const normalizedResources: readonly HandrailQuickBooksNormalizedResource[] = [
+  account,
+  item,
+  classObject,
+  location,
+  party,
+  transaction,
+  transactionLine,
+  ledgerEntry
+];
+const normalizedResourceMap: HandrailQuickBooksNormalizedResourceMap = {
+  accounts: [account],
+  classes: [classObject],
+  items: [item],
+  ledger_entries: [ledgerEntry],
+  locations: [location],
+  parties: [party],
+  transactions: [transaction],
+  transaction_lines: [transactionLine]
+};
+
 const syncJob: HandrailQuickBooksSyncJobSummary = {
   audit,
   batch: importBatch,
@@ -219,6 +368,7 @@ const syncJob: HandrailQuickBooksSyncJobSummary = {
     warningCount: 0
   },
   jobId: "job_123",
+  normalizedCompleteness,
   objectCount: 2,
   objectType: "Account",
   retry,
@@ -246,7 +396,18 @@ const fullSyncEnvelope: NormalizedQuickBooksFullSyncResponseEnvelope = {
   importBatchId: "batch_123",
   importVolume: syncJob.importVolume,
   jobId: "job_123",
-  normalizedResourceCounts: { accounts: 2 },
+  normalizedResourceCounts: {
+    accounts: 2,
+    classes: 1,
+    items: 1,
+    ledger_entries: 4,
+    locations: 1,
+    parties: 2,
+    transactions: 2,
+    transaction_lines: 1
+  },
+  normalizedCompleteness,
+  normalizedResources: normalizedResourceMap,
   status: "succeeded",
   syncJob: {
     ...syncJob,
@@ -267,39 +428,24 @@ const incrementalSyncEnvelope: NormalizedQuickBooksIncrementalSyncResponseEnvelo
   importBatchId: "batch_123",
   importVolume: syncJob.importVolume,
   jobId: "job_123",
-  normalizedResourceCounts: { accounts: 2 },
+  normalizedResourceCounts: {
+    accounts: 2,
+    ledger_entries: 4,
+    transactions: 2,
+    transaction_lines: 1
+  },
+  normalizedCompleteness,
+  normalizedResources: {
+    accounts: [account],
+    ledger_entries: [ledgerEntry],
+    transactions: [transaction],
+    transaction_lines: [transactionLine]
+  },
   status: "succeeded",
   syncJob,
   syncMode: "incremental",
   syncPhase: "delta_sync",
   tenantId: "tenant_123"
-};
-
-declare const account: HandrailQuickBooksAccount;
-declare const item: HandrailQuickBooksItem;
-declare const classObject: HandrailQuickBooksClass;
-declare const location: HandrailQuickBooksLocation;
-declare const party: HandrailQuickBooksParty;
-declare const transaction: HandrailQuickBooksTransaction;
-declare const ledgerEntry: HandrailQuickBooksLedgerEntry;
-
-const normalizedResources: readonly HandrailQuickBooksNormalizedResource[] = [
-  account,
-  item,
-  classObject,
-  location,
-  party,
-  transaction,
-  ledgerEntry
-];
-const normalizedResourceMap: HandrailQuickBooksNormalizedResourceMap = {
-  accounts: [account],
-  classes: [classObject],
-  items: [item],
-  ledger_entries: [ledgerEntry],
-  locations: [location],
-  parties: [party],
-  transactions: [transaction]
 };
 
 const accountList: HandrailQuickBooksAccountListResponse = { data: [account], page: pageInfo };
@@ -311,6 +457,12 @@ const transactionList: HandrailQuickBooksTransactionListResponse = {
   data: [transaction],
   page: pageInfo
 };
+const transactionLineList: HandrailQuickBooksTransactionLineListResponse = {
+  data: [transactionLine],
+  page: pageInfo
+};
+const transactionLineSearch: HandrailQuickBooksTransactionLineSearchResponse = transactionLineList;
+const transactionLineGet: HandrailQuickBooksTransactionLineGetResponse = transactionLine;
 const ledgerList: HandrailQuickBooksLedgerEntryListResponse = {
   data: [ledgerEntry],
   page: pageInfo
@@ -341,6 +493,7 @@ const rawImportStatus: HandrailQuickBooksRawImportStatus = {
   objectType: "Account",
   startedAt: "2026-05-31T00:00:00.000Z",
   status: "completed",
+  normalizedCompleteness,
   syncMode: "full",
   syncPhase: "initial_load",
   tenantId: "tenant_123",
@@ -383,6 +536,8 @@ void [
   locationRequest,
   partyRequest,
   transactionRequest,
+  transactionLineRequest,
+  transactionLineSearchRequest,
   ledgerSearchRequest,
   accountList,
   itemList,
@@ -390,6 +545,9 @@ void [
   locationList,
   partyList,
   transactionList,
+  transactionLineList,
+  transactionLineSearch,
+  transactionLineGet,
   ledgerList,
   genericList,
   syncJobList,

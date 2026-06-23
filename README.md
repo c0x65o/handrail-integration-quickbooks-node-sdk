@@ -153,6 +153,10 @@ const ledgerEntries = await quickBooks.ledgerEntries.search({
   from: "2026-05-01",
   to: "2026-05-31"
 });
+const transactionLines = await quickBooks.transactionLines.search({
+  transactionId: "700",
+  transactionType: "payment"
+});
 const items = await quickBooks.items.list({ active: true });
 const classes = await quickBooks.classes.list({ active: true });
 const locations = await quickBooks.locations.list({ active: true });
@@ -174,6 +178,7 @@ The public surface exposes stable Handrail business concepts through resource mo
 - `locations.list()` and `locations.get()`
 - `parties.list()` and `parties.get()`
 - `transactions.list()` and `transactions.get()`
+- `transactionLines.list()`, `transactionLines.search()`, and `transactionLines.get()`
 - `ledgerEntries.search()` and `ledgerEntries.get()`
 
 The SDK keeps Intuit-specific details bounded to safe metadata such as `realmId`, QBO object IDs, source refs, checkpoint refs, sync tokens, and import batches. Consumers should treat `audit` fields as diagnostics, not as a direct QuickBooks API contract.
@@ -181,7 +186,8 @@ The SDK keeps Intuit-specific details bounded to safe metadata such as `realmId`
 Object pulls use the integration service's normalized accounting API:
 `/v1/tenants/:tenantId/accounting/accounts`, `/accounting/items`,
 `/accounting/classes`, `/accounting/locations`, `/accounting/parties`,
-`/accounting/transactions`, and `/accounting/ledger-entries/search`. The SDK and CLI return
+`/accounting/transactions`, `/accounting/transaction-lines`, and
+`/accounting/ledger-entries/search`. The SDK and CLI return
 paginated `{ data, page }` responses unchanged, including optional filters such as `limit` and
 `cursor` where supported. Generated financial views and close workflows belong in ERP Financials
 or consuming ERP applications.
@@ -204,7 +210,12 @@ Raw import and sync job responses expose first-class status metadata for initial
 `NormalizedQuickBooksIncrementalSyncResponseEnvelope`. The envelope repeats only normalized sync
 evidence: tenant/company ids, import batch id, job id, status, delta counts, import volume,
 normalized resource counts, checkpoint metadata, bounded audit refs, and the sanitized sync job
-summary. When the service includes bounded `normalizedResources`, the SDK preserves those
+summary. When the service includes `normalizedCompleteness`, the SDK preserves that service-owned
+map for accounts, transactions, transaction lines, and ledger entries on the envelope and nested
+sync job/import batch/checkpoint objects. Completeness describes whether the requested sync
+window, import batch, or checkpoint has enough service-owned evidence to claim the normalized
+family complete; it is separate from pagination metadata such as `page.hasMore` and `page.cursor`.
+When the service includes bounded `normalizedResources`, the SDK preserves those
 entity-keyed resources for ERP Financials canonical persistence. It does not expose raw provider
 payloads, Intuit tokens, Authorization headers, client secrets, tenant-map JSON, or API key values.
 
@@ -226,13 +237,14 @@ The package currently publishes one export path, `"."`, backed by `dist/index.js
 | --- | --- | --- |
 | Health | `health.get()`, `HealthResource`, `HandrailQuickBooksHealthResponse` | `GET /.well-known/healthz` |
 | Connection/token status | `connections.status()`, `connections.tokenStatus()`, `ConnectionsResource`, `HandrailQuickBooksConnectionStatusResponse`, `HandrailQuickBooksTokenStatusResponse` | `GET /v1/tenants/:tenantId/quickbooks/connections/status`, `GET /v1/tenants/:tenantId/quickbooks/connections/token-status` |
-| Full/incremental sync | `fullSync()`, `incrementalSync()`, `syncJobs.fullSync()`, `syncJobs.incrementalSync()`, `syncJobs.start()`, `syncJobs.get()`, `syncJobs.list()`, `SyncJobsResource`, `HandrailQuickBooksStartSyncRequest`, `NormalizedQuickBooksFullSyncRequest`, `NormalizedQuickBooksIncrementalSyncRequest`, `NormalizedQuickBooksFullSyncResponseEnvelope`, `NormalizedQuickBooksIncrementalSyncResponseEnvelope`, `HandrailQuickBooksSyncJobSummary`, `HandrailQuickBooksSyncJobListResponse` | `POST /v1/tenants/:tenantId/quickbooks/sync-jobs`, `GET /v1/tenants/:tenantId/quickbooks/sync-jobs/:jobId`, `GET /v1/tenants/:tenantId/quickbooks/sync-jobs` |
+| Full/incremental sync | `fullSync()`, `incrementalSync()`, `syncJobs.fullSync()`, `syncJobs.incrementalSync()`, `syncJobs.start()`, `syncJobs.get()`, `syncJobs.list()`, `SyncJobsResource`, `HandrailQuickBooksStartSyncRequest`, `NormalizedQuickBooksFullSyncRequest`, `NormalizedQuickBooksIncrementalSyncRequest`, `NormalizedQuickBooksFullSyncResponseEnvelope`, `NormalizedQuickBooksIncrementalSyncResponseEnvelope`, `NormalizedQuickBooksSyncResponseEnvelopeBase`, `HandrailQuickBooksNormalizedCompletenessMap`, `HandrailQuickBooksNormalizedResourceCompleteness`, `HandrailQuickBooksSyncJobSummary`, `HandrailQuickBooksSyncJobListResponse` | `POST /v1/tenants/:tenantId/quickbooks/sync-jobs`, `GET /v1/tenants/:tenantId/quickbooks/sync-jobs/:jobId`, `GET /v1/tenants/:tenantId/quickbooks/sync-jobs` |
 | Accounts | `accounts.list()`, `accounts.get()`, `AccountsResource`, `ListAccountsRequest`, `HandrailQuickBooksAccount`, `HandrailQuickBooksAccountListResponse` | `GET /v1/tenants/:tenantId/accounting/accounts`, `GET /v1/tenants/:tenantId/accounting/accounts/:accountId` |
 | Parties | `parties.list()`, `parties.get()`, `PartiesResource`, `ListPartiesRequest`, `HandrailQuickBooksParty`, `HandrailQuickBooksPartyListResponse` | `GET /v1/tenants/:tenantId/accounting/parties`, `GET /v1/tenants/:tenantId/accounting/parties/:partyId` |
 | Transactions | `transactions.list()`, `transactions.get()`, `TransactionsResource`, `ListTransactionsRequest`, `HandrailQuickBooksTransaction`, `HandrailQuickBooksTransactionListResponse` | `GET /v1/tenants/:tenantId/accounting/transactions`, `GET /v1/tenants/:tenantId/accounting/transactions/:transactionId` |
+| Transaction lines | `transactionLines.list()`, `transactionLines.search()`, `transactionLines.get()`, `TransactionLinesResource`, `ListTransactionLinesRequest`, `SearchTransactionLinesRequest`, `HandrailQuickBooksTransactionLine`, `HandrailQuickBooksTransactionLineListResponse`, `HandrailQuickBooksTransactionLineSearchResponse`, `HandrailQuickBooksTransactionLineGetResponse` | `GET /v1/tenants/:tenantId/accounting/transaction-lines`, `GET /v1/tenants/:tenantId/accounting/transaction-lines/:transactionLineId` |
 | Ledger entries/postings | `ledgerEntries.list()`, `ledgerEntries.search()`, `ledgerEntries.get()`, `LedgerEntriesResource`, `HandrailQuickBooksLedgerEntry`, `HandrailQuickBooksLedgerEntryListResponse`, `HandrailQuickBooksLedgerSearchRequest` | `GET /v1/tenants/:tenantId/accounting/ledger-entries`, `POST /v1/tenants/:tenantId/accounting/ledger-entries/search`, `GET /v1/tenants/:tenantId/accounting/ledger-entries/:ledgerEntryId` |
 | Checkpoints | `checkpoints.get()`, `checkpoints.list()`, `CheckpointsResource`, `HandrailQuickBooksSyncCheckpoint`, `HandrailQuickBooksSyncCheckpointMetadata`, `HandrailQuickBooksSyncCheckpointListResponse`, `HandrailQuickBooksCheckpointListRequest` | `GET /v1/tenants/:tenantId/quickbooks/checkpoints/:checkpointId`, `GET /v1/tenants/:tenantId/quickbooks/checkpoints` |
-| Source timestamps | `sourceUpdatedAt` on `HandrailQuickBooksAccount`, `HandrailQuickBooksItem`, `HandrailQuickBooksClass`, `HandrailQuickBooksLocation`, `HandrailQuickBooksParty`, `HandrailQuickBooksTransaction`, `HandrailQuickBooksLedgerEntry`; `providerUpdatedAtWatermark` on checkpoint metadata | Same normalized resource, sync job, raw import, and checkpoint paths above |
+| Source timestamps | `sourceUpdatedAt` on `HandrailQuickBooksAccount`, `HandrailQuickBooksItem`, `HandrailQuickBooksClass`, `HandrailQuickBooksLocation`, `HandrailQuickBooksParty`, `HandrailQuickBooksTransaction`, `HandrailQuickBooksTransactionLine`, `HandrailQuickBooksLedgerEntry`; `providerUpdatedAtWatermark` on checkpoint metadata | Same normalized resource, sync job, raw import, and checkpoint paths above |
 
 The type-level consumer gate is `npm run check:consumer-types`, which builds the SDK and compiles
 `examples/type-consumer/future-erp-contract.ts` through the package export path.
@@ -370,9 +382,12 @@ import type {
   HandrailQuickBooksSyncJobSummary,
   HandrailQuickBooksSyncCheckpoint,
   HandrailQuickBooksImportBatchSummary,
+  HandrailQuickBooksNormalizedCompletenessMap,
+  HandrailQuickBooksNormalizedResourceCompleteness,
   HandrailQuickBooksAccount,
   HandrailQuickBooksParty,
   HandrailQuickBooksTransaction,
+  HandrailQuickBooksTransactionLine,
   HandrailQuickBooksLedgerEntry,
   HandrailQuickBooksAuditReference
 } from "@handrail/quickbooks-node-sdk";

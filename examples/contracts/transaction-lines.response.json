@@ -1,0 +1,100 @@
+{
+  "data": [
+    {
+      "account": {
+        "name": "Operating Cash",
+        "value": "100"
+      },
+      "amount": 1250,
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "jobId": "sync_contract_123",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05"
+      },
+      "classRef": {
+        "name": "Operations",
+        "value": "810"
+      },
+      "companyId": "realm_demo_12345",
+      "department": {
+        "name": "Main Office",
+        "value": "910"
+      },
+      "description": "Customer payment deposit",
+      "detailType": "DepositLineDetail",
+      "documentNumber": "PMT-700",
+      "id": "accounting_transaction_line_payment_700_1",
+      "importBatchId": "batch_contract_2026_05",
+      "importedAt": "2026-06-15T19:45:00.000Z",
+      "item": {
+        "name": "Consulting Services",
+        "value": "700"
+      },
+      "jobId": "sync_contract_123",
+      "lineId": "1",
+      "lineIndex": 0,
+      "lineOrder": 1,
+      "party": {
+        "name": "Acme Customer",
+        "value": "300"
+      },
+      "provider": "intuit",
+      "providerEnvironment": "sandbox",
+      "realmId": "realm_demo_12345",
+      "source": "quickbooks_accounting_api",
+      "sourceObject": "Payment",
+      "sourceObjectId": "700:1",
+      "sourceUpdatedAt": "2026-06-15T19:25:00.000Z",
+      "syncedAt": "2026-06-15T19:45:00.000Z",
+      "tenantId": "tenant_contract_123",
+      "transactionDate": "2026-05-15",
+      "transactionId": "700",
+      "transactionType": "payment"
+    },
+    {
+      "account": {
+        "name": "Software Expense",
+        "value": "610"
+      },
+      "amount": 150,
+      "audit": {
+        "importBatchId": "batch_contract_2026_05",
+        "jobId": "sync_contract_123",
+        "realmId": "realm_demo_12345",
+        "sourcePayloadRef": "raw://batch_contract_2026_05"
+      },
+      "companyId": "realm_demo_12345",
+      "description": "Sandbox vendor services",
+      "detailType": "AccountBasedExpenseLineDetail",
+      "documentNumber": "BILL-920",
+      "id": "accounting_transaction_line_bill_920_1",
+      "importBatchId": "batch_contract_2026_05",
+      "importedAt": "2026-06-15T19:45:00.000Z",
+      "jobId": "sync_contract_123",
+      "lineId": "1",
+      "lineIndex": 0,
+      "lineOrder": 1,
+      "party": {
+        "name": "Demo Vendor",
+        "value": "500"
+      },
+      "provider": "intuit",
+      "providerEnvironment": "sandbox",
+      "realmId": "realm_demo_12345",
+      "source": "quickbooks_accounting_api",
+      "sourceObject": "Bill",
+      "sourceObjectId": "920:1",
+      "sourceUpdatedAt": "2026-06-15T19:25:15.000Z",
+      "syncedAt": "2026-06-15T19:45:00.000Z",
+      "tenantId": "tenant_contract_123",
+      "transactionDate": "2026-05-17",
+      "transactionId": "920",
+      "transactionType": "bill"
+    }
+  ],
+  "page": {
+    "hasMore": false,
+    "limit": 50
+  }
+}
