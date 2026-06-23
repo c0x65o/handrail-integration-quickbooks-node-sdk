@@ -1,6 +1,7 @@
 export interface HandrailQuickBooksErrorBody {
   readonly code?: string;
   readonly details?: unknown;
+  readonly error?: string;
   readonly message?: string;
   readonly requestId?: string;
 }

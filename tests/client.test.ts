@@ -1354,6 +1354,40 @@ describe("HandrailQuickBooksClient", () => {
     expect(serializedError).not.toMatch(unsafeProviderPayloadPattern);
   });
 
+  it("uses service error as a code fallback for current integration error bodies", async () => {
+    const { fetch } = mockFetch(
+      [
+        {
+          ok: false,
+          error: "quickbooks_reauthorization_required",
+          tenantId: "tenant_123"
+        }
+      ],
+      409
+    );
+    const client = new HandrailQuickBooksClient({
+      apiKey: "test-api-key",
+      baseUrl: "https://quickbooks.example.test",
+      fetch,
+      tenantId: "tenant_123"
+    });
+
+    let caughtError: unknown;
+    try {
+      await client.syncJobs.start();
+    } catch (error) {
+      caughtError = error;
+    }
+
+    expect(caughtError).toBeInstanceOf(HandrailQuickBooksError);
+    expect(caughtError).toMatchObject({
+      code: "quickbooks_reauthorization_required",
+      message: "quickbooks_reauthorization_required",
+      retryable: false,
+      status: 409
+    });
+  });
+
   it("requires tenantId for tenant-scoped calls", () => {
     const client = new HandrailQuickBooksClient({
       apiKey: "test-api-key",

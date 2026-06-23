@@ -165,10 +165,10 @@ export class HandrailQuickBooksHttpClient {
   private async toServiceError(response: Response, method: string, url: URL) {
     const body = await readErrorBody(response);
     const requestId = body?.requestId ?? response.headers.get("x-request-id") ?? undefined;
-    const code = body?.code ?? `HTTP_${response.status}`;
+    const code = body?.code ?? body?.error ?? `HTTP_${response.status}`;
 
     return new HandrailQuickBooksError(
-      body?.message ?? `Handrail QuickBooks request failed with status ${response.status}.`,
+      body?.message ?? body?.error ?? `Handrail QuickBooks request failed with status ${response.status}.`,
       {
         code,
         details: sanitizeErrorDetails(body?.details),
