@@ -581,6 +581,7 @@ export interface HandrailQuickBooksItem extends HandrailQuickBooksProviderMetada
   readonly unitPrice?: number;
   readonly purchaseCost?: number;
   readonly quantityOnHand?: number;
+  readonly inventoryStartDate?: string;
   readonly parentRef?: HandrailQuickBooksAccountingReference;
   readonly parentItemId?: string;
   readonly parentItemName?: string;
