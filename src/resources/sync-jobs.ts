@@ -89,6 +89,9 @@ function toNormalizedQuickBooksSyncResponseEnvelopeBase(syncJob: HandrailQuickBo
     ...(syncJob.normalizedCompleteness ? { normalizedCompleteness: syncJob.normalizedCompleteness } : {}),
     normalizedResourceCounts: syncJob.batch?.entityCounts ?? syncJob.importVolume.entityCounts,
     normalizedResources: syncJob.normalizedResources,
+    ...(syncJob.normalizationWarnings === undefined || syncJob.normalizationWarnings.length === 0
+      ? {}
+      : { normalizationWarnings: syncJob.normalizationWarnings }),
     status: syncJob.status,
     syncJob,
     tenantId: syncJob.tenantId

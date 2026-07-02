@@ -335,6 +335,20 @@ export interface HandrailQuickBooksSyncJobSummary {
   readonly completedAt?: string;
   readonly retry?: HandrailQuickBooksRetryState;
   readonly audit: HandrailQuickBooksAuditReference;
+  readonly normalizationWarnings?: readonly HandrailQuickBooksNormalizationWarning[];
+}
+
+/**
+ * A place where fail-closed normalization dropped accounting impact during
+ * sync (for example a transaction that produced no balanced postings, or tax
+ * detail without a resolvable tax account). Surfaced so downstream consumers
+ * can warn instead of silently under-reporting.
+ */
+export interface HandrailQuickBooksNormalizationWarning {
+  readonly code: string;
+  readonly objectType: string;
+  readonly transactionId: string;
+  readonly message: string;
 }
 
 export interface HandrailQuickBooksStartSyncRequest {
@@ -370,6 +384,7 @@ export interface NormalizedQuickBooksSyncResponseEnvelopeBase {
   readonly importBatch?: HandrailQuickBooksImportBatchSummary;
   readonly checkpoint?: HandrailQuickBooksSyncCheckpointMetadata;
   readonly audit: HandrailQuickBooksAuditReference;
+  readonly normalizationWarnings?: readonly HandrailQuickBooksNormalizationWarning[];
 }
 
 export interface NormalizedQuickBooksFullSyncResponseEnvelope

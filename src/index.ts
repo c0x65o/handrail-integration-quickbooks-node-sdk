@@ -104,6 +104,7 @@ export type {
   HandrailQuickBooksNormalizedResource,
   HandrailQuickBooksNormalizedResourceCompleteness,
   HandrailQuickBooksNormalizedResourceFamilyName,
+  HandrailQuickBooksNormalizationWarning,
   HandrailQuickBooksNormalizedResourceMap,
   HandrailQuickBooksPageInfo,
   HandrailQuickBooksParty,
