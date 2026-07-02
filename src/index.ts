@@ -31,6 +31,7 @@ export { ItemsResource } from "./resources/items.js";
 export { LedgerEntriesResource } from "./resources/ledger-entries.js";
 export { LocationsResource } from "./resources/locations.js";
 export { PartiesResource } from "./resources/parties.js";
+export { ProviderReportsResource } from "./resources/provider-reports.js";
 export { RawImportsResource } from "./resources/raw-imports.js";
 export {
   SyncJobsResource,
@@ -113,8 +114,16 @@ export type {
   HandrailQuickBooksProviderMode,
   HandrailQuickBooksProviderPagingEvidence,
   HandrailQuickBooksProviderPagingEvidenceStatus,
+  HandrailQuickBooksProviderLedgerRow,
   HandrailQuickBooksProviderProfileMetadata,
   HandrailQuickBooksProviderProfileStatus,
+  HandrailQuickBooksProviderReportAccountTotal,
+  HandrailQuickBooksProviderReportBasis,
+  HandrailQuickBooksProviderReportName,
+  HandrailQuickBooksProviderReportRef,
+  HandrailQuickBooksProviderReportRequest,
+  HandrailQuickBooksProviderReportResponse,
+  HandrailQuickBooksProviderReportTotal,
   HandrailQuickBooksQueryValue,
   HandrailQuickBooksRawImportEntity,
   HandrailQuickBooksRawImportObjectType,

@@ -31,6 +31,73 @@ const unsafeProviderPayloadPattern =
   /"access_token"|"refresh_token"|"client_secret"|"Authorization"|"authorization"|"clientId"|"clientSecret"|"apiKey"|"rawProviderPayload"|"rawPayload"|"QueryResponse"|"providerError"|"rawProviderError"|stored-access-token|stored-refresh-token|do-not-print|raw provider payload/i;
 
 describe("HandrailQuickBooksClient", () => {
+  it("posts tenant-scoped provider report requests and returns normalized totals", async () => {
+    const providerReportResponse = {
+      ok: true,
+      tenantId: "tenant_123",
+      realmId: "realm_demo",
+      companyId: "realm_demo",
+      providerEnvironment: "sandbox",
+      reportName: "trial_balance",
+      supportStatus: "supported",
+      accountingBasis: "accrual",
+      currencyCode: "USD",
+      periodStart: "2026-05-01",
+      periodEnd: "2026-05-31",
+      generatedAt: "2026-06-15T22:00:00.000Z",
+      providerReportRef: {
+        provider: "quickbooks",
+        providerEnvironment: "sandbox",
+        realmId: "realm_demo",
+        reportName: "trial_balance",
+        accountingBasis: "accrual",
+        periodStart: "2026-05-01",
+        periodEnd: "2026-05-31",
+        sourcePayloadRef: {
+          sourceObjectType: "quickbooks_report_trial_balance",
+          sourceObjectId: "realm_demo:trial_balance:2026-05-01:2026-05-31:accrual"
+        }
+      },
+      totals: [
+        { totalKey: "total_debits", label: "Total Debits", amount: "2202.25" },
+        { totalKey: "total_credits", label: "Total Credits", amount: "2202.25" }
+      ],
+      accountTotals: [
+        { accountSourceId: "35", label: "Checking", amount: "1201.00" },
+        { accountSourceId: "79", label: "Sales of Product Income", amount: "-2202.25" }
+      ]
+    };
+    const { fetch, requests } = mockFetch([providerReportResponse]);
+    const client = new HandrailQuickBooksClient({
+      apiKey: "test-api-key",
+      baseUrl: "https://quickbooks.example.test/api",
+      fetch,
+      providerMode: "sandbox",
+      tenantId: "tenant_123"
+    });
+
+    await expect(
+      client.providerReports.trialBalance({
+        accountingBasis: "accrual",
+        periodStart: "2026-05-01",
+        periodEnd: "2026-05-31"
+      })
+    ).resolves.toEqual(providerReportResponse);
+
+    expect(requests).toHaveLength(1);
+    expect(requestUrl(requests[0])).toBe(
+      "https://quickbooks.example.test/api/v1/tenants/tenant_123/quickbooks/provider-reports"
+    );
+    expect(requests[0]?.init?.method).toBe("POST");
+    expect(JSON.parse(String(requests[0]?.init?.body))).toEqual({
+      reportName: "trial_balance",
+      accountingBasis: "accrual",
+      periodStart: "2026-05-01",
+      periodEnd: "2026-05-31"
+    });
+    expect(JSON.stringify(providerReportResponse)).not.toMatch(unsafeProviderPayloadPattern);
+  });
+
   it("builds tenant-scoped connection status requests", async () => {
     const { fetch, requests } = mockFetch([
       {

@@ -10,6 +10,7 @@ import { ItemsResource } from "./resources/items.js";
 import { LedgerEntriesResource } from "./resources/ledger-entries.js";
 import { LocationsResource } from "./resources/locations.js";
 import { PartiesResource } from "./resources/parties.js";
+import { ProviderReportsResource } from "./resources/provider-reports.js";
 import { RawImportsResource } from "./resources/raw-imports.js";
 import { SyncJobsResource } from "./resources/sync-jobs.js";
 import { TransactionLinesResource } from "./resources/transaction-lines.js";
@@ -34,6 +35,7 @@ export class HandrailQuickBooksClient {
   readonly ledgerEntries: LedgerEntriesResource;
   readonly locations: LocationsResource;
   readonly parties: PartiesResource;
+  readonly providerReports: ProviderReportsResource;
   readonly rawImports: RawImportsResource;
   readonly syncJobs: SyncJobsResource;
   readonly transactionLines: TransactionLinesResource;
@@ -55,6 +57,7 @@ export class HandrailQuickBooksClient {
     this.classes = new ClassesResource(this.config, this.http);
     this.locations = new LocationsResource(this.config, this.http);
     this.parties = new PartiesResource(this.config, this.http);
+    this.providerReports = new ProviderReportsResource(this.config, this.http);
     this.transactions = new TransactionsResource(this.config, this.http);
     this.transactionLines = new TransactionLinesResource(this.config, this.http);
     this.ledgerEntries = new LedgerEntriesResource(this.config, this.http);

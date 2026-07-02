@@ -700,6 +700,95 @@ export interface HandrailQuickBooksLedgerEntry extends HandrailQuickBooksProvide
   readonly department?: HandrailQuickBooksAccountingReference;
 }
 
+export type HandrailQuickBooksProviderReportName =
+  | "trial_balance"
+  | "profit_and_loss"
+  | "balance_sheet"
+  | "general_ledger"
+  | "cash_flow";
+
+export type HandrailQuickBooksProviderReportBasis = "accrual" | "cash";
+
+export interface HandrailQuickBooksProviderReportRequest {
+  readonly reportName: HandrailQuickBooksProviderReportName;
+  readonly accountingBasis?: HandrailQuickBooksProviderReportBasis;
+  readonly periodStart?: string;
+  readonly periodEnd?: string;
+  readonly asOfDate?: string;
+}
+
+export interface HandrailQuickBooksProviderReportTotal {
+  readonly totalKey: string;
+  readonly label?: string;
+  readonly amount: string;
+}
+
+export interface HandrailQuickBooksProviderReportAccountTotal {
+  readonly accountSourceId: string;
+  readonly label?: string;
+  readonly amount: string;
+}
+
+/**
+ * One QuickBooks-posted general ledger line as reported by the QuickBooks
+ * GeneralLedger report. Amounts reflect QuickBooks' own posting engine
+ * (FIFO inventory COGS, tax postings, adjustments).
+ */
+export interface HandrailQuickBooksProviderLedgerRow {
+  readonly accountSourceId: string;
+  readonly accountName?: string;
+  readonly transactionId: string;
+  readonly transactionType: string;
+  readonly transactionTypeLabel?: string;
+  readonly transactionDate: string;
+  readonly documentNumber?: string;
+  readonly partyName?: string;
+  readonly description?: string;
+  readonly splitAccountName?: string;
+  readonly debitAmount: string;
+  readonly creditAmount: string;
+}
+
+export interface HandrailQuickBooksProviderReportRef {
+  readonly provider: "quickbooks";
+  readonly providerEnvironment: HandrailQuickBooksProviderMode;
+  readonly realmId: string;
+  readonly reportName: HandrailQuickBooksProviderReportName;
+  readonly accountingBasis?: HandrailQuickBooksProviderReportBasis;
+  readonly periodStart?: string;
+  readonly periodEnd?: string;
+  readonly sourceUpdatedAt?: string;
+  readonly sourcePayloadRef: {
+    readonly sourceObjectType: string;
+    readonly sourceObjectId: string;
+    readonly sourceUpdatedAt?: string;
+    readonly storageRef?: string;
+  };
+}
+
+export interface HandrailQuickBooksProviderReportResponse {
+  readonly ok: true;
+  readonly tenantId: string;
+  readonly realmId?: string;
+  readonly companyId?: string;
+  readonly providerEnvironment?: HandrailQuickBooksProviderMode;
+  readonly reportName: HandrailQuickBooksProviderReportName;
+  readonly supportStatus: "supported" | "unsupported";
+  readonly unsupportedReason?: string;
+  readonly accountingBasis: HandrailQuickBooksProviderReportBasis;
+  readonly currencyCode?: string;
+  readonly providerReportBasis?: string;
+  readonly periodStart?: string;
+  readonly periodEnd?: string;
+  readonly asOfDate?: string;
+  readonly generatedAt?: string;
+  readonly providerReportRef?: HandrailQuickBooksProviderReportRef;
+  readonly totals: readonly HandrailQuickBooksProviderReportTotal[];
+  readonly accountTotals?: readonly HandrailQuickBooksProviderReportAccountTotal[];
+  readonly ledgerRows?: readonly HandrailQuickBooksProviderLedgerRow[];
+  readonly ledgerRowCount?: number;
+}
+
 export interface HandrailQuickBooksLedgerSearchRequest extends HandrailQuickBooksListRequest {
   readonly accountId?: string;
   readonly from?: string;
