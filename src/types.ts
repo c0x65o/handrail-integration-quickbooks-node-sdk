@@ -131,12 +131,13 @@ export type HandrailQuickBooksRawImportEntity =
   | "classes"
   | "items"
   | "parties"
+  | "taxes"
   | "transactions"
   | "locations"
   | "ledger_entries";
 
 export type HandrailQuickBooksNormalizedResourceFamilyName =
-  | HandrailQuickBooksRawImportEntity
+  | Exclude<HandrailQuickBooksRawImportEntity, "taxes">
   | "transaction_lines";
 
 export type HandrailQuickBooksRawImportObjectType =
@@ -155,6 +156,9 @@ export type HandrailQuickBooksRawImportObjectType =
   | "Purchase"
   | "RefundReceipt"
   | "SalesReceipt"
+  | "TaxAgency"
+  | "TaxCode"
+  | "TaxRate"
   | "Transfer"
   | "Vendor"
   | "VendorCredit";

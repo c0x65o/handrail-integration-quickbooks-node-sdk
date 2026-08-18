@@ -9,6 +9,7 @@ const RAW_IMPORT_ENTITY_NAMES = new Set<HandrailQuickBooksRawImportEntity>([
   "classes",
   "items",
   "parties",
+  "taxes",
   "transactions",
   "locations",
   "ledger_entries"

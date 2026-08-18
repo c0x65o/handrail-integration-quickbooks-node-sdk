@@ -570,7 +570,7 @@ describe("handrail-qbo CLI", () => {
       [
         "sync",
         "--entities",
-        "accounts,ledger_entries",
+        "accounts,taxes,ledger_entries",
         "--mode",
         "incremental",
         "--since",
@@ -603,7 +603,7 @@ describe("handrail-qbo CLI", () => {
     });
     expect(client.syncJobs.start).toHaveBeenCalledWith(
       {
-        entities: ["accounts", "ledger_entries"],
+        entities: ["accounts", "taxes", "ledger_entries"],
         mode: "incremental",
         since: "2026-05-01"
       },
