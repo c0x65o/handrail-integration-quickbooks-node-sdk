@@ -76,6 +76,17 @@ export function toNormalizedQuickBooksIncrementalSyncResponseEnvelope(
 }
 
 function toNormalizedQuickBooksSyncResponseEnvelopeBase(syncJob: HandrailQuickBooksSyncJobSummary) {
+  const normalizedResourceCounts = syncJob.normalizedResources
+    ? Object.fromEntries(
+        Object.entries(syncJob.normalizedResources).map(([family, resources]) => [family, resources.length])
+      )
+    : Object.fromEntries(
+        Object.entries(syncJob.normalizedCompleteness ?? {}).map(([family, completeness]) => [
+          family,
+          completeness.normalizedRecordCount
+        ])
+      );
+
   return {
     audit: syncJob.audit,
     checkpoint: syncJob.checkpoint,
@@ -87,7 +98,10 @@ function toNormalizedQuickBooksSyncResponseEnvelopeBase(syncJob: HandrailQuickBo
     importVolume: syncJob.importVolume,
     jobId: syncJob.jobId,
     ...(syncJob.normalizedCompleteness ? { normalizedCompleteness: syncJob.normalizedCompleteness } : {}),
-    normalizedResourceCounts: syncJob.batch?.entityCounts ?? syncJob.importVolume.entityCounts,
+    // Batch entity counts are provider source-object counts. A normalized
+    // family can contain zero, one, or many rows per source object, so expose
+    // returned resource row counts under this normalized name.
+    normalizedResourceCounts,
     normalizedResources: syncJob.normalizedResources,
     ...(syncJob.normalizationWarnings === undefined || syncJob.normalizationWarnings.length === 0
       ? {}

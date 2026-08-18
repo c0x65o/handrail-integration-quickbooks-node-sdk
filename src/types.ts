@@ -346,6 +346,8 @@ export interface HandrailQuickBooksSyncJobSummary {
  */
 export interface HandrailQuickBooksNormalizationWarning {
   readonly code: string;
+  /** Blocking warnings represent unresolved accounting impact. */
+  readonly severity: "blocking" | "advisory";
   readonly objectType: string;
   readonly transactionId: string;
   readonly message: string;
@@ -426,7 +428,8 @@ export type HandrailQuickBooksSyncCheckpointStatus = "running" | "succeeded" | "
 export interface HandrailQuickBooksImportVolumeSummary {
   readonly objectCount: number;
   readonly objectCounts: Partial<Record<HandrailQuickBooksRawImportObjectType, number>>;
-  readonly entityCounts: Partial<Record<HandrailQuickBooksNormalizedResourceFamilyName, number>>;
+  /** Counts of fetched provider objects grouped by raw import entity. */
+  readonly entityCounts: Partial<Record<HandrailQuickBooksRawImportEntity, number>>;
   readonly totalObjectCount: number;
   readonly errorCount: number;
   readonly warningCount: number;

@@ -608,13 +608,8 @@ const incrementalImportVolume = {
 const initialLoadImportVolume = {
   entityCounts: {
     accounts: 3,
-    classes: 1,
-    items: 1,
-    ledger_entries: 4,
-    locations: 1,
     parties: 2,
-    transactions: 3,
-    transaction_lines: 2
+    transactions: 3
   },
   errorCount: 0,
   objectCount: 8,
@@ -1016,13 +1011,8 @@ export const contractResponses = {
     deltaCounts,
     entityCounts: {
       accounts: 3,
-      classes: 1,
-      items: 1,
-      ledger_entries: 4,
-      locations: 1,
       parties: 2,
-      transactions: 3,
-      transaction_lines: 2
+      transactions: 3
     },
     errorCount: 0,
     importBatchId: contractImportBatchId,

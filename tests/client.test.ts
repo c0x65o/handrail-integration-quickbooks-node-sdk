@@ -1106,6 +1106,11 @@ describe("HandrailQuickBooksClient", () => {
     expect(fullEnvelope.syncJob.normalizedCompleteness).toBe(fullEnvelope.normalizedCompleteness);
     expect(fullEnvelope.importBatch?.normalizedCompleteness).toEqual(fullEnvelope.normalizedCompleteness);
     expect(fullEnvelope.checkpoint?.normalizedCompleteness).toEqual(fullEnvelope.normalizedCompleteness);
+    for (const [family, resources] of Object.entries(fullEnvelope.normalizedResources ?? {})) {
+      expect(fullEnvelope.normalizedResourceCounts[family as keyof typeof fullEnvelope.normalizedResourceCounts]).toBe(
+        resources.length
+      );
+    }
 
     expect(incrementalEnvelope).toMatchObject({
       contractId: "handrail.quickbooks.normalized-sync-envelope.v1",
@@ -1141,6 +1146,13 @@ describe("HandrailQuickBooksClient", () => {
         ])
       }
     });
+    for (const [family, resources] of Object.entries(incrementalEnvelope.normalizedResources ?? {})) {
+      expect(
+        incrementalEnvelope.normalizedResourceCounts[
+          family as keyof typeof incrementalEnvelope.normalizedResourceCounts
+        ]
+      ).toBe(resources.length);
+    }
     expect(incrementalEnvelope.syncJob).toEqual(contractResponses.syncJob);
     expect(incrementalEnvelope.importBatch).toEqual(contractResponses.importBatch);
     expect(incrementalEnvelope.checkpoint?.syncMode).toBe("incremental");
