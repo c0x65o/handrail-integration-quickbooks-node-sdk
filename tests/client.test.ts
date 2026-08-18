@@ -925,6 +925,7 @@ describe("HandrailQuickBooksClient", () => {
           "transactions",
           "ledger_entries"
         ],
+        effectiveThrough: "2026-05-31",
         importBatchId: contractImportBatchId
       },
       {
@@ -935,6 +936,7 @@ describe("HandrailQuickBooksClient", () => {
       await client.incrementalSync(
         {
           entities: ["accounts"],
+          effectiveThrough: "2026-05-31",
           since: "2026-05-01T00:00:00.000Z"
         },
         {
@@ -1223,6 +1225,7 @@ describe("HandrailQuickBooksClient", () => {
         "transactions",
         "ledger_entries"
       ],
+      effectiveThrough: "2026-05-31",
       importBatchId: contractImportBatchId,
       mode: "full"
     });
@@ -1234,6 +1237,7 @@ describe("HandrailQuickBooksClient", () => {
     );
     expect(JSON.parse(String(requests[1].init?.body))).toEqual({
       entities: ["accounts"],
+      effectiveThrough: "2026-05-31",
       mode: "incremental",
       since: "2026-05-01T00:00:00.000Z"
     });

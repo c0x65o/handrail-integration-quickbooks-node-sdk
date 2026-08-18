@@ -359,6 +359,8 @@ export interface HandrailQuickBooksNormalizationWarning {
 
 export interface HandrailQuickBooksStartSyncRequest {
   readonly entities?: readonly HandrailQuickBooksRawImportEntity[];
+  /** Inclusive transaction/posting date boundary for historical imports. */
+  readonly effectiveThrough?: string;
   readonly importBatchId?: string;
   readonly mode?: "incremental" | "full";
   readonly since?: string;
