@@ -76,6 +76,16 @@ export function toNormalizedQuickBooksIncrementalSyncResponseEnvelope(
 }
 
 function toNormalizedQuickBooksSyncResponseEnvelopeBase(syncJob: HandrailQuickBooksSyncJobSummary) {
+  const importVolume = syncJob.batch
+    ? {
+        objectCount: syncJob.batch.totalObjectCount,
+        objectCounts: syncJob.batch.objectCounts,
+        entityCounts: syncJob.batch.entityCounts,
+        totalObjectCount: syncJob.batch.totalObjectCount,
+        errorCount: syncJob.batch.errorCount,
+        warningCount: syncJob.batch.warningCount
+      }
+    : syncJob.importVolume;
   const normalizedResourceCounts = syncJob.normalizedResources
     ? Object.fromEntries(
         Object.entries(syncJob.normalizedResources).map(([family, resources]) => [family, resources.length])
@@ -95,7 +105,9 @@ function toNormalizedQuickBooksSyncResponseEnvelopeBase(syncJob: HandrailQuickBo
     deltaCounts: syncJob.deltaCounts,
     importBatch: syncJob.batch,
     importBatchId: syncJob.importBatchId,
-    importVolume: syncJob.importVolume,
+    // The root job can be a representative object job on older service
+    // versions. The attached batch is the authoritative aggregate window.
+    importVolume,
     jobId: syncJob.jobId,
     ...(syncJob.normalizedCompleteness ? { normalizedCompleteness: syncJob.normalizedCompleteness } : {}),
     // Batch entity counts are provider source-object counts. A normalized

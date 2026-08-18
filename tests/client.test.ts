@@ -893,8 +893,18 @@ describe("HandrailQuickBooksClient", () => {
   });
 
   it("returns normalized full and incremental sync envelopes through the client contract", async () => {
+    const primaryOnlyFullSyncJob = {
+      ...contractResponses.fullSyncJob,
+      importVolume: {
+        ...contractResponses.fullSyncJob.importVolume,
+        objectCount: 3,
+        objectCounts: { Account: 3 },
+        entityCounts: { accounts: 3 },
+        totalObjectCount: 3
+      }
+    };
     const { fetch, requests } = mockFetch([
-      contractResponses.fullSyncJob,
+      primaryOnlyFullSyncJob,
       contractResponses.syncJob
     ]);
     const client = new HandrailQuickBooksClient({
@@ -1016,8 +1026,16 @@ describe("HandrailQuickBooksClient", () => {
       "transaction_lines",
       "transactions"
     ]);
-    expect(fullEnvelope.syncJob).toEqual(contractResponses.fullSyncJob);
+    expect(fullEnvelope.syncJob).toEqual(primaryOnlyFullSyncJob);
     expect(fullEnvelope.importBatch).toEqual(contractResponses.importBatch);
+    expect(fullEnvelope.importVolume).toEqual({
+      objectCount: contractResponses.importBatch.totalObjectCount,
+      objectCounts: contractResponses.importBatch.objectCounts,
+      entityCounts: contractResponses.importBatch.entityCounts,
+      totalObjectCount: contractResponses.importBatch.totalObjectCount,
+      errorCount: contractResponses.importBatch.errorCount,
+      warningCount: contractResponses.importBatch.warningCount
+    });
     expect(fullEnvelope.checkpoint?.syncMode).toBe("full");
     expect(fullEnvelope.normalizedCompleteness).toMatchObject({
       accounts: {
