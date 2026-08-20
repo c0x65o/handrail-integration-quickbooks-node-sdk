@@ -1,4 +1,5 @@
 import { HandrailQuickBooksResource } from "./base.js";
+import { normalizeQuickBooksAccountHierarchy, normalizeQuickBooksAccounts } from "../account-hierarchy.js";
 import type {
   HandrailQuickBooksAccount,
   HandrailQuickBooksAccountType,
@@ -15,18 +16,20 @@ export interface ListAccountsRequest extends HandrailQuickBooksListRequest {
 }
 
 export class AccountsResource extends HandrailQuickBooksResource {
-  list(request: ListAccountsRequest = {}) {
-    return this.http.request<HandrailQuickBooksListResponse<HandrailQuickBooksAccount>>(
+  async list(request: ListAccountsRequest = {}) {
+    const response = await this.http.request<HandrailQuickBooksListResponse<HandrailQuickBooksAccount>>(
       this.accountingTenantPath("accounts"),
       {
         query: request
       }
     );
+    return { ...response, data: normalizeQuickBooksAccounts(response.data) };
   }
 
-  get(accountId: string) {
-    return this.http.request<HandrailQuickBooksAccount>(
+  async get(accountId: string) {
+    const account = await this.http.request<HandrailQuickBooksAccount>(
       this.accountingTenantPath(`accounts/${encodeURIComponent(accountId)}`)
     );
+    return normalizeQuickBooksAccountHierarchy(account);
   }
 }

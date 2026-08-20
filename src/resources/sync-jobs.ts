@@ -1,4 +1,5 @@
 import { HandrailQuickBooksResource } from "./base.js";
+import { normalizeQuickBooksAccountResources } from "../account-hierarchy.js";
 import type {
   HandrailQuickBooksListRequest,
   HandrailQuickBooksListResponse,
@@ -15,12 +16,13 @@ export interface HandrailQuickBooksSyncOptions {
 }
 
 export class SyncJobsResource extends HandrailQuickBooksResource {
-  start(request: HandrailQuickBooksStartSyncRequest = {}, options: HandrailQuickBooksSyncOptions = {}) {
-    return this.http.request<HandrailQuickBooksSyncJobSummary>(this.tenantPath("sync-jobs"), {
+  async start(request: HandrailQuickBooksStartSyncRequest = {}, options: HandrailQuickBooksSyncOptions = {}) {
+    const syncJob = await this.http.request<HandrailQuickBooksSyncJobSummary>(this.tenantPath("sync-jobs"), {
       body: request,
       idempotencyKey: options.idempotencyKey,
       method: "POST"
     });
+    return normalizeSyncJobAccountResources(syncJob);
   }
 
   async fullSync(
@@ -39,19 +41,21 @@ export class SyncJobsResource extends HandrailQuickBooksResource {
     return toNormalizedQuickBooksIncrementalSyncResponseEnvelope(syncJob);
   }
 
-  get(jobId: string) {
-    return this.http.request<HandrailQuickBooksSyncJobSummary>(
+  async get(jobId: string) {
+    const syncJob = await this.http.request<HandrailQuickBooksSyncJobSummary>(
       this.tenantPath(`sync-jobs/${encodeURIComponent(jobId)}`)
     );
+    return normalizeSyncJobAccountResources(syncJob);
   }
 
-  list(request: HandrailQuickBooksListRequest = {}) {
-    return this.http.request<HandrailQuickBooksListResponse<HandrailQuickBooksSyncJobSummary>>(
+  async list(request: HandrailQuickBooksListRequest = {}) {
+    const response = await this.http.request<HandrailQuickBooksListResponse<HandrailQuickBooksSyncJobSummary>>(
       this.tenantPath("sync-jobs"),
       {
         query: request
       }
     );
+    return { ...response, data: response.data.map(normalizeSyncJobAccountResources) };
   }
 }
 
@@ -76,6 +80,7 @@ export function toNormalizedQuickBooksIncrementalSyncResponseEnvelope(
 }
 
 function toNormalizedQuickBooksSyncResponseEnvelopeBase(syncJob: HandrailQuickBooksSyncJobSummary) {
+  syncJob = normalizeSyncJobAccountResources(syncJob);
   const importVolume = syncJob.batch
     ? {
         objectCount: syncJob.batch.totalObjectCount,
@@ -114,7 +119,7 @@ function toNormalizedQuickBooksSyncResponseEnvelopeBase(syncJob: HandrailQuickBo
     // family can contain zero, one, or many rows per source object, so expose
     // returned resource row counts under this normalized name.
     normalizedResourceCounts,
-    normalizedResources: syncJob.normalizedResources,
+    normalizedResources: normalizeQuickBooksAccountResources(syncJob.normalizedResources),
     ...(syncJob.normalizationWarnings === undefined || syncJob.normalizationWarnings.length === 0
       ? {}
       : { normalizationWarnings: syncJob.normalizationWarnings }),
@@ -122,4 +127,14 @@ function toNormalizedQuickBooksSyncResponseEnvelopeBase(syncJob: HandrailQuickBo
     syncJob,
     tenantId: syncJob.tenantId
   };
+}
+
+function normalizeSyncJobAccountResources(
+  syncJob: HandrailQuickBooksSyncJobSummary
+): HandrailQuickBooksSyncJobSummary {
+  const normalizedResources = normalizeQuickBooksAccountResources(syncJob.normalizedResources);
+  if (normalizedResources === undefined || normalizedResources === syncJob.normalizedResources) {
+    return syncJob;
+  }
+  return { ...syncJob, normalizedResources };
 }

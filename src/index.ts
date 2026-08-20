@@ -1,5 +1,12 @@
 export { HandrailQuickBooksClient } from "./client.js";
 export {
+  HandrailQuickBooksAccountHierarchyError,
+  normalizeQuickBooksAccountHierarchy,
+  normalizeQuickBooksAccountResources,
+  normalizeQuickBooksAccounts
+} from "./account-hierarchy.js";
+export type { HandrailQuickBooksAccountHierarchyErrorReason } from "./account-hierarchy.js";
+export {
   HandrailQuickBooksConfigError,
   HandrailQuickBooksError
 } from "./errors.js";

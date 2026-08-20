@@ -192,6 +192,16 @@ paginated `{ data, page }` responses unchanged, including optional filters such 
 `cursor` where supported. Generated financial views and close workflows belong in ERP Financials
 or consuming ERP applications.
 
+Account hierarchy is normalized at the SDK boundary. `accounts.list()`,
+`accounts.get()`, `fullSync()`, and `incrementalSync()` accept either
+`parentRef.value` or `parentAccountId`, trim the provider id, and return the
+same stable id in both fields. A parent id implies `subAccount: true` when the
+service omits that flag. Conflicting parent fields, an explicit root flag with
+a parent, a sub-account without a parent id, and self-parenting throw
+`HandrailQuickBooksAccountHierarchyError` with code
+`INVALID_ACCOUNT_HIERARCHY`. The SDK never derives parents from account names,
+indentation, `FullyQualifiedName`, `hierarchyPath`, or `hierarchyLevel`.
+
 Products are normalized from the QuickBooks Accounting API `Item` object. Locations are normalized
 from the QuickBooks `Department` object with `locationSource: "department"` and
 `locationObjectStatus: "mapped_to_department"`; the SDK does not invent a distinct QuickBooks
