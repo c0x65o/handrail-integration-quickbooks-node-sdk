@@ -747,10 +747,25 @@ export interface HandrailQuickBooksProviderReportTotal {
   readonly amount: string;
 }
 
+export type HandrailQuickBooksProfitAndLossAccountClassification =
+  | "income"
+  | "cost_of_goods_sold"
+  | "expense"
+  | "other_income"
+  | "other_expense";
+
 export interface HandrailQuickBooksProviderReportAccountTotal {
   readonly accountSourceId: string;
   readonly label?: string;
+  /** Debit-positive amount used to compare the row with normalized postings. */
   readonly amount: string;
+  /** Exact amount displayed on the provider P&L. */
+  readonly providerAmount?: string;
+  readonly classification?: HandrailQuickBooksProfitAndLossAccountClassification;
+  readonly reportName?: "profit_and_loss";
+  readonly accountingBasis?: HandrailQuickBooksProviderReportBasis;
+  readonly periodStart?: string;
+  readonly periodEnd?: string;
 }
 
 /**

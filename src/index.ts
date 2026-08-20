@@ -121,6 +121,7 @@ export type {
   HandrailQuickBooksProviderReportAccountTotal,
   HandrailQuickBooksProviderReportBasis,
   HandrailQuickBooksProviderReportName,
+  HandrailQuickBooksProfitAndLossAccountClassification,
   HandrailQuickBooksProviderReportRef,
   HandrailQuickBooksProviderReportRequest,
   HandrailQuickBooksProviderReportResponse,
